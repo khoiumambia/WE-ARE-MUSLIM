@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loyalty Program - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .loyalty-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .points-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 30px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .points-amount {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .tier-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .reward-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .reward-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .reward-points {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar {
+            background: var(--border);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navigation-placeholder"></div>
+
+<div class="loyalty-container">
+    <div class="points-card">
+        <i class="fas fa-star" style="font-size: 3rem;"></i>
+        <h2>Your Loyalty Points</h2>
+        <div class="points-amount" id="pointsAmount">0</div>
+        <p>Earn 1 point for every ৳100 spent | 100 points = ৳10 off</p>
+        <button class="btn" onclick="window.location.href='shop.html'" style="background: white; color: var(--primary); margin-top: 1rem;">Shop Now →</button>
+    </div>
+
+    <div class="tier-card">
+        <h2>Your Tier Status</h2>
+        <div id="tierBadge" class="tier-badge tier-bronze">🥉 Bronze Member</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="tierProgress" style="width: 0%;"></div>
+        </div>
+        <p id="tierMessage">Spend ৳2,000 more to reach Silver tier!</p>
+        <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+            <div><small>🥉 Bronze<br>0 pts</small></div>
+            <div><small>🥈 Silver<br>2000 pts</small></div>
+            <div><small>🥇 Gold<br>5000 pts</small></div>
+            <div><small>💎 Platinum<br>10000 pts</small></div>
+        </div>
+    </div>
+
+    <h2 style="font-family: 'Cormorant Garamond'; margin: 2rem 0 1rem;">🎁 Redeem Your Points</h2>
+    <div class="rewards-grid" id="rewardsGrid"></div>
+
+    <h2 style="font-family: 'Cormorant Garamond'; margin: 2rem 0 1rem;">📜 Points History</h2>
+    <div class="tier-card" id="pointsHistory"></div>
+</div>
+
+<script src="js/navigation.js"></script>
+<script src="js/utils.js"></script>
+<script>
+    let userPoints = 0;
+    let userSpent = 0;
+    let rewards = [
+        { id: 1, name: "৳50 Discount", points: 500, description: "Save ৳50 on your next purchase", type: "discount", value: 50 },
+        { id: 2, name: "Free Shipping", points: 800, description: "Free shipping on any order", type: "shipping", value: 0 },
+        { id: 3, name: "৳100 Discount", points: 1000, description: "Save ৳100 on your next purchase", type: "discount", value: 100 },
+        { id: 4, name: "Sample Set (3 pcs)", points: 1500, description: "Get 3 free attar samples", type: "product", value: "samples" },
+        { id: 5, name: "15% Off Entire Order", points: 2000, description: "15% discount on your entire order", type: "discount_percent", value: 15 },
+        { id: 6, name: "Free Gift Box", points: 2500, description: "Premium gift box packaging", type: "gift", value: "box" }
+    ];
+
+    function loadLoyaltyPoints() {
+        userPoints = parseInt(localStorage.getItem('loyalty_points')) || 0;
+        userSpent = parseInt(localStorage.getItem('total_spent')) || 0;
+        document.getElementById('pointsAmount').innerText = userPoints.toLocaleString();
+        updateTier();
+        displayRewards();
+        displayPointsHistory();
+    }
+
+    function updateTier() {
+        let tier = "Bronze";
+        let tierClass = "tier-bronze";
+        let tierIcon = "🥉";
+        let nextTierPoints = 2000;
+
+        if (userPoints >= 10000) {
+            tier = "Platinum";
+            tierClass = "tier-platinum";
+            tierIcon = "💎";
+            nextTierPoints = 0;
+        } else if (userPoints >= 5000) {
+            tier = "Gold";
+            tierClass = "tier-gold";
+            tierIcon = "🥇";
+            nextTierPoints = 10000;
+        } else if (userPoints >= 2000) {
+            tier = "Silver";
+            tierClass = "tier-silver";
+            tierIcon = "🥈";
+            nextTierPoints = 5000;
+        } else {
+            nextTierPoints = 2000;
+        }
+
+        document.getElementById('tierBadge').className = `tier-badge ${tierClass}`;
+        document.getElementById('tierBadge').innerHTML = `${tierIcon} ${tier} Member`;
+
+        let progress = (userPoints / nextTierPoints) * 100;
+        if (nextTierPoints === 0) progress = 100;
+        document.getElementById('tierProgress').style.width = `${Math.min(progress, 100)}%`;
+
+        let pointsNeeded = nextTierPoints - userPoints;
+        if (pointsNeeded > 0) {
+            document.getElementById('tierMessage').innerHTML = `Spend ৳${(pointsNeeded * 100).toLocaleString()} more to reach ${tier === 'Bronze' ? 'Silver' : tier === 'Silver' ? 'Gold' : 'Platinum'} tier!`;
+        } else {
+            document.getElementById('tierMessage').innerHTML = `🎉 Congratulations! You're a ${tier} member! Enjoy exclusive benefits!`;
+        }
+    }
+
+    function displayRewards() {
+        const container = document.getElementById('rewardsGrid');
+        container.innerHTML = rewards.map(reward => `
+            <div class="reward-card" onclick="redeemReward(${reward.id})">
+                <i class="fas fa-gift" style="font-size: 2rem; color: var(--primary);"></i>
+                <h3>${reward.name}</h3>
+                <div class="reward-points">${reward.points.toLocaleString()} points</div>
+                <p style="font-size: 0.9rem; color: #666;">${reward.description}</p>
+                <button class="btn btn-primary" style="margin-top: 1rem; width: 100%;" ${userPoints < reward.points ? 'disabled' : ''}>
+                    ${userPoints >= reward.points ? 'Redeem Now' : 'Need More Points'}
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function redeemReward(rewardId) {
+        const reward = rewards.find(r => r.id === rewardId);
+        if (!reward) return;
+
+        if (userPoints < reward.points) {
+            showToast(`❌ You need ${reward.points - userPoints} more points to redeem this reward!`);
+            return;
+        }
+
+        if (confirm(`Redeem ${reward.points} points for ${reward.name}?`)) {
+            userPoints -= reward.points;
+            localStorage.setItem('loyalty_points', userPoints);
+
+            let history = JSON.parse(localStorage.getItem('points_history')) || [];
+            history.unshift({
+                id: Date.now(),
+                type: 'redeem',
+                reward: reward.name,
+                points: reward.points,
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('points_history', JSON.stringify(history));
+
+            if (reward.type === 'discount') {
+                let discountCode = `POINTS${Math.floor(Math.random() * 10000)}`;
+                localStorage.setItem('points_discount', JSON.stringify({
+                    code: discountCode,
+                    value: reward.value,
+                    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                }));
+                showToast(`🎉 Reward redeemed! Use code: ${discountCode} for ৳${reward.value} off!`);
+            } else if (reward.type === 'discount_percent') {
+                let discountCode = `SAVE${reward.value}OFF`;
+                showToast(`🎉 Reward redeemed! Use code: ${discountCode} for ${reward.value}% off!`);
+            } else if (reward.type === 'shipping') {
+                localStorage.setItem('free_shipping', 'true');
+                showToast(`🎉 Free shipping applied to your next order!`);
+            } else {
+                showToast(`🎉 ${reward.name} redeemed! Check your email for details.`);
+            }
+
+            loadLoyaltyPoints();
+        }
+    }
+
+    function displayPointsHistory() {
+        let history = JSON.parse(localStorage.getItem('points_history')) || [];
+
+        if (history.length === 0) {
+            history = [
+                { id: 1, type: 'earn', description: 'First purchase', points: 120, date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+                { id: 2, type: 'earn', description: 'Birthday bonus', points: 500, date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+                { id: 3, type: 'earn', description: 'Product review', points: 50, date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }
+            ];
+            localStorage.setItem('points_history', JSON.stringify(history));
+        }
+
+        const container = document.getElementById('pointsHistory');
+        if (history.length === 0) {
+            container.innerHTML = '<p>No points history yet. Start shopping to earn points!</p>';
+            return;
+        }
+
+        container.innerHTML = history.map(h => `
+            <div style="border-bottom: 1px solid var(--border); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>${h.type === 'earn' ? '✅' : '🎁'} ${h.reward || h.description || 'Points Activity'}</strong><br>
+                    <small>${formatDate(h.date)}</small>
+                </div>
+                <div style="font-weight: bold; color: ${h.type === 'earn' ? 'green' : 'red'};">
+                    ${h.type === 'earn' ? '+' : '-'}${h.points || 0} points
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.redeemReward = redeemReward;
+
+    loadLoyaltyPoints();
+</script>
+</body>
+</html>

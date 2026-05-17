@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navigation-placeholder"></div>
+
+    <div class="admin-container" id="adminContainer">
+        <div class="loading">Loading settings...</div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            if (user.role !== 'admin') {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        function renderSettings() {
+            const container = document.getElementById('adminContainer');
+            const store = JSON.parse(localStorage.getItem('store_settings')) || {};
+            const payment = JSON.parse(localStorage.getItem('payment_settings')) || {};
+            const email = JSON.parse(localStorage.getItem('email_settings')) || {};
+
+            container.innerHTML = `
+                <div class="settings-card">
+                    <h2>⚙️ General Settings</h2>
+                    <div class="form-group"><label>Store Name</label><input type="text" id="storeName" value="${escapeHtml(store.storeName || '#WE ARE MUSLIM')}"></div>
+                    <div class="form-group"><label>Store Email</label><input type="email" id="storeEmail" value="${escapeHtml(store.storeEmail || 'info@wearemuslim.com')}"></div>
+                    <div class="form-group"><label>Phone Number</label><input type="text" id="storePhone" value="${escapeHtml(store.storePhone || '+880 1234 567890')}"></div>
+                    <div class="form-group"><label>Address</label><textarea id="storeAddress" rows="2">${escapeHtml(store.storeAddress || 'House #42, Road #12, Banani, Dhaka-1213, Bangladesh')}</textarea></div>
+                    <button class="btn btn-primary" onclick="saveGeneralSettings()">Save Settings</button>
+                </div>
+
+                <div class="settings-card">
+                    <h2>💰 Payment Settings</h2>
+                    <div class="form-group"><label>bKash Number</label><input type="text" id="bkashNumber" value="${escapeHtml(payment.bkash || '')}"></div>
+                    <div class="form-group"><label>Nagad Number</label><input type="text" id="nagadNumber" value="${escapeHtml(payment.nagad || '')}"></div>
+                    <div class="form-group"><label>Rocket Number</label><input type="text" id="rocketNumber" value="${escapeHtml(payment.rocket || '')}"></div>
+                    <div class="form-group"><label>Bank Account Details</label><textarea id="bankDetails" rows="3">${escapeHtml(payment.bank || '')}</textarea></div>
+                    <button class="btn btn-primary" onclick="savePaymentSettings()">Save Payment Settings</button>
+                </div>
+
+                <div class="settings-card">
+                    <h2>📧 Email/SMTP Settings</h2>
+                    <div class="form-group"><label>SMTP Host</label><input type="text" id="smtpHost" value="${escapeHtml(email.host || 'smtp.gmail.com')}"></div>
+                    <div class="form-group"><label>SMTP Port</label><input type="text" id="smtpPort" value="${escapeHtml(email.port || '587')}"></div>
+                    <div class="form-group"><label>SMTP Username</label><input type="email" id="smtpUser" value="${escapeHtml(email.user || '')}"></div>
+                    <div class="form-group"><label>SMTP Password</label><input type="password" id="smtpPass" value="${escapeHtml(email.pass || '')}"></div>
+                    <button class="btn btn-primary" onclick="saveEmailSettings()">Save Email Settings</button>
+                </div>
+
+                <div class="settings-card">
+                    <h2>🗑️ Danger Zone</h2>
+                    <button class="btn btn-danger" onclick="clearAllData()">Clear All Data (Reset Store)</button>
+                    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">⚠️ This will delete all products, orders, and user data. This action cannot be undone.</p>
+                </div>
+            `;
+        }
+
+        function saveGeneralSettings() {
+            const settings = {
+                storeName: document.getElementById('storeName').value,
+                storeEmail: document.getElementById('storeEmail').value,
+                storePhone: document.getElementById('storePhone').value,
+                storeAddress: document.getElementById('storeAddress').value
+            };
+            localStorage.setItem('store_settings', JSON.stringify(settings));
+            showToast('General settings saved!');
+        }
+
+        function savePaymentSettings() {
+            const payment = {
+                bkash: document.getElementById('bkashNumber').value,
+                nagad: document.getElementById('nagadNumber').value,
+                rocket: document.getElementById('rocketNumber').value,
+                bank: document.getElementById('bankDetails').value
+            };
+            localStorage.setItem('payment_settings', JSON.stringify(payment));
+            showToast('Payment settings saved!');
+        }
+
+        function saveEmailSettings() {
+            const emailSettings = {
+                host: document.getElementById('smtpHost').value,
+                port: document.getElementById('smtpPort').value,
+                user: document.getElementById('smtpUser').value,
+                pass: document.getElementById('smtpPass').value
+            };
+            localStorage.setItem('email_settings', JSON.stringify(emailSettings));
+            showToast('Email settings saved!');
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL data. This cannot be undone. Are you absolutely sure?')) {
+                const confirmation = prompt('Type "DELETE" to confirm:');
+                if (confirmation === 'DELETE') {
+                    localStorage.clear();
+                    showToast('All data cleared! Page will reload.');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            }
+        }
+
+        if (checkAdminAccess()) {
+            renderSettings();
+        }
+
+        window.saveGeneralSettings = saveGeneralSettings;
+        window.savePaymentSettings = savePaymentSettings;
+        window.saveEmailSettings = saveEmailSettings;
+        window.clearAllData = clearAllData;
+    </script>
+</body>
+
+</html>
