@@ -363,61 +363,70 @@
         
         // ==================== GOOGLE SIGN-IN (Firebase) ====================
         async function continueWithGoogle() {
-            if (!isFirebaseInitialized) {
-                showToast('Firebase not configured. Please check your configuration.');
-                return;
-            }
+    // REAL Google Sign-In - opens Google popup
+    if (!isFirebaseInitialized) {
+        showToast('Firebase not initialized. Please refresh and try again.');
+        return;
+    }
+    
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            const user = result.user;
+            const email = user.email;
+            const name = user.displayName;
             
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                
-                const email = user.email;
-                const name = user.displayName;
-                
-                // Check if user exists in localStorage
-                const users = getUsers();
-                let existingUser = users.find(u => u.email === email);
-                
-                if (existingUser) {
-                    const { password, ...userWithoutPassword } = existingUser;
-                    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                    showToast(`Welcome back, ${existingUser.name || existingUser.email}!`);
-                    setTimeout(() => {
-                        if (existingUser.role === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
-                    }, 1000);
-                } else {
-                    const newUser = {
-                        id: Date.now(),
-                        email: email,
-                        password: 'firebase_google_' + Date.now(),
-                        role: 'user',
-                        name: name || email.split('@')[0],
-                        phone: '',
-                        createdAt: new Date().toISOString(),
-                        authProvider: 'firebase_google'
-                    };
-                    users.push(newUser);
-                    saveUsers(users);
-                    
-                    const { password, ...userWithoutPassword } = newUser;
-                    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                    showToast(`Welcome ${name || email.split('@')[0]}! Account created with Google.`);
-                    setTimeout(() => {
+            // Check if user exists in localStorage
+            const users = getUsers();
+            let existingUser = users.find(u => u.email === email);
+            
+            if (existingUser) {
+                const { password, ...userWithoutPassword } = existingUser;
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                showToast(`Welcome back, ${existingUser.name || existingUser.email}!`);
+                setTimeout(() => {
+                    if (existingUser.role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
                         window.location.href = 'index.html';
-                    }, 1000);
-                }
-            } catch (error) {
-                console.error("Google Sign-In error:", error);
+                    }
+                }, 1000);
+            } else {
+                const newUser = {
+                    id: Date.now(),
+                    email: email,
+                    password: 'google_' + Date.now(),
+                    role: 'user',
+                    name: name || email.split('@')[0],
+                    phone: '',
+                    createdAt: new Date().toISOString(),
+                    authProvider: 'google'
+                };
+                users.push(newUser);
+                saveUsers(users);
+                
+                const { password, ...userWithoutPassword } = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                showToast(`Welcome ${name || email.split('@')[0]}!`);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        })
+        .catch((error) => {
+            console.error('Google Sign-In Error:', error);
+            if (error.code === 'auth/popup-blocked') {
+                showToast('Popup was blocked. Please allow popups for this site.');
+            } else if (error.code === 'auth/unauthorized-domain') {
+                showToast('This domain is not authorized. Please contact support.');
+            } else {
                 showToast('Google Sign-In failed. Please try again.');
             }
-        }
-        
+        });
+}
         // ==================== LOCAL STORAGE USER MANAGEMENT ====================
         function getUsers() {
             const stored = localStorage.getItem('attar_users');
