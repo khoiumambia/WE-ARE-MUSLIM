@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8B5E3C;
+            --primary-dark: #6B4423;
+            --primary-light: #C4A27A;
+            --accent: #D4AF37;
+            --background: #FDF8F5;
+            --surface: #FFFFFF;
+            --border: #E8DDD3;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --text: #2C1810;
+            --text-light: #6B4423;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+        }
+
+        /* Main Container */
+        .users-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-header h1 i {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            background: rgba(139, 94, 60, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .stat-info h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .stat-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Action Bar */
+        .action-bar {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .search-section {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.1);
+        }
+
+        .filter-select {
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 10px;
+        }
+
+        /* Users Table */
+        .users-table-wrapper {
+            background: var(--surface);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .users-table {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            padding: 1.2rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-light);
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .users-table tr:hover {
+            background: rgba(139, 94, 60, 0.02);
+        }
+
+        /* User Avatar */
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Role Badges */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .role-user {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Password Display */
+        .password-cell {
+            max-width: 180px;
+        }
+
+        .password-value {
+            font-family: 'Courier New', monospace;
+            background: var(--background);
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: inline-block;
+            word-break: break-all;
+        }
+
+        /* Auth Badge */
+        .auth-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            background: var(--background);
+        }
+
+        /* Action Icons */
+        .action-icons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .action-icon:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-icon.view:hover { background: var(--info); color: white; }
+        .action-icon.edit:hover { background: var(--warning); color: white; }
+        .action-icon.reset:hover { background: #ff9800; color: white; }
+        .action-icon.delete:hover { background: var(--danger); color: white; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--text-light);
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.1);
+        }
+
+        .form-hint {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        .password-show {
+            font-family: monospace;
+            background: var(--background);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .order-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 0;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .users-container {
+                padding: 0 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .users-table th:nth-child(4),
+            .users-table td:nth-child(4),
+            .users-table th:nth-child(7),
+            .users-table td:nth-child(7) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="users-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-users"></i> User Management</h1>
+            <p>Manage customer accounts, view details, and control access permissions</p>
+        </div>
+
+        <!-- Stats Cards will be inserted here -->
+        <div id="statsContainer"></div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchUsers" placeholder="Search by name, email, or phone..." onkeyup="filterUsers()">
+                </div>
+                <select id="roleFilter" class="filter-select" onchange="filterUsers()">
+                    <option value="all">All Roles</option>
+                    <option value="admin">👑 Administrators</option>
+                    <option value="user">👤 Customers</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="showAddUserModal()">
+                    <i class="fas fa-plus"></i> Add New User
+                </button>
+                <button class="btn btn-outline" onclick="syncWithFirebase()">
+                    <i class="fas fa-sync-alt"></i> Sync Firebase
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-wrapper">
+            <div class="users-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Contact</th>
+                            <th>Role</th>
+                            <th>Password</th>
+                            <th>Orders</th>
+                            <th>Auth</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 3rem;"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-circle"></i> User Profile</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div id="userModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addUserTitle"><i class="fas fa-user-plus"></i> Add New User</h3>
+                <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
+            </div>
+            <form id="addUserForm" onsubmit="event.preventDefault(); saveUser();">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="userName" required placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="userEmail" required placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="userPassword" placeholder="Enter password (min 6 chars)">
+                    <div class="form-hint">* Required for new users. Leave blank to keep current password when editing.</div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="userPhone" placeholder="+880XXXXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="userRole">
+                        <option value="user">👤 Customer</option>
+                        <option value="admin">👑 Administrator</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Save User
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeAddUserModal()" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Reset Password</h3>
+                <button class="modal-close" onclick="closeResetPasswordModal()">&times;</button>
+            </div>
+            <div id="resetPasswordContent"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // ==================== FIREBASE CONFIGURATION ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP8Uh6Yxu-dIpywGVEXtnQYSUVIoCViyg",
+            authDomain: "attar-website-e4434.firebaseapp.com",
+            projectId: "attar-website-e4434",
+            storageBucket: "attar-website-e4434.firebasestorage.app",
+            messagingSenderId: "1002231077102",
+            appId: "1:1002231077102:web:b85ab766484bc4f65ebbff",
+            measurementId: "G-HRJQW7M430"
+        };
+        
+        let auth = null;
+        let isFirebaseInitialized = false;
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            isFirebaseInitialized = true;
+            console.log("Firebase initialized");
+        } catch (error) {
+            console.error("Firebase error:", error);
+        }
+        
+        let allUsers = [];
+        let allOrders = [];
+        let currentAdmin = null;
+        let searchTerm = '';
+        let roleFilter = 'all';
+        let currentResetUser = null;
+
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) { window.location.href = 'login.html'; return false; }
+            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            currentAdmin = user;
+            return true;
+        }
+
+        async function syncWithFirebase() {
+            if (!isFirebaseInitialized) {
+                showToast('Firebase not initialized.');
+                return;
+            }
+            showToast('Syncing with Firebase...');
+            try {
+                const usersFromFirebase = [];
+                let nextPageToken = null;
+                do {
+                    const result = await auth.listUsers(1000, nextPageToken);
+                    usersFromFirebase.push(...result.users);
+                    nextPageToken = result.pageToken;
+                } while (nextPageToken);
+                
+                for (const firebaseUser of usersFromFirebase) {
+                    const email = firebaseUser.email;
+                    if (!allUsers.find(u => u.email === email)) {
+                        allUsers.push({
+                            id: Date.now() + Math.random(),
+                            email: email,
+                            password: 'firebase_user',
+                            role: 'user',
+                            name: firebaseUser.displayName || email.split('@')[0],
+                            phone: firebaseUser.phoneNumber || '',
+                            createdAt: new Date(firebaseUser.metadata.creationTime).toISOString(),
+                            authProvider: 'firebase',
+                            firebaseUid: firebaseUser.uid
+                        });
+                    }
+                }
+                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+                showToast(`Synced ${usersFromFirebase.length} users`);
+                loadUsers();
+            } catch (error) {
+                showToast('Sync failed');
+            }
+        }
+
+        function loadUsers() {
+            allUsers = JSON.parse(localStorage.getItem('attar_users')) || [];
+            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
+            
+            if (!allUsers.find(u => u.role === 'admin')) {
+                allUsers.push({ 
+                    id: 1, email: "admin@attar.com", password: "admin123", role: "admin", 
+                    name: "Admin User", phone: "", createdAt: new Date().toISOString() 
+                });
+                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+            }
+            renderStats();
+            renderUsers();
+        }
+
+        function renderStats() {
+            const totalUsers = allUsers.length;
+            const adminCount = allUsers.filter(u => u.role === 'admin').length;
+            const customerCount = allUsers.filter(u => u.role === 'user').length;
+            const firebaseCount = allUsers.filter(u => u.authProvider === 'firebase' || u.authProvider === 'firebase_google').length;
+            
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info"><h3>${totalUsers}</h3><p>Total Users</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
+                        <div class="stat-info"><h3>${adminCount}</h3><p>Administrators</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-user"></i></div>
+                        <div class="stat-info"><h3>${customerCount}</h3><p>Customers</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fab fa-firebase"></i></div>
+                        <div class="stat-info"><h3>${firebaseCount}</h3><p>Firebase Users</p></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('statsContainer').innerHTML = statsHtml;
+        }
+
+        function renderUsers() {
+            let filtered = [...allUsers];
+            if (searchTerm) {
+                filtered = filtered.filter(u => 
+                    u.name.toLowerCase().includes(searchTerm) || 
+                    u.email.toLowerCase().includes(searchTerm) ||
+                    (u.phone && u.phone.includes(searchTerm))
+                );
+            }
+            if (roleFilter !== 'all') {
+                filtered = filtered.filter(u => u.role === roleFilter);
+            }
+            
+            const tbody = document.getElementById('usersTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash"></i>
+                                <h3>No users found</h3>
+                                <p>Try adjusting your search or filter criteria</p>
+                                <button class="btn btn-primary btn-sm" onclick="showAddUserModal()" style="margin-top: 1rem;">
+                                    <i class="fas fa-plus"></i> Add New User
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(user => {
+                const userOrders = allOrders.filter(o => o.user === user.email);
+                const orderCount = userOrders.length;
+                const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
+                const canDelete = user.email !== currentAdmin?.email;
+                const isFirebaseUser = user.authProvider === 'firebase' || user.authProvider === 'firebase_google';
+                
+                let displayPassword = '—';
+                if (user.password && user.password !== 'firebase_user' && user.password !== 'firebase_google_') {
+                    displayPassword = user.password;
+                }
+                
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <div class="user-avatar">${initial}</div>
+                                <div>
+                                    <div style="font-weight: 600;">${escapeHtml(user.name)}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(user.email)}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${user.phone || '<span style="color: #ccc;">—</span>'}</td>
+                        <td><span class="role-badge ${user.role === 'admin' ? 'role-admin' : 'role-user'}">${user.role === 'admin' ? '👑 Admin' : '👤 Customer'}</span></td>
+                        <td class="password-cell"><code class="password-value">${escapeHtml(displayPassword)}</code></td>
+                        <td>
+                            <div style="font-weight: 600;">${orderCount} orders</div>
+                            <div style="font-size: 0.7rem; color: var(--text-light);">${userOrders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString()} ৳</div>
+                        </td>
+                        <td>
+                            <span class="auth-badge">
+                                ${isFirebaseUser ? '<i class="fab fa-firebase"></i> Firebase' : '<i class="fas fa-database"></i> Local'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-icons">
+                                <button class="action-icon view" onclick="viewUserDetails('${user.email}')" title="View Details"><i class="fas fa-eye"></i></button>
+                                <button class="action-icon edit" onclick="editUser('${user.email}')" title="Edit User"><i class="fas fa-edit"></i></button>
+                                <button class="action-icon reset" onclick="showResetPasswordModal('${user.email}')" title="Reset Password"><i class="fas fa-key"></i></button>
+                                ${canDelete ? `<button class="action-icon delete" onclick="deleteUser('${user.email}')" title="Delete User"><i class="fas fa-trash"></i></button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterUsers() {
+            searchTerm = document.getElementById('searchUsers')?.value.toLowerCase() || '';
+            roleFilter = document.getElementById('roleFilter')?.value || 'all';
+            renderUsers();
+        }
+
+        function showAddUserModal() {
+            document.getElementById('addUserTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New User';
+            document.getElementById('editUserId').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').required = true;
+            document.getElementById('userPhone').value = '';
+            document.getElementById('userRole').value = 'user';
+            document.getElementById('addUserModal').style.display = 'flex';
+        }
+
+        function editUser(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+            document.getElementById('addUserTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit User';
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('userName').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').required = false;
+            document.getElementById('userPhone').value = user.phone || '';
+            document.getElementById('userRole').value = user.role;
+            document.getElementById('addUserModal').style.display = 'flex';
+        }
+
+        async function saveUser() {
+            const id = document.getElementById('editUserId').value;
+            const name = document.getElementById('userName').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const phone = document.getElementById('userPhone').value.trim();
+            const role = document.getElementById('userRole').value;
+            
+            if (!name || !email) {
+                showToast('Please fill all required fields');
+                return;
+            }
+            
+            if (id) {
+                const userIndex = allUsers.findIndex(u => u.id == id);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].name = name;
+                    allUsers[userIndex].phone = phone;
+                    allUsers[userIndex].role = role;
+                    if (password && password.length >= 6) {
+                        allUsers[userIndex].password = password;
+                        if (isFirebaseInitialized) {
+                            try {
+                                const userCredential = await auth.signInWithEmailAndPassword(email, allUsers[userIndex].password);
+                                await userCredential.user.updatePassword(password);
+                            } catch(e) {}
+                        }
+                    }
+                    showToast('User updated');
+                }
+            } else {
+                if (!password || password.length < 6) {
+                    showToast('Password must be at least 6 characters');
+                    return;
+                }
+                if (allUsers.find(u => u.email === email)) {
+                    showToast('Email already exists');
+                    return;
+                }
+                
+                let firebaseCreated = false;
+                if (isFirebaseInitialized) {
+                    try {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                        firebaseCreated = true;
+                    } catch(e) {}
+                }
+                
+                allUsers.push({
+                    id: Date.now(),
+                    email: email,
+                    password: password,
+                    role: role,
+                    name: name,
+                    phone: phone,
+                    createdAt: new Date().toISOString(),
+                    authProvider: firebaseCreated ? 'firebase' : 'local'
+                });
+                showToast('User added');
+            }
+            
+            localStorage.setItem('attar_users', JSON.stringify(allUsers));
+            closeAddUserModal();
+            renderStats();
+            renderUsers();
+        }
+
+        function deleteUser(email) {
+            if (email === currentAdmin?.email) {
+                showToast('You cannot delete your own account');
+                return;
+            }
+            if (confirm(`Delete user: ${email}? This cannot be undone.`)) {
+                allUsers = allUsers.filter(u => u.email !== email);
+                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+                showToast('User deleted');
+                renderStats();
+                renderUsers();
+            }
+        }
+
+        function viewUserDetails(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+            
+            const userOrders = allOrders.filter(o => o.user === email);
+            const totalSpent = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+            const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
+            
+            let displayPassword = 'No password saved';
+            if (user.password && user.password !== 'firebase_user' && user.password !== 'firebase_google_') {
+                displayPassword = user.password;
+            } else if (user.authProvider === 'firebase') {
+                displayPassword = 'Managed by Firebase';
+            }
+            
+            const modal = document.getElementById('userModal');
+            const content = document.getElementById('userModalContent');
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto;">${initial}</div>
+                    <h3 style="margin-top: 0.8rem;">${escapeHtml(user.name)}</h3>
+                    <p style="color: var(--text-light);">${escapeHtml(user.email)}</p>
+                </div>
+                <div class="form-group"><label>Phone Number</label><p>${user.phone || 'Not provided'}</p></div>
+                <div class="form-group"><label>Role</label><p>${user.role === 'admin' ? 'Administrator' : 'Customer'}</p></div>
+                <div class="form-group"><label>Password</label><p><code class="password-value">${escapeHtml(displayPassword)}</code></p></div>
+                <div class="form-group"><label>Joined</label><p>${user.createdAt ? formatDate(user.createdAt) : 'Unknown'}</p></div>
+                <div class="form-group"><label>Auth Provider</label><p>${user.authProvider === 'firebase' ? 'Firebase Email/Password' : (user.authProvider === 'firebase_google' ? 'Firebase Google' : 'Local Storage')}</p></div>
+                <hr style="margin: 1rem 0;">
+                <h4>Order Summary</h4>
+                <div class="form-group"><label>Total Orders</label><p>${userOrders.length}</p></div>
+                <div class="form-group"><label>Total Spent</label><p>৳${totalSpent.toLocaleString()}</p></div>
+                ${userOrders.length > 0 ? `
+                    <h4>Recent Orders</h4>
+                    <div class="order-list">
+                        ${userOrders.slice(0, 5).map(order => `
+                            <div class="order-item">
+                                <div><strong>${order.id}</strong> - ${formatDate(order.date)}</div>
+                                <div>Total: ৳${order.total} | Status: ${order.status}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary" onclick="closeUserModal()" style="width: 100%;">Close</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function showResetPasswordModal(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+            currentResetUser = user;
+            
+            const modal = document.getElementById('resetPasswordModal');
+            const content = document.getElementById('resetPasswordContent');
+            content.innerHTML = `
+                <form onsubmit="event.preventDefault(); resetUserPassword();">
+                    <div class="form-group">
+                        <label>User</label>
+                        <input type="text" value="${escapeHtml(user.name)} (${escapeHtml(user.email)})" readonly style="background:#f5f5f5;">
+                    </div>
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="text" value="${user.password && user.password !== 'firebase_user' ? user.password : 'Unknown'}" readonly style="background:#f5f5f5;">
+                        <div class="form-hint">Current password for reference</div>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password *</label>
+                        <input type="password" id="newPassword" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fas fa-save"></i> Reset Password</button>
+                        <button type="button" class="btn btn-outline" onclick="closeResetPasswordModal()" style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        async function resetUserPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!newPassword || newPassword.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match');
+                return;
+            }
+            
+            const userIndex = allUsers.findIndex(u => u.email === currentResetUser.email);
+            if (userIndex !== -1) {
+                allUsers[userIndex].password = newPassword;
+                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+            }
+            
+            if (isFirebaseInitialized) {
+                try {
+                    await auth.sendPasswordResetEmail(currentResetUser.email);
+                    showToast(`Password reset email sent to ${currentResetUser.email}`);
+                } catch(e) {}
+            }
+            
+            showToast(`Password reset successfully! New password: ${newPassword}`);
+            closeResetPasswordModal();
+            renderUsers();
+        }
+
+        function closeUserModal() { document.getElementById('userModal').style.display = 'none'; }
+        function closeAddUserModal() { document.getElementById('addUserModal').style.display = 'none'; }
+        function closeResetPasswordModal() { document.getElementById('resetPasswordModal').style.display = 'none'; currentResetUser = null; }
+
+        window.filterUsers = filterUsers;
+        window.viewUserDetails = viewUserDetails;
+        window.deleteUser = deleteUser;
+        window.closeUserModal = closeUserModal;
+        window.showAddUserModal = showAddUserModal;
+        window.editUser = editUser;
+        window.saveUser = saveUser;
+        window.closeAddUserModal = closeAddUserModal;
+        window.showResetPasswordModal = showResetPasswordModal;
+        window.resetUserPassword = resetUserPassword;
+        window.closeResetPasswordModal = closeResetPasswordModal;
+        window.syncWithFirebase = syncWithFirebase;
+
+        if (checkAdminAccess()) {
+            loadUsers();
+        }
+    </script>
+</body>
+</html>
