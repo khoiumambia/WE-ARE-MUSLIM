@@ -320,7 +320,7 @@ body {
 /* Search Section */
 .search-section {
     max-width: 1400px;
-    margin: 10px auto 2rem;
+    margin: 30px auto 2rem;
     padding: 0 2rem;
     position: relative;
     z-index: 10;
