@@ -318,7 +318,7 @@
             isFirebaseInitialized = false;
         }
         
-        // ==================== GOOGLE SIGN-IN (REDIRECT METHOD - FIXES POPUP BLOCK) ====================
+        // ==================== GOOGLE SIGN-IN (REDIRECT METHOD) ====================
         async function continueWithGoogle() {
             if (!isFirebaseInitialized) {
                 showToast('Firebase is initializing. Please try again in a moment.');
@@ -330,12 +330,26 @@
                 provider.addScope('email');
                 provider.addScope('profile');
                 
-                // Use redirect instead of popup (avoids COOP issues)
+                // Show loading state
+                const btns = document.querySelectorAll('.google-btn');
+                btns.forEach(btn => {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting to Google...';
+                    btn.disabled = true;
+                });
+                
+                // Use redirect instead of popup
                 await auth.signInWithRedirect(provider);
                 
             } catch (error) {
                 console.error('Google Sign-In Error:', error);
                 showToast('Google Sign-In failed. Please try again.');
+                
+                // Reset buttons
+                const btns = document.querySelectorAll('.google-btn');
+                btns.forEach(btn => {
+                    btn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
+                    btn.disabled = false;
+                });
             }
         }
         
@@ -345,20 +359,30 @@
             
             try {
                 const result = await auth.getRedirectResult();
+                
+                // Check if we have a user from the redirect
                 if (result.user) {
                     const user = result.user;
                     const email = user.email;
                     const name = user.displayName;
                     
-                    console.log('Google user from redirect:', { email, name });
+                    console.log('Google user from redirect:', { email, name, uid: user.uid });
                     
-                    // Check if user exists in localStorage
-                    const users = getUsers();
+                    if (!email) {
+                        console.error('No email from Google');
+                        showToast('Could not get email from Google. Please try again.');
+                        return;
+                    }
+                    
+                    // Get existing users from localStorage
+                    let users = getUsers();
                     let existingUser = users.find(u => u.email === email);
                     
                     if (existingUser) {
+                        // Existing user - login
                         const { password, ...userWithoutPassword } = existingUser;
                         localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                        console.log('Existing user logged in:', email);
                         showToast(`Welcome back, ${existingUser.name || existingUser.email}!`);
                         setTimeout(() => {
                             if (existingUser.role === 'admin') {
@@ -368,10 +392,11 @@
                             }
                         }, 1000);
                     } else {
+                        // New user - create account
                         const newUser = {
                             id: Date.now(),
                             email: email,
-                            password: 'google_oauth_' + Date.now(),
+                            password: 'google_oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
                             role: 'user',
                             name: name || email.split('@')[0],
                             phone: '',
@@ -383,24 +408,25 @@
                         
                         const { password, ...userWithoutPassword } = newUser;
                         localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                        console.log('New user created:', newUser.email);
                         showToast(`Welcome ${name || email.split('@')[0]}! Your account has been created.`);
                         setTimeout(() => {
                             window.location.href = 'index.html';
                         }, 1000);
                     }
+                } else {
+                    // No redirect result - this is a normal page load
+                    console.log('No redirect result found');
                 }
             } catch (error) {
                 console.error('Redirect result error:', error);
-                if (error.code === 'auth/popup-closed-by-user') {
-                    // This is fine, user cancelled
-                    console.log('User cancelled sign in');
-                } else {
-                    showToast('Google Sign-In failed: ' + error.message);
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showToast('Google Sign-In failed: ' + (error.message || 'Unknown error'));
                 }
             }
         }
         
-        // ==================== FORGOT PASSWORD (Firebase) ====================
+        // ==================== FORGOT PASSWORD ====================
         function showForgotPasswordModal() {
             document.getElementById('forgotPasswordModal').style.display = 'flex';
             document.getElementById('resetEmail').value = '';
@@ -592,6 +618,7 @@
         
         // Handle redirect result when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // This is critical - check for redirect result on every page load
             handleRedirectResult();
             
             const googleLoginBtn = document.getElementById('googleSignInBtn');
@@ -607,7 +634,7 @@
         
         // Check if already logged in
         const currentUser = getCurrentUser();
-        if (currentUser) {
+        if (currentUser && !window.location.pathname.includes('login.html')) {
             window.location.href = 'index.html';
         }
         
