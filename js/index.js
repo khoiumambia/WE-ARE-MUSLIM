@@ -16,16 +16,15 @@ async function loadIndexData() {
         const response = await fetch('/.netlify/functions/get-products');
         const data = await response.json();
         
-        // Extract products (API returns array directly)
-        if (Array.isArray(data)) {
-            products = data;
-        } else if (data.products && Array.isArray(data.products)) {
-            products = data.products;
-        } else {
-            products = [];
-        }
+        // API returns array directly
+        products = Array.isArray(data) ? data : [];
         
         console.log(`Loaded ${products.length} products from database`);
+        
+        // Mark first 4 products as best sellers for display
+        products.forEach((p, index) => {
+            p.isBestSeller = index < 4;
+        });
         
         // Store in localStorage as backup
         localStorage.setItem('attar_products', JSON.stringify(products));
@@ -50,6 +49,7 @@ async function loadIndexData() {
         
     } catch (error) {
         console.error('Error loading products from API:', error);
+        showToast('Failed to load products, using offline data');
         
         // Fallback to localStorage
         const stored = localStorage.getItem('attar_products');
@@ -81,23 +81,26 @@ async function loadIndexData() {
         updateCartCount();
         updateWishlistCount();
         updatePointsDisplay();
-        showToast('Using offline product data');
     }
 }
 
 function displayFeatured() {
     const featured = products.slice(0, 4);
     const grid = document.getElementById('featuredProducts');
-    if (grid) {
+    if (grid && featured.length > 0) {
         grid.innerHTML = featured.map(p => renderProductCard(p)).join('');
+    } else if (grid) {
+        grid.innerHTML = '<div class="loading">No products available</div>';
     }
 }
 
 function displayBestSellers() {
     const bestSellers = products.filter(p => p.isBestSeller).slice(0, 4);
     const grid = document.getElementById('bestSellers');
-    if (grid) {
+    if (grid && bestSellers.length > 0) {
         grid.innerHTML = bestSellers.map(p => renderProductCard(p)).join('');
+    } else if (grid) {
+        grid.innerHTML = '<div class="loading">No products available</div>';
     }
 }
 
@@ -116,6 +119,9 @@ function renderProductCard(p) {
                 <div class="product-title">${escapeHtml(p.name)}</div>
                 <div style="font-size: 0.8rem; color: #666;">${escapeHtml(p.brand)} | ${escapeHtml(p.fragrance)}</div>
                 <div class="product-price">৳${p.price.toLocaleString()}</div>
+                <div class="stock-status ${p.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                    ${p.stock > 0 ? '✓ In Stock' : '✗ Out of Stock'}
+                </div>
                 <div style="font-size: 0.8rem;">⭐ ${p.ratings} (${p.reviews} reviews)</div>
                 <button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); addToCart(${p.id})">
                     <i class="fas fa-shopping-cart"></i> ${isLoggedIn ? 'Add to Cart' : 'Login to Add to Cart'}
@@ -149,7 +155,6 @@ function displayBlogPosts() {
 }
 
 function addToCart(productId) {
-    // CHECK LOGIN REQUIREMENT
     if (!requireLogin('add items to cart')) {
         return;
     }
