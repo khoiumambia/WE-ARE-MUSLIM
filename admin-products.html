@@ -284,7 +284,7 @@
             document.getElementById('productModal').style.display = 'flex';
         }
 
-        function saveProduct() {
+        async function saveProduct() {
             const id = document.getElementById('productId').value;
             const name = document.getElementById('prodName').value;
             const brand = document.getElementById('prodBrand').value;
@@ -298,34 +298,41 @@
                 showToast('Please fill all required fields');
                 return;
             }
+            
             if (!image) image = 'https://via.placeholder.com/300x250?text=' + encodeURIComponent(name);
             
-            if (id) {
-                // Update existing product
-                const product = allProducts.find(p => p.id == id);
-                if (product) {
-                    product.name = name;
-                    product.brand = brand;
-                    product.fragrance = fragrance;
-                    product.price = price;
-                    product.stock = stock;
-                    product.desc = desc;
-                    product.image = image;
+            try {
+                let response;
+                if (id) {
+                    // Update existing product
+                    response = await fetch('/.netlify/functions/update-product', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, name, brand, fragrance, price, stock, description: desc, image })
+                    });
+                } else {
+                    // Add new product
+                    response = await fetch('/.netlify/functions/add-product', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, brand, fragrance, price, stock, description: desc, image })
+                    });
                 }
-            } else {
-                // Add new product
-                allProducts.push({
-                    id: Date.now(),
-                    name, brand, fragrance, price, stock, desc, image,
-                    ratings: 0, reviews: 0
-                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(result.message);
+                    closeProductModal();
+                    loadProducts(); // Refresh the product list
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error saving product:', error);
+                showToast('Failed to save product');
             }
-            localStorage.setItem('attar_products', JSON.stringify(allProducts));
-            showToast('Product saved successfully!');
-            closeProductModal();
-            renderProductsTable();
         }
-
         function showAddStockModal(productId) {
             currentStockProduct = allProducts.find(p => p.id === productId);
             if (!currentStockProduct) return;

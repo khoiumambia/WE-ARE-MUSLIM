@@ -190,6 +190,15 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
         }
+        /* Google One Tap */
+        #g_id_onload {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
     </style>
 </head>
 
@@ -225,10 +234,8 @@
                     <span>OR</span>
                 </div>
                 
-                <button class="google-btn" id="googleSignInBtn">
-                    <i class="fab fa-google"></i>
-                    Continue with Google
-                </button>
+                <!-- Google Sign-In Button Container -->
+                <div id="google-btn-container"></div>
 
                 <div class="demo-accounts">
                     <p><strong>Demo Accounts:</strong></p>
@@ -262,10 +269,9 @@
                 <div class="divider">
                     <span>OR</span>
                 </div>
-                <button class="google-btn" id="googleSignUpBtn">
-                    <i class="fab fa-google"></i>
-                    Sign up with Google
-                </button>
+                
+                <!-- Google Sign-In Button Container for Signup -->
+                <div id="google-btn-container-signup"></div>
             </div>
 
             <div class="guest-link">
@@ -286,13 +292,19 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Google Identity Services Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
+        // ==================== YOUR GOOGLE CLIENT ID ====================
+        const GOOGLE_CLIENT_ID = '779483047949-pltar76o1nf3eaatvd0b4lrmrm0ppdeb.apps.googleusercontent.com';
+        
         // ==================== FIREBASE CONFIGURATION ====================
         const firebaseConfig = {
             apiKey: "AIzaSyCP8Uh6Yxu-dIpywGVEXtnQYSUVIoCViyg",
@@ -318,98 +330,139 @@
             isFirebaseInitialized = false;
         }
         
-        // ==================== GOOGLE SIGN-IN (POPUP METHOD) ====================
-        async function continueWithGoogle() {
-            if (!isFirebaseInitialized) {
-                showToast('Firebase is initializing. Please try again in a moment.');
+        // ==================== GOOGLE SIGN-IN WITH YOUR CLIENT ID ====================
+        function initGoogleSignIn() {
+            if (typeof google === 'undefined') {
+                console.log('Waiting for Google API to load...');
+                setTimeout(initGoogleSignIn, 500);
                 return;
             }
             
-            // Show loading state
-            const btns = document.querySelectorAll('.google-btn');
-            btns.forEach(btn => {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening Google...';
-                btn.disabled = true;
+            console.log('Google API loaded, initializing with Client ID:', GOOGLE_CLIENT_ID);
+            
+            // Initialize Google Identity Services
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
             });
             
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('email');
-                provider.addScope('profile');
-                
-                // Use popup method (works better with Netlify)
-                const result = await auth.signInWithPopup(provider);
-                
-                // Success! Process the user
-                const user = result.user;
-                const email = user.email;
-                const name = user.displayName;
-                
-                console.log('Google user:', { email, name, uid: user.uid });
-                
-                if (!email) {
-                    showToast('Could not get email from Google. Please try again.');
-                    return;
-                }
-                
-                // Get existing users from localStorage
-                let users = getUsers();
-                let existingUser = users.find(u => u.email === email);
-                
-                if (existingUser) {
-                    // Existing user - login
-                    const { password, ...userWithoutPassword } = existingUser;
-                    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                    console.log('Existing user logged in:', email);
-                    showToast(`Welcome back, ${existingUser.name || existingUser.email}!`);
-                    setTimeout(() => {
-                        if (existingUser.role === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
-                    }, 1000);
-                } else {
-                    // New user - create account
-                    const newUser = {
-                        id: Date.now(),
-                        email: email,
-                        password: 'google_oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
-                        role: 'user',
-                        name: name || email.split('@')[0],
-                        phone: '',
-                        createdAt: new Date().toISOString(),
-                        authProvider: 'google'
-                    };
-                    users.push(newUser);
-                    saveUsers(users);
-                    
-                    const { password, ...userWithoutPassword } = newUser;
-                    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                    console.log('New user created:', newUser.email);
-                    showToast(`Welcome ${name || email.split('@')[0]}! Your account has been created.`);
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
-                }
-            } catch (error) {
-                console.error('Google Sign-In Error:', error);
-                
-                if (error.code === 'auth/popup-blocked') {
-                    showToast('Popup was blocked. Please allow popups for this site.');
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    // User closed the popup - do nothing
-                    console.log('User closed the popup');
-                } else {
-                    showToast('Google Sign-In failed: ' + (error.message || 'Please try again'));
-                }
-            } finally {
-                // Reset buttons
-                const btns = document.querySelectorAll('.google-btn');
-                btns.forEach(btn => {
-                    btn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
-                    btn.disabled = false;
+            // Render Google button in login form
+            const btnContainer = document.getElementById('google-btn-container');
+            if (btnContainer) {
+                google.accounts.id.renderButton(btnContainer, {
+                    theme: 'outline',
+                    size: 'large',
+                    width: '100%',
+                    text: 'continue_with',
+                    shape: 'pill'
                 });
+                console.log('Google button rendered in login form');
+            }
+            
+            // Render Google button in signup form
+            const btnContainerSignup = document.getElementById('google-btn-container-signup');
+            if (btnContainerSignup) {
+                google.accounts.id.renderButton(btnContainerSignup, {
+                    theme: 'outline',
+                    size: 'large',
+                    width: '100%',
+                    text: 'signup_with',
+                    shape: 'pill'
+                });
+                console.log('Google button rendered in signup form');
+            }
+            
+            // Optional: One-tap sign-in
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed()) {
+                    console.log('One-tap not displayed:', notification.getNotDisplayedReason());
+                }
+            });
+        }
+        
+        // Handle Google Sign-In response
+        function handleGoogleCredentialResponse(response) {
+            console.log('Google Sign-In successful');
+            
+            // Decode the JWT token to get user information
+            const credential = response.credential;
+            const payload = parseJwt(credential);
+            
+            const email = payload.email;
+            const name = payload.name;
+            const picture = payload.picture;
+            const email_verified = payload.email_verified;
+            
+            console.log('User info from Google:', { email, name, email_verified });
+            
+            if (!email_verified) {
+                showToast('Email not verified. Please verify your Google account first.');
+                return;
+            }
+            
+            // Check if user exists in our system
+            const users = getUsers();
+            let user = users.find(u => u.email === email);
+            
+            if (user) {
+                // Existing user - login
+                const { password, ...userWithoutPassword } = user;
+                userWithoutPassword.picture = picture;
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                showToast(`Welcome back, ${user.name || user.email}!`);
+                setTimeout(() => {
+                    if (user.role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }, 1000);
+            } else {
+                // New user - create account with Google info
+                const newUser = {
+                    id: Date.now(),
+                    email: email,
+                    password: 'google_oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 10),
+                    role: 'user',
+                    name: name,
+                    phone: '',
+                    picture: picture,
+                    createdAt: new Date().toISOString(),
+                    authProvider: 'google'
+                };
+                users.push(newUser);
+                saveUsers(users);
+                
+                // Also create in Firebase if available
+                if (isFirebaseInitialized) {
+                    auth.signInWithEmailAndPassword(email, newUser.password).catch(() => {
+                        auth.createUserWithEmailAndPassword(email, newUser.password).catch(e => console.log('Firebase user exists'));
+                    });
+                }
+                
+                const { password, ...userWithoutPassword } = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+                showToast(`Welcome ${name}! Your account has been created with Google.`);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+        
+        // Helper function to decode JWT token
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error parsing JWT:', e);
+                return {};
             }
         }
         
@@ -557,7 +610,6 @@
             if (isFirebaseInitialized) {
                 try {
                     await auth.createUserWithEmailAndPassword(email, password);
-                    console.log('Firebase user created');
                 } catch (error) {
                     console.error('Firebase signup error:', error);
                 }
@@ -603,30 +655,21 @@
             }
         }
         
-        // Attach event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const googleLoginBtn = document.getElementById('googleSignInBtn');
-            const googleSignupBtn = document.getElementById('googleSignUpBtn');
-            
-            if (googleLoginBtn) {
-                googleLoginBtn.addEventListener('click', continueWithGoogle);
-            }
-            if (googleSignupBtn) {
-                googleSignupBtn.addEventListener('click', continueWithGoogle);
-            }
-        });
-        
         // Check if already logged in
         const currentUser = getCurrentUser();
-        if (currentUser && !window.location.pathname.includes('login.html')) {
+        if (currentUser) {
             window.location.href = 'index.html';
         }
+        
+        // Initialize Google Sign-In when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initGoogleSignIn();
+        });
         
         // Make functions global
         window.switchTab = switchTab;
         window.login = login;
         window.signup = signup;
-        window.continueWithGoogle = continueWithGoogle;
         window.showForgotPasswordModal = showForgotPasswordModal;
         window.closeForgotPasswordModal = closeForgotPasswordModal;
         window.sendPasswordResetEmail = sendPasswordResetEmail;
