@@ -14,33 +14,77 @@ const coupons = [
     { code: "EIDSPECIAL", discount: 25, minAmount: 3000 }
 ];
 
-function loadShopData() {
-    const stored = localStorage.getItem('attar_products');
-    if (stored) {
-        products = JSON.parse(stored);
-    } else {
-        products = [
-            { id: 1, name: "Oudh Royal", brand: "Arabian Oud", fragrance: "Woody Oud", price: 1200, stock: 15, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.8, reviews: 124 },
-            { id: 2, name: "Musk Al Mahabba", brand: "Swiss Arabian", fragrance: "Musk", price: 850, stock: 0, image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300", ratings: 4.6, reviews: 89 },
-            { id: 3, name: "Rose De Makkah", brand: "Al Haramain", fragrance: "Rose", price: 1500, stock: 3, image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300", ratings: 4.9, reviews: 56 },
-            { id: 4, name: "Amber Night", brand: "Rasasi", fragrance: "Amber", price: 2200, stock: 20, image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=300", ratings: 4.7, reviews: 203 },
-            { id: 5, name: "Sandalwood Classic", brand: "Ajmal", fragrance: "Sandalwood", price: 990, stock: 8, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.5, reviews: 67 }
-        ];
+// Load products from Supabase via Netlify Function
+async function loadShopData() {
+    try {
+        // Show loading state
+        const grid = document.getElementById('productGrid');
+        if (grid) {
+            grid.innerHTML = '<div class="loading">Loading products from database...</div>';
+        }
+        
+        // Fetch products from Netlify Function
+        const response = await fetch('/.netlify/functions/get-products');
+        const data = await response.json();
+        
+        // Extract products (API returns { success: true, count: 40, products: [...] })
+        if (data.success && data.products) {
+            products = data.products;
+        } else if (Array.isArray(data)) {
+            products = data;
+        } else {
+            products = [];
+        }
+        
+        console.log(`Loaded ${products.length} products from database`);
+        
+        // Store products in localStorage as backup
         localStorage.setItem('attar_products', JSON.stringify(products));
+        
+        // Only load cart and wishlist if user is logged in
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+            wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+        } else {
+            cart = [];
+            wishlist = [];
+        }
+        
+        updateFilters();
+        renderProducts();
+        
+    } catch (error) {
+        console.error('Error loading products from API:', error);
+        
+        // Fallback to localStorage if API fails
+        const stored = localStorage.getItem('attar_products');
+        if (stored) {
+            products = JSON.parse(stored);
+        } else {
+            // Fallback default products
+            products = [
+                { id: 1, name: "Oudh Royal", brand: "Arabian Oud", fragrance: "Woody Oud", price: 1200, stock: 15, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.8, reviews: 124 },
+                { id: 2, name: "Musk Al Mahabba", brand: "Swiss Arabian", fragrance: "Musk", price: 850, stock: 0, image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300", ratings: 4.6, reviews: 89 },
+                { id: 3, name: "Rose De Makkah", brand: "Al Haramain", fragrance: "Rose", price: 1500, stock: 3, image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300", ratings: 4.9, reviews: 56 },
+                { id: 4, name: "Amber Night", brand: "Rasasi", fragrance: "Amber", price: 2200, stock: 20, image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=300", ratings: 4.7, reviews: 203 },
+                { id: 5, name: "Sandalwood Classic", brand: "Ajmal", fragrance: "Sandalwood", price: 990, stock: 8, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.5, reviews: 67 }
+            ];
+        }
+        
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+            wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+        } else {
+            cart = [];
+            wishlist = [];
+        }
+        
+        updateFilters();
+        renderProducts();
+        showToast('Using offline product data');
     }
-
-    // Only load cart and wishlist if user is logged in
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-        wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-    } else {
-        cart = [];
-        wishlist = [];
-    }
-
-    updateFilters();
-    renderProducts();
 }
 
 function updateFilters() {
@@ -189,9 +233,6 @@ function addToCart(productId) {
     updateNavPointsCount();
 
     showToast(`${product.name} added to cart! +${Math.floor(product.price / 100)} points`);
-    
-    // Debug: Log cart contents
-    console.log('Cart after adding:', JSON.parse(localStorage.getItem('attar_cart')));
 }
 
 function addToWishlist(productId) {
@@ -270,7 +311,7 @@ function saveStockAlert() {
     closeStockModal();
 }
 
-// Event listeners for stock modal and cart
+// Event listeners
 document.addEventListener('DOMContentLoaded', function () {
     loadShopData();
 
