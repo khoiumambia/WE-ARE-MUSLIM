@@ -3,34 +3,86 @@ let products = [];
 let wishlist = [];
 let cart = [];
 
-function loadIndexData() {
-    const stored = localStorage.getItem('attar_products');
-    if (stored) {
-        products = JSON.parse(stored);
-    } else {
-        products = [
-            { id: 1, name: "Oudh Royal", brand: "Arabian Oud", fragrance: "Woody Oud", price: 1200, stock: 15, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.8, reviews: 124, isBestSeller: true },
-            { id: 2, name: "Musk Al Mahabba", brand: "Swiss Arabian", fragrance: "Musk", price: 850, stock: 0, image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300", ratings: 4.6, reviews: 89, isBestSeller: true },
-            { id: 3, name: "Rose De Makkah", brand: "Al Haramain", fragrance: "Rose", price: 1500, stock: 3, image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300", ratings: 4.9, reviews: 56, isBestSeller: false },
-            { id: 4, name: "Amber Night", brand: "Rasasi", fragrance: "Amber", price: 2200, stock: 20, image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=300", ratings: 4.7, reviews: 203, isBestSeller: true }
-        ];
+// Load products from Netlify Function API
+async function loadIndexData() {
+    try {
+        // Show loading state
+        const featuredGrid = document.getElementById('featuredProducts');
+        const bestSellersGrid = document.getElementById('bestSellers');
+        if (featuredGrid) featuredGrid.innerHTML = '<div class="loading">Loading products...</div>';
+        if (bestSellersGrid) bestSellersGrid.innerHTML = '<div class="loading">Loading products...</div>';
+        
+        // Fetch products from Netlify Function
+        const response = await fetch('/.netlify/functions/get-products');
+        const data = await response.json();
+        
+        // Extract products (API returns array directly)
+        if (Array.isArray(data)) {
+            products = data;
+        } else if (data.products && Array.isArray(data.products)) {
+            products = data.products;
+        } else {
+            products = [];
+        }
+        
+        console.log(`Loaded ${products.length} products from database`);
+        
+        // Store in localStorage as backup
         localStorage.setItem('attar_products', JSON.stringify(products));
+        
+        // Load cart and wishlist if user is logged in
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+            cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+        } else {
+            wishlist = [];
+            cart = [];
+        }
+        
+        displayFeatured();
+        displayBestSellers();
+        displayBlogPosts();
+        startCountdown();
+        updateCartCount();
+        updateWishlistCount();
+        updatePointsDisplay();
+        
+    } catch (error) {
+        console.error('Error loading products from API:', error);
+        
+        // Fallback to localStorage
+        const stored = localStorage.getItem('attar_products');
+        if (stored) {
+            products = JSON.parse(stored);
+        } else {
+            // Default fallback products
+            products = [
+                { id: 1, name: "Oudh Royal", brand: "Arabian Oud", fragrance: "Woody Oud", price: 1200, stock: 15, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.8, reviews: 124, isBestSeller: true },
+                { id: 2, name: "Musk Al Mahabba", brand: "Swiss Arabian", fragrance: "Musk", price: 850, stock: 0, image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300", ratings: 4.6, reviews: 89, isBestSeller: true },
+                { id: 3, name: "Rose De Makkah", brand: "Al Haramain", fragrance: "Rose", price: 1500, stock: 3, image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300", ratings: 4.9, reviews: 56, isBestSeller: false },
+                { id: 4, name: "Amber Night", brand: "Rasasi", fragrance: "Amber", price: 2200, stock: 20, image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=300", ratings: 4.7, reviews: 203, isBestSeller: true }
+            ];
+        }
+        
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+            cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+        } else {
+            wishlist = [];
+            cart = [];
+        }
+        
+        displayFeatured();
+        displayBestSellers();
+        displayBlogPosts();
+        startCountdown();
+        updateCartCount();
+        updateWishlistCount();
+        updatePointsDisplay();
+        showToast('Using offline product data');
     }
-
-    // Only load cart and wishlist if user is logged in
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-        cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-    } else {
-        wishlist = [];
-        cart = [];
-    }
-
-    displayFeatured();
-    displayBestSellers();
-    displayBlogPosts();
-    startCountdown();
 }
 
 function displayFeatured() {
@@ -136,7 +188,6 @@ function addToCart(productId) {
 }
 
 function addToWishlist(productId) {
-    // CHECK LOGIN REQUIREMENT
     if (!requireLogin('add items to wishlist')) {
         return;
     }
@@ -155,7 +206,6 @@ function addToWishlist(productId) {
 }
 
 function addToCompare(productId) {
-    // CHECK LOGIN REQUIREMENT
     if (!requireLogin('compare products')) {
         return;
     }
@@ -209,6 +259,25 @@ function startCountdown() {
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
+}
+
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+    const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const cartCountSpan = document.getElementById('cartCount');
+    if (cartCountSpan) cartCountSpan.innerText = count;
+}
+
+function updateWishlistCount() {
+    const wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+    const wishlistSpan = document.getElementById('wishlistCount');
+    if (wishlistSpan) wishlistSpan.innerText = wishlist.length;
+}
+
+function updatePointsDisplay() {
+    const points = localStorage.getItem('loyalty_points') || 0;
+    const pointsSpan = document.getElementById('pointsCount');
+    if (pointsSpan) pointsSpan.innerText = points;
 }
 
 // Initialize AOS
