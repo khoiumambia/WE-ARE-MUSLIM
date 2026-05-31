@@ -320,7 +320,7 @@ body {
 /* Search Section */
 .search-section {
     max-width: 1400px;
-    margin: 30px auto 2rem;
+    margin: 2rem auto 2rem;
     padding: 0 2rem;
     position: relative;
     z-index: 10;
@@ -798,4 +798,36 @@ body {
         width: 300px;
         right: -20px;
     }
+}
+
+/* Smooth carousel loading */
+.hero-carousel {
+    background: #f0f0f0;
+}
+
+.carousel-slide {
+    transition: opacity 0.3s ease;
+}
+
+.carousel-slide[data-bg] {
+    background: #f0f0f0;
+}
+
+.hero-carousel.loading {
+    position: relative;
+}
+
+.hero-carousel.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10;
 }

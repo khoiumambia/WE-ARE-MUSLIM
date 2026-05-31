@@ -4,44 +4,60 @@ let cart = [];
 let wishlist = [];
 let appliedCoupon = null;
 let currentStockProduct = null;
-let currentPage = 1;
-const productsPerPage = 12;
 
 const coupons = [
-    { code: "WELCOME10", discount: 10, minAmount: 500 },
-    { code: "RAMADAN20", discount: 20, minAmount: 1000 },
-    { code: "FREESHIP", discount: 5, minAmount: 2000 },
-    { code: "EIDSPECIAL", discount: 25, minAmount: 3000 }
+    { code: "WELCOME10", discount: 10, minAmount: 500, type: "percent" },
+    { code: "RAMADAN20", discount: 20, minAmount: 1000, type: "percent" },
+    { code: "FREESHIP", discount: 60, minAmount: 2000, type: "fixed" },
+    { code: "EIDSPECIAL", discount: 25, minAmount: 3000, type: "percent" }
 ];
 
-// Load products from Supabase via Netlify Function
+// Helper function to get proper image URL
+function getImageUrl(imagePath) {
+    if (!imagePath) return 'https://placehold.co/300x250/e8ddd3/8B5E3C?text=No+Image';
+    
+    if (imagePath.startsWith('data:')) {
+        return imagePath;
+    }
+    
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    if (imagePath.startsWith('/uploads/')) {
+        return imagePath;
+    }
+    
+    if (imagePath.startsWith('uploads/')) {
+        return imagePath;
+    }
+    
+    if (imagePath.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        return 'uploads/' + imagePath;
+    }
+    
+    return 'https://placehold.co/300x250/e8ddd3/8B5E3C?text=' + encodeURIComponent(imagePath.substring(0, 20));
+}
+
+// Load products from MySQL database via PHP API
 async function loadShopData() {
     try {
-        // Show loading state
         const grid = document.getElementById('productGrid');
         if (grid) {
             grid.innerHTML = '<div class="loading">Loading products from database...</div>';
         }
         
-        // Fetch products from Netlify Function
-        const response = await fetch('/.netlify/functions/get-products');
+        const response = await fetch('api/get-products.php');
         const data = await response.json();
         
-        // Extract products (API returns { success: true, count: 40, products: [...] })
-        if (data.success && data.products) {
+        if (data.success) {
             products = data.products;
-        } else if (Array.isArray(data)) {
-            products = data;
+            console.log(`Loaded ${products.length} products from database`);
         } else {
+            console.error('API error:', data.error);
             products = [];
         }
         
-        console.log(`Loaded ${products.length} products from database`);
-        
-        // Store products in localStorage as backup
-        localStorage.setItem('attar_products', JSON.stringify(products));
-        
-        // Only load cart and wishlist if user is logged in
         const currentUser = getCurrentUser();
         if (currentUser) {
             cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
@@ -55,35 +71,11 @@ async function loadShopData() {
         renderProducts();
         
     } catch (error) {
-        console.error('Error loading products from API:', error);
-        
-        // Fallback to localStorage if API fails
-        const stored = localStorage.getItem('attar_products');
-        if (stored) {
-            products = JSON.parse(stored);
-        } else {
-            // Fallback default products
-            products = [
-                { id: 1, name: "Oudh Royal", brand: "Arabian Oud", fragrance: "Woody Oud", price: 1200, stock: 15, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.8, reviews: 124 },
-                { id: 2, name: "Musk Al Mahabba", brand: "Swiss Arabian", fragrance: "Musk", price: 850, stock: 0, image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300", ratings: 4.6, reviews: 89 },
-                { id: 3, name: "Rose De Makkah", brand: "Al Haramain", fragrance: "Rose", price: 1500, stock: 3, image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300", ratings: 4.9, reviews: 56 },
-                { id: 4, name: "Amber Night", brand: "Rasasi", fragrance: "Amber", price: 2200, stock: 20, image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=300", ratings: 4.7, reviews: 203 },
-                { id: 5, name: "Sandalwood Classic", brand: "Ajmal", fragrance: "Sandalwood", price: 990, stock: 8, image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=300", ratings: 4.5, reviews: 67 }
-            ];
-        }
-        
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-            cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-            wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-        } else {
-            cart = [];
-            wishlist = [];
-        }
-        
+        console.error('Error loading products:', error);
+        showToast('Failed to load products');
+        products = [];
         updateFilters();
         renderProducts();
-        showToast('Using offline product data');
     }
 }
 
@@ -125,7 +117,6 @@ function renderProducts() {
         return true;
     });
 
-    // Sorting
     if (sortBy === 'price_asc') filtered.sort((a, b) => a.price - b.price);
     else if (sortBy === 'price_desc') filtered.sort((a, b) => b.price - a.price);
     else if (sortBy === 'rating') filtered.sort((a, b) => b.ratings - a.ratings);
@@ -135,43 +126,34 @@ function renderProducts() {
         productCountSpan.innerHTML = `Showing ${filtered.length} of ${products.length} products`;
     }
 
-    // Pagination
-    const start = 0;
-    const end = productsPerPage * currentPage;
-    const paginated = filtered.slice(start, end);
-    const hasMore = end < filtered.length;
-
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    if (loadMoreBtn) {
-        loadMoreBtn.style.display = hasMore ? 'block' : 'none';
-    }
-
     const grid = document.getElementById('productGrid');
     if (!grid) return;
 
-    if (paginated.length === 0) {
+    if (filtered.length === 0) {
         grid.innerHTML = '<div style="text-align: center; padding: 3rem;">No products found 😢</div>';
         return;
     }
 
     const isLoggedIn = getCurrentUser() !== null;
 
-    grid.innerHTML = paginated.map(p => `
+    grid.innerHTML = filtered.map(p => {
+        const imageUrl = getImageUrl(p.image);
+        return `
         <div class="product-card">
             ${p.stock === 0 ? '<div class="product-badge sold-out">Sold Out</div>' : ''}
             <div class="product-actions">
                 <button onclick="event.stopPropagation(); addToWishlist(${p.id})"><i class="far fa-heart"></i></button>
                 <button onclick="event.stopPropagation(); addToCompare(${p.id})"><i class="fas fa-chart-line"></i></button>
             </div>
-            <img class="product-img" src="${p.image}" onclick="viewProduct(${p.id})" onerror="this.src='https://via.placeholder.com/300x220?text=Attar'">
+            <img class="product-img" src="${imageUrl}" onclick="viewProduct(${p.id})" onerror="this.src='https://placehold.co/300x250/e8ddd3/8B5E3C?text=No+Image'">
             <div class="product-info" onclick="viewProduct(${p.id})">
                 <div class="product-title">${escapeHtml(p.name)}</div>
                 <div style="font-size: 0.8rem; color: #666;">${escapeHtml(p.brand)} | ${escapeHtml(p.fragrance)}</div>
-                <div class="product-price">৳${p.price.toLocaleString()}</div>
+                <div class="product-price">৳${parseFloat(p.price).toLocaleString()}</div>
                 <div class="stock-status ${p.stock > 10 ? 'in-stock' : (p.stock > 0 ? 'low-stock' : 'out-of-stock')}">
                     ${p.stock > 10 ? '✓ In Stock' : (p.stock > 0 ? `⚠ Only ${p.stock} left` : '✗ Out of Stock')}
                 </div>
-                <div style="font-size: 0.8rem;">⭐ ${p.ratings} (${p.reviews} reviews)</div>
+                <div style="font-size: 0.8rem;">⭐ ${p.ratings || 0} (${p.reviews || 0} reviews)</div>
                 ${p.stock > 0 ?
                     `<button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); addToCart(${p.id})">
                         <i class="fas fa-shopping-cart"></i> ${isLoggedIn ? 'Add to Cart' : 'Login to Add to Cart'}
@@ -182,32 +164,27 @@ function renderProducts() {
                 }
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
-function loadMoreProducts() {
-    currentPage++;
-    renderProducts();
-}
-
+// FIXED: addToCart with NO loyalty points
 function addToCart(productId) {
-    // CHECK LOGIN REQUIREMENT
-    if (!requireLogin('add items to cart')) {
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    if (product.stock === 0) {
-        showStockAlert(productId);
-        return;
-    }
-
-    // Load current cart from localStorage
-    let currentCart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+    if (!requireLogin('add items to cart')) return;
     
+    const product = products.find(p => p.id === productId);
+    if (!product) {
+        showToast('Product not found');
+        return;
+    }
+    
+    if (product.stock === 0) { 
+        showStockAlert(productId); 
+        return; 
+    }
+    
+    let currentCart = JSON.parse(localStorage.getItem('attar_cart')) || [];
     let item = currentCart.find(i => i.id === productId);
+    
     if (item) {
         if (item.quantity < product.stock) {
             item.quantity++;
@@ -216,36 +193,32 @@ function addToCart(productId) {
             return;
         }
     } else {
-        currentCart.push({ id: productId, quantity: 1 });
+        currentCart.push({ 
+            id: productId, 
+            quantity: 1 
+        });
     }
-
-    // Save back to localStorage
+    
     localStorage.setItem('attar_cart', JSON.stringify(currentCart));
     
-    // Update the local cart variable
-    cart = currentCart;
+    // Update cart count in navigation
+    if (typeof updateNavCartCount === 'function') {
+        updateNavCartCount();
+    }
     
-    updateNavCartCount();
-
-    let points = parseInt(localStorage.getItem('loyalty_points')) || 0;
-    points += Math.floor(product.price / 100);
-    localStorage.setItem('loyalty_points', points);
-    updateNavPointsCount();
-
-    showToast(`${product.name} added to cart! +${Math.floor(product.price / 100)} points`);
+    showToast(`${product.name} added to cart!`);
 }
 
 function addToWishlist(productId) {
-    // CHECK LOGIN REQUIREMENT
-    if (!requireLogin('add items to wishlist')) {
-        return;
-    }
-
+    if (!requireLogin('add items to wishlist')) return;
     const product = products.find(p => p.id === productId);
-    if (!wishlist.includes(productId)) {
-        wishlist.push(productId);
-        localStorage.setItem('attar_wishlist', JSON.stringify(wishlist));
-        updateNavWishlistCount();
+    let currentWishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+    if (!currentWishlist.includes(productId)) {
+        currentWishlist.push(productId);
+        localStorage.setItem('attar_wishlist', JSON.stringify(currentWishlist));
+        if (typeof updateNavWishlistCount === 'function') {
+            updateNavWishlistCount();
+        }
         showToast(`${product.name} added to wishlist! ❤️`);
     } else {
         showToast('Already in wishlist');
@@ -253,21 +226,32 @@ function addToWishlist(productId) {
 }
 
 function addToCompare(productId) {
-    // CHECK LOGIN REQUIREMENT
-    if (!requireLogin('compare products')) {
+    if (!requireLogin('compare products')) return;
+    
+    let compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
+    
+    if (compareList.includes(productId)) {
+        showToast('Already in compare list');
         return;
     }
-
-    let compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
-    if (!compareList.includes(productId) && compareList.length < 4) {
-        compareList.push(productId);
-        localStorage.setItem('attar_compare', JSON.stringify(compareList));
-        showToast('Added to compare!');
-    } else if (compareList.length >= 4) {
+    
+    if (compareList.length >= 4) {
         showToast('Can compare up to 4 products only');
-    } else {
-        showToast('Already in compare list');
+        return;
     }
+    
+    compareList.push(productId);
+    localStorage.setItem('attar_compare', JSON.stringify(compareList));
+    showToast('Added to compare!');
+}
+
+function goToCompare() {
+    const compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
+    if (compareList.length === 0) {
+        showToast('No products in compare list. Add some products first!');
+        return;
+    }
+    window.location.href = 'compare.html';
 }
 
 function viewProduct(productId) {
@@ -277,52 +261,29 @@ function viewProduct(productId) {
 
 function showStockAlert(productId) {
     currentStockProduct = products.find(p => p.id === productId);
-    const modal = document.getElementById('stockModal');
-    const productNameSpan = document.getElementById('stockProductName');
-    if (productNameSpan) productNameSpan.innerText = currentStockProduct.name;
-    if (modal) modal.classList.add('open');
-}
-
-function closeStockModal() {
-    const modal = document.getElementById('stockModal');
-    if (modal) modal.classList.remove('open');
-    const emailInput = document.getElementById('stockEmail');
-    if (emailInput) emailInput.value = '';
-}
-
-function saveStockAlert() {
-    const email = document.getElementById('stockEmail').value;
-    if (!email || !email.includes('@')) {
-        showToast('Please enter a valid email address');
-        return;
+    const email = prompt(`Notify me when ${currentStockProduct.name} is back in stock.\n\nEnter your email:`);
+    if (email && email.includes('@')) {
+        let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
+        waitlist.push({
+            productId: currentStockProduct.id,
+            productName: currentStockProduct.name,
+            email: email,
+            date: new Date().toISOString(),
+            notified: false
+        });
+        localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
+        showToast(`We'll notify you when ${currentStockProduct.name} is back!`);
     }
-
-    let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
-    waitlist.push({
-        productId: currentStockProduct.id,
-        productName: currentStockProduct.name,
-        email: email,
-        date: new Date().toISOString(),
-        notified: false
-    });
-    localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
-
-    showToast(`We'll notify you when ${currentStockProduct.name} is back in stock!`);
-    closeStockModal();
 }
 
-// Event listeners
 document.addEventListener('DOMContentLoaded', function () {
     loadShopData();
 
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', () => {
-        currentPage = 1;
+    document.getElementById('applyFilters')?.addEventListener('click', () => {
         renderProducts();
     });
 
-    const resetFiltersBtn = document.getElementById('resetFilters');
-    if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', () => {
+    document.getElementById('resetFilters')?.addEventListener('click', () => {
         const brandFilter = document.getElementById('brandFilter');
         const fragranceFilter = document.getElementById('fragranceFilter');
         const stockFilter = document.getElementById('stockFilter');
@@ -342,34 +303,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const priceValue = document.getElementById('priceValue');
         if (priceValue) priceValue.innerText = '৳5000';
 
-        currentPage = 1;
         renderProducts();
     });
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', () => {
-            currentPage = 1;
-            renderProducts();
-        });
-    }
+    document.getElementById('searchInput')?.addEventListener('keyup', () => {
+        renderProducts();
+    });
 
-    const priceSlider = document.getElementById('priceSlider');
-    if (priceSlider) {
-        priceSlider.addEventListener('input', (e) => {
-            const priceValue = document.getElementById('priceValue');
-            if (priceValue) priceValue.innerText = '৳' + e.target.value;
-            renderProducts();
-        });
-    }
+    document.getElementById('priceSlider')?.addEventListener('input', (e) => {
+        const priceValue = document.getElementById('priceValue');
+        if (priceValue) priceValue.innerText = '৳' + e.target.value;
+        renderProducts();
+    });
 });
 
-// Make functions global
+// Make functions globally available
 window.addToCart = addToCart;
 window.addToWishlist = addToWishlist;
 window.addToCompare = addToCompare;
+window.goToCompare = goToCompare;
 window.viewProduct = viewProduct;
 window.showStockAlert = showStockAlert;
-window.closeStockModal = closeStockModal;
-window.saveStockAlert = saveStockAlert;
-window.loadMoreProducts = loadMoreProducts;
