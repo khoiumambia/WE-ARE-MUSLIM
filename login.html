@@ -91,7 +91,7 @@
             color: #666;
             font-size: 0.85rem;
         }
-        .google-btn {
+        .email-login-btn {
             width: 100%;
             padding: 0.9rem;
             background: white;
@@ -105,14 +105,15 @@
             justify-content: center;
             gap: 0.8rem;
             transition: all 0.3s ease;
+            margin-top: 0.5rem;
         }
-        .google-btn:hover {
+        .email-login-btn:hover {
             background: #f8f9fa;
             border-color: var(--primary);
             transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
         }
-        .google-btn i {
+        .email-login-btn i {
             font-size: 1.2rem;
             color: #DB4437;
         }
@@ -128,32 +129,75 @@
         .guest-link a:hover {
             text-decoration: underline;
         }
-        .forgot-password-modal {
+        
+        /* Email Login Modal */
+        .email-modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
             justify-content: center;
             align-items: center;
         }
-        .forgot-password-content {
+        .email-modal-content {
             background: white;
             border-radius: 24px;
             padding: 2rem;
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
             text-align: center;
         }
-        .forgot-password-content input {
+        .email-modal-content input {
             width: 100%;
             padding: 0.8rem;
             margin: 1rem 0;
             border: 1px solid var(--border);
             border-radius: 12px;
+        }
+        .email-step {
+            display: none;
+        }
+        .email-step.active {
+            display: block;
+        }
+        
+        /* Password Reset Modal */
+        .reset-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .reset-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        .reset-modal-content input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .reset-step {
+            display: none;
+        }
+        .reset-step.active {
+            display: block;
         }
         .message-success {
             color: var(--success);
@@ -190,15 +234,6 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
         }
-        /* Google One Tap */
-        #g_id_onload {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-        }
     </style>
 </head>
 
@@ -225,7 +260,7 @@
                         <input type="password" id="loginPassword" placeholder="Enter your password" required>
                     </div>
                     <div class="forgot-link">
-                        <a onclick="showForgotPasswordModal()">Forgot Password?</a>
+                        <a onclick="showResetModal()">Forgot Password?</a>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Login →</button>
                 </form>
@@ -234,8 +269,10 @@
                     <span>OR</span>
                 </div>
                 
-                <!-- Google Sign-In Button Container -->
-                <div id="google-btn-container"></div>
+                <button class="email-login-btn" onclick="showEmailLoginModal()">
+                    <i class="fab fa-google"></i>
+                    Continue with Email
+                </button>
 
                 <div class="demo-accounts">
                     <p><strong>Demo Accounts:</strong></p>
@@ -270,8 +307,10 @@
                     <span>OR</span>
                 </div>
                 
-                <!-- Google Sign-In Button Container for Signup -->
-                <div id="google-btn-container-signup"></div>
+                <button class="email-login-btn" onclick="showEmailLoginModal()">
+                    <i class="fab fa-google"></i>
+                    Continue with Email
+                </button>
             </div>
 
             <div class="guest-link">
@@ -280,206 +319,100 @@
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="forgot-password-modal">
-        <div class="forgot-password-content">
-            <h3><i class="fas fa-key"></i> Reset Password</h3>
-            <p>Enter your email address and we'll send you a link to reset your password.</p>
-            <input type="email" id="resetEmail" placeholder="Your email address">
-            <div id="resetMessage"></div>
-            <button class="btn btn-primary btn-block" onclick="sendPasswordResetEmail()">Send Reset Link</button>
-            <button class="btn btn-block" onclick="closeForgotPasswordModal()" style="margin-top: 0.5rem; background: #6c757d;">Cancel</button>
+    <!-- Email Login Modal (Step 1: Enter Email, Step 2: Set Password for new users) -->
+    <div id="emailModal" class="email-modal">
+        <div class="email-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-envelope"></i> Continue with Email</h3>
+                <button onclick="closeEmailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <!-- Step 1: Enter Email -->
+            <div id="emailStep1" class="email-step active">
+                <p>Enter your email address to continue.</p>
+                <input type="email" id="emailLoginEmail" placeholder="Your email address">
+                <div id="emailMessage"></div>
+                <button class="btn btn-primary btn-block" onclick="checkEmailForLogin()">Continue</button>
+            </div>
+            
+            <!-- Step 2: Set Password (for new users) -->
+            <div id="emailStep2" class="email-step">
+                <p id="newUserEmailDisplay"></p>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">This email is new! Please set a password to create your account.</p>
+                <div class="form-group">
+                    <label>Set Password</label>
+                    <input type="password" id="newUserPassword" placeholder="Enter password (min 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="newUserConfirmPassword" placeholder="Confirm password">
+                </div>
+                <div id="newUserMessage"></div>
+                <button class="btn btn-primary btn-block" onclick="createNewUserWithPassword()">Create Account →</button>
+                <button class="btn btn-block" onclick="goBackToEmailStep1()" style="margin-top: 0.5rem; background: #6c757d;">Back</button>
+            </div>
         </div>
     </div>
 
-    <!-- Google Identity Services Script -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Password Reset Modal -->
+    <div id="resetModal" class="reset-modal">
+        <div class="reset-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-key"></i> Reset Password</h3>
+                <button onclick="closeResetModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <!-- Step 1: Enter Email -->
+            <div id="resetStep1" class="reset-step active">
+                <p>Enter your email address to reset your password.</p>
+                <input type="email" id="resetEmail" placeholder="Your email address">
+                <div id="resetMessage1"></div>
+                <button class="btn btn-primary btn-block" onclick="checkEmail()">Continue</button>
+            </div>
+            
+            <!-- Step 2: Set New Password -->
+            <div id="resetStep2" class="reset-step">
+                <p id="resetEmailDisplay"></p>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <div id="resetMessage2"></div>
+                <button class="btn btn-primary btn-block" onclick="resetPassword()">Reset Password</button>
+                <button class="btn btn-block" onclick="goBackToResetStep1()" style="margin-top: 0.5rem; background: #6c757d;">Back</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
-        // ==================== YOUR GOOGLE CLIENT ID ====================
-        const GOOGLE_CLIENT_ID = '779483047949-pltar76o1nf3eaatvd0b4lrmrm0ppdeb.apps.googleusercontent.com';
+        let tempEmail = '';
         
-        // ==================== FIREBASE CONFIGURATION ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCP8Uh6Yxu-dIpywGVEXtnQYSUVIoCViyg",
-            authDomain: "attar-website-e4434.firebaseapp.com",
-            projectId: "attar-website-e4434",
-            storageBucket: "attar-website-e4434.firebasestorage.app",
-            messagingSenderId: "1002231077102",
-            appId: "1:1002231077102:web:b85ab766484bc4f65ebbff",
-            measurementId: "G-HRJQW7M430"
-        };
-        
-        // Initialize Firebase
-        let auth = null;
-        let isFirebaseInitialized = false;
-        
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            isFirebaseInitialized = true;
-            console.log("Firebase initialized successfully");
-        } catch (error) {
-            console.error("Firebase initialization error:", error);
-            isFirebaseInitialized = false;
+        // ==================== EMAIL LOGIN MODAL ====================
+        function showEmailLoginModal() {
+            document.getElementById('emailModal').style.display = 'flex';
+            document.getElementById('emailStep1').classList.add('active');
+            document.getElementById('emailStep2').classList.remove('active');
+            document.getElementById('emailLoginEmail').value = '';
+            document.getElementById('newUserPassword').value = '';
+            document.getElementById('newUserConfirmPassword').value = '';
+            document.getElementById('emailMessage').innerHTML = '';
+            document.getElementById('newUserMessage').innerHTML = '';
+            tempEmail = '';
         }
-        
-        // ==================== GOOGLE SIGN-IN WITH YOUR CLIENT ID ====================
-        function initGoogleSignIn() {
-            if (typeof google === 'undefined') {
-                console.log('Waiting for Google API to load...');
-                setTimeout(initGoogleSignIn, 500);
-                return;
-            }
-            
-            console.log('Google API loaded, initializing with Client ID:', GOOGLE_CLIENT_ID);
-            
-            // Initialize Google Identity Services
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleCredentialResponse,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-            
-            // Render Google button in login form
-            const btnContainer = document.getElementById('google-btn-container');
-            if (btnContainer) {
-                google.accounts.id.renderButton(btnContainer, {
-                    theme: 'outline',
-                    size: 'large',
-                    width: '100%',
-                    text: 'continue_with',
-                    shape: 'pill'
-                });
-                console.log('Google button rendered in login form');
-            }
-            
-            // Render Google button in signup form
-            const btnContainerSignup = document.getElementById('google-btn-container-signup');
-            if (btnContainerSignup) {
-                google.accounts.id.renderButton(btnContainerSignup, {
-                    theme: 'outline',
-                    size: 'large',
-                    width: '100%',
-                    text: 'signup_with',
-                    shape: 'pill'
-                });
-                console.log('Google button rendered in signup form');
-            }
-            
-            // Optional: One-tap sign-in
-            google.accounts.id.prompt((notification) => {
-                if (notification.isNotDisplayed()) {
-                    console.log('One-tap not displayed:', notification.getNotDisplayedReason());
-                }
-            });
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
         }
-        
-        // Handle Google Sign-In response
-        function handleGoogleCredentialResponse(response) {
-            console.log('Google Sign-In successful');
-            
-            // Decode the JWT token to get user information
-            const credential = response.credential;
-            const payload = parseJwt(credential);
-            
-            const email = payload.email;
-            const name = payload.name;
-            const picture = payload.picture;
-            const email_verified = payload.email_verified;
-            
-            console.log('User info from Google:', { email, name, email_verified });
-            
-            if (!email_verified) {
-                showToast('Email not verified. Please verify your Google account first.');
-                return;
-            }
-            
-            // Check if user exists in our system
-            const users = getUsers();
-            let user = users.find(u => u.email === email);
-            
-            if (user) {
-                // Existing user - login
-                const { password, ...userWithoutPassword } = user;
-                userWithoutPassword.picture = picture;
-                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                showToast(`Welcome back, ${user.name || user.email}!`);
-                setTimeout(() => {
-                    if (user.role === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
-            } else {
-                // New user - create account with Google info
-                const newUser = {
-                    id: Date.now(),
-                    email: email,
-                    password: 'google_oauth_' + Date.now() + '_' + Math.random().toString(36).substr(2, 10),
-                    role: 'user',
-                    name: name,
-                    phone: '',
-                    picture: picture,
-                    createdAt: new Date().toISOString(),
-                    authProvider: 'google'
-                };
-                users.push(newUser);
-                saveUsers(users);
-                
-                // Also create in Firebase if available
-                if (isFirebaseInitialized) {
-                    auth.signInWithEmailAndPassword(email, newUser.password).catch(() => {
-                        auth.createUserWithEmailAndPassword(email, newUser.password).catch(e => console.log('Firebase user exists'));
-                    });
-                }
-                
-                const { password, ...userWithoutPassword } = newUser;
-                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                showToast(`Welcome ${name}! Your account has been created with Google.`);
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            }
-        }
-        
-        // Helper function to decode JWT token
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                console.error('Error parsing JWT:', e);
-                return {};
-            }
-        }
-        
-        // ==================== FORGOT PASSWORD ====================
-        function showForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'flex';
-            document.getElementById('resetEmail').value = '';
-            document.getElementById('resetMessage').innerHTML = '';
-        }
-        
-        function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').style.display = 'none';
-        }
-        
-        async function sendPasswordResetEmail() {
-            const email = document.getElementById('resetEmail').value.trim();
-            const messageDiv = document.getElementById('resetMessage');
+
+        async function checkEmailForLogin() {
+            const email = document.getElementById('emailLoginEmail').value.trim();
+            const messageDiv = document.getElementById('emailMessage');
             
             if (!email) {
                 messageDiv.innerHTML = '<span class="message-error">Please enter your email address</span>';
@@ -491,152 +424,308 @@
                 return;
             }
             
-            if (!isFirebaseInitialized) {
-                messageDiv.innerHTML = '<span class="message-error">Firebase is not ready. Please try again.</span>';
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Checking...</span>';
+            
+            try {
+                const response = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, action: 'check' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.exists) {
+                    // Existing user - just login
+                    messageDiv.innerHTML = '<span class="message-success">✅ Existing user! Logging in...</span>';
+                    
+                    const loginResponse = await fetch('api/quick-login.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, action: 'login' })
+                    });
+                    
+                    const loginResult = await loginResponse.json();
+                    
+                    if (loginResult.success) {
+                        localStorage.setItem('currentUser', JSON.stringify(loginResult.user));
+                        showToast(`Welcome back ${loginResult.user.name}!`);
+                        closeEmailModal();
+                        setTimeout(() => {
+                            if (loginResult.user.role === 'admin') {
+                                window.location.href = 'admin-dashboard.html';
+                            } else {
+                                window.location.href = 'index.html';
+                            }
+                        }, 1000);
+                    } else {
+                        messageDiv.innerHTML = '<span class="message-error">Login failed. Please try again.</span>';
+                    }
+                } else {
+                    // New user - show password set form
+                    tempEmail = email;
+                    document.getElementById('newUserEmailDisplay').innerHTML = `<strong>Email: ${email}</strong>`;
+                    document.getElementById('emailStep1').classList.remove('active');
+                    document.getElementById('emailStep2').classList.add('active');
+                    document.getElementById('emailMessage').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error checking email:', error);
+                messageDiv.innerHTML = '<span class="message-error">Error connecting to server. Please try again.</span>';
+            }
+        }
+
+        async function createNewUserWithPassword() {
+            const password = document.getElementById('newUserPassword').value;
+            const confirmPassword = document.getElementById('newUserConfirmPassword').value;
+            const messageDiv = document.getElementById('newUserMessage');
+            
+            if (!password || password.length < 6) {
+                messageDiv.innerHTML = '<span class="message-error">Password must be at least 6 characters</span>';
                 return;
             }
             
-            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Sending reset link...</span>';
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<span class="message-error">Passwords do not match</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Creating account...</span>';
             
             try {
-                await auth.sendPasswordResetEmail(email);
-                messageDiv.innerHTML = '<span class="message-success">✅ Password reset link sent! Check your email inbox.</span>';
-                setTimeout(() => {
-                    closeForgotPasswordModal();
-                    showToast('Password reset email sent! Check your inbox.');
-                }, 3000);
-            } catch (error) {
-                console.error("Password reset error:", error);
-                let errorMessage = "";
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = "No account found with this email address.";
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = "Please enter a valid email address.";
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = "Too many requests. Please try again later.";
-                        break;
-                    default:
-                        errorMessage = error.message;
+                const response = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: tempEmail, 
+                        password: password, 
+                        action: 'create_with_password' 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    showToast(`Welcome ${result.user.name}! Account created with password.`);
+                    closeEmailModal();
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">' + (result.error || 'Failed to create account') + '</span>';
                 }
-                messageDiv.innerHTML = `<span class="message-error">❌ ${errorMessage}</span>`;
+            } catch (error) {
+                console.error('Error creating user:', error);
+                messageDiv.innerHTML = '<span class="message-error">Error creating account. Please try again.</span>';
             }
         }
-        
-        // ==================== LOCAL STORAGE USER MANAGEMENT ====================
-        function getUsers() {
-            const stored = localStorage.getItem('attar_users');
-            if (stored) return JSON.parse(stored);
-            const defaultUsers = [
-                { id: 1, email: "admin@attar.com", password: "admin123", role: "admin", name: "Admin User", phone: "" },
-                { id: 2, email: "user@test.com", password: "user123", role: "user", name: "Test Customer", phone: "+880123456789" }
-            ];
-            localStorage.setItem('attar_users', JSON.stringify(defaultUsers));
-            return defaultUsers;
+
+        function goBackToEmailStep1() {
+            document.getElementById('emailStep1').classList.add('active');
+            document.getElementById('emailStep2').classList.remove('active');
+            document.getElementById('emailMessage').innerHTML = '';
+            document.getElementById('newUserMessage').innerHTML = '';
+            tempEmail = '';
         }
-        
-        function saveUsers(users) {
-            localStorage.setItem('attar_users', JSON.stringify(users));
-        }
-        
+
+        // ==================== PASSWORD LOGIN ====================
         async function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            
+
             if (!email || !password) {
                 showToast('Please fill in all fields');
                 return;
             }
-            
-            const users = getUsers();
-            const localUser = users.find(u => u.email === email && u.password === password);
-            
-            if (localUser) {
-                const { password, ...userWithoutPassword } = localUser;
-                localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-                showToast(`Welcome back, ${localUser.name || localUser.email}!`);
-                
-                if (isFirebaseInitialized) {
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                    } catch (e) {
-                        if (e.code === 'auth/user-not-found') {
-                            await auth.createUserWithEmailAndPassword(email, password);
+
+            try {
+                const response = await fetch('api/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    showToast(`Welcome back, ${result.user.name}!`);
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
                         }
-                    }
+                    }, 1000);
+                } else {
+                    showToast(result.error || 'Invalid email or password');
                 }
-                
-                setTimeout(() => {
-                    if (localUser.role === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
-            } else {
-                showToast('Invalid email or password');
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login failed. Please try again.');
             }
         }
-        
+
+        // ==================== SIGNUP ====================
         async function signup() {
             const name = document.getElementById('signupName').value.trim();
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             const phone = document.getElementById('signupPhone').value.trim();
-            
+
             if (!name || !email || !password) {
                 showToast('Please fill all required fields');
                 return;
             }
-            
+
             if (password.length < 6) {
                 showToast('Password must be at least 6 characters');
                 return;
             }
-            
+
             if (!email.includes('@')) {
                 showToast('Please enter a valid email address');
                 return;
             }
+
+            try {
+                const response = await fetch('api/register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, phone })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message);
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('loginEmail').value = email;
+                    }, 1500);
+                } else {
+                    showToast(result.error || 'Signup failed');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                showToast('Signup failed. Please try again.');
+            }
+        }
+
+        // ==================== PASSWORD RESET ====================
+        let resetEmail = '';
+        
+        function showResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('resetStep1').classList.add('active');
+            document.getElementById('resetStep2').classList.remove('active');
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('resetMessage1').innerHTML = '';
+            document.getElementById('resetMessage2').innerHTML = '';
+            resetEmail = '';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        async function checkEmail() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const messageDiv = document.getElementById('resetMessage1');
             
-            const users = getUsers();
-            if (users.find(u => u.email === email)) {
-                showToast('Email already registered. Please login instead.');
+            if (!email) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter your email address</span>';
                 return;
             }
             
-            if (isFirebaseInitialized) {
-                try {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                } catch (error) {
-                    console.error('Firebase signup error:', error);
-                }
+            if (!email.includes('@')) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter a valid email address</span>';
+                return;
             }
             
-            const newUser = {
-                id: Date.now(),
-                email: email,
-                password: password,
-                role: 'user',
-                name: name,
-                phone: phone || '',
-                createdAt: new Date().toISOString(),
-                authProvider: isFirebaseInitialized ? 'firebase' : 'local'
-            };
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Checking...</span>';
             
-            users.push(newUser);
-            saveUsers(users);
-            
-            const { password: _, ...userWithoutPassword } = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-            showToast(`Welcome ${name}! Your account has been created.`);
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
+            try {
+                const response = await fetch('api/forgot-password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, step: 'check' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.exists) {
+                    resetEmail = email;
+                    document.getElementById('resetEmailDisplay').innerHTML = `<strong>Resetting password for: ${email}</strong>`;
+                    document.getElementById('resetStep1').classList.remove('active');
+                    document.getElementById('resetStep2').classList.add('active');
+                    document.getElementById('resetMessage1').innerHTML = '';
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">❌ Email not found. Please check and try again.</span>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<span class="message-error">❌ Error checking email. Please try again.</span>';
+            }
         }
         
+        async function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('resetMessage2');
+            
+            if (!newPassword || newPassword.length < 6) {
+                messageDiv.innerHTML = '<span class="message-error">Password must be at least 6 characters</span>';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                messageDiv.innerHTML = '<span class="message-error">Passwords do not match</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Resetting password...</span>';
+            
+            try {
+                const response = await fetch('api/forgot-password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: resetEmail, 
+                        new_password: newPassword,
+                        step: 'reset' 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.innerHTML = '<span class="message-success">✅ Password reset successfully! You can now login.</span>';
+                    setTimeout(() => {
+                        closeResetModal();
+                        showToast('Password reset successful! Please login with your new password.');
+                    }, 2000);
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">❌ ' + (result.error || 'Failed to reset password') + '</span>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<span class="message-error">❌ Error resetting password. Please try again.</span>';
+            }
+        }
+        
+        function goBackToResetStep1() {
+            document.getElementById('resetStep1').classList.add('active');
+            document.getElementById('resetStep2').classList.remove('active');
+            document.getElementById('resetMessage1').innerHTML = '';
+            document.getElementById('resetMessage2').innerHTML = '';
+        }
+
         function switchTab(tab) {
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -654,25 +743,26 @@
                 tabs[1].classList.add('active');
             }
         }
-        
+
         // Check if already logged in
         const currentUser = getCurrentUser();
-        if (currentUser) {
+        if (currentUser && !window.location.pathname.includes('login.html')) {
             window.location.href = 'index.html';
         }
-        
-        // Initialize Google Sign-In when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initGoogleSignIn();
-        });
-        
-        // Make functions global
+
         window.switchTab = switchTab;
         window.login = login;
         window.signup = signup;
-        window.showForgotPasswordModal = showForgotPasswordModal;
-        window.closeForgotPasswordModal = closeForgotPasswordModal;
-        window.sendPasswordResetEmail = sendPasswordResetEmail;
+        window.showEmailLoginModal = showEmailLoginModal;
+        window.closeEmailModal = closeEmailModal;
+        window.checkEmailForLogin = checkEmailForLogin;
+        window.createNewUserWithPassword = createNewUserWithPassword;
+        window.goBackToEmailStep1 = goBackToEmailStep1;
+        window.showResetModal = showResetModal;
+        window.closeResetModal = closeResetModal;
+        window.checkEmail = checkEmail;
+        window.resetPassword = resetPassword;
+        window.goBackToResetStep1 = goBackToResetStep1;
     </script>
 </body>
 

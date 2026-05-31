@@ -22,9 +22,6 @@
         .status-shipped { background: var(--info); color: white; }
         .status-delivered { background: var(--success); color: white; }
         .status-cancelled { background: var(--danger); color: white; }
-        .status-return-requested { background: #9c27b0; color: white; }
-        .status-return-approved { background: #ff9800; color: white; }
-        .status-exchange-requested { background: #2196f3; color: white; }
         .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
         .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
         .tab-btn { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-light); }
@@ -34,11 +31,23 @@
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
-        .return-badge { background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 500px; width: 90%; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .return-status { font-size: 0.7rem; margin-top: 0.3rem; }
+        .password-warning { background: #fff3e0; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .btn-warning { background: var(--warning); color: #333; }
+        .btn-warning:hover { background: #e67e22; color: white; }
+        small { color: #ffffff; font-size: 0.9rem; }
+        .return-badge { background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; }
+        .tier-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; margin-left: 0.5rem; }
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+        .tier-info { background: rgba(139,94,60,0.08); border-radius: 12px; padding: 0.8rem; margin-bottom: 1rem; text-align: center; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -89,68 +98,307 @@
         </div>
     </div>
 
+    <!-- Set Password Modal -->
+    <div id="setPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Set Password</h3>
+                <button onclick="closeSetPasswordModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <p>Set a password for your account so you can login with email and password next time.</p>
+            <div class="form-group">
+                <label>New Password *</label>
+                <input type="password" id="newPasswordModal" placeholder="Min 6 characters" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password *</label>
+                <input type="password" id="confirmPasswordModal" placeholder="Confirm your password" required>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button class="btn btn-primary" onclick="confirmSetPasswordModal()" style="flex:1;">Set Password</button>
+                <button class="btn" onclick="closeSetPasswordModal()" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
-        let currentUser = null, allOrders = [], allUsers = [], returnRequests = [];
+        let currentUser = null, allOrders = [], allUsers = [], userReturnRequests = [];
 
         function initDashboard() {
             currentUser = getCurrentUser();
             if (!currentUser) { window.location.href = 'login.html'; return; }
             if (currentUser.role === 'admin') { window.location.href = 'admin-dashboard.html'; return; }
             loadData();
+        }
+
+        async function loadData() {
+            allUsers = JSON.parse(localStorage.getItem('attar_users')) || [];
+            await fetchOrdersFromAPI();
+            await loadUserReturnRequests();
+            await loadUserProfile();
             renderCustomerDashboard();
         }
 
-        function loadData() {
-            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
-            allUsers = JSON.parse(localStorage.getItem('attar_users')) || [];
-            returnRequests = JSON.parse(localStorage.getItem('return_requests')) || [];
+        async function fetchOrdersFromAPI() {
+            try {
+                const response = await fetch('api/get-orders.php');
+                const result = await response.json();
+                if (result.success) {
+                    allOrders = result.orders.filter(order => 
+                        order.customer_email && order.customer_email.toLowerCase() === currentUser.email.toLowerCase()
+                    );
+                    localStorage.setItem('attar_orders', JSON.stringify(allOrders));
+                    console.log(`Loaded ${allOrders.length} orders`);
+                } else {
+                    allOrders = [];
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                allOrders = [];
+            }
+        }
+
+        async function loadUserReturnRequests() {
+            try {
+                const response = await fetch(`api/return-request.php?user_email=${encodeURIComponent(currentUser.email)}`);
+                const result = await response.json();
+                if (result.success) {
+                    userReturnRequests = result.requests;
+                    localStorage.setItem('return_requests', JSON.stringify(userReturnRequests));
+                } else {
+                    userReturnRequests = [];
+                }
+            } catch (error) {
+                console.error('Error loading return requests:', error);
+                userReturnRequests = [];
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`api/get-user.php?user_id=${currentUser.id}`);
+                const result = await response.json();
+                if (result.success && result.user) {
+                    currentUser.address = result.user.address || '';
+                    currentUser.city = result.user.city || '';
+                    currentUser.postal_code = result.user.postal_code || '';
+                    currentUser.phone = result.user.phone || '';
+                    currentUser.name = result.user.name || currentUser.name;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        let userTier = 'Bronze';
+        let tierDiscount = 0;
+        let totalSpent = 0;
+
+        async function loadUserTier() {
+            try {
+                const response = await fetch(`api/get-user-tier.php?email=${encodeURIComponent(currentUser.email)}`);
+                const result = await response.json();
+                if (result.success) {
+                    userTier = result.tier;
+                    tierDiscount = result.discount;
+                    totalSpent = result.total_spent || 0;
+                }
+            } catch (error) {
+                console.error('Error loading tier:', error);
+            }
+        }
+
+        function getTierBadgeClass(tier) {
+            switch(tier) {
+                case 'Platinum': return 'tier-platinum';
+                case 'Gold': return 'tier-gold';
+                case 'Silver': return 'tier-silver';
+                default: return 'tier-bronze';
+            }
+        }
+
+        function getTierIcon(tier) {
+            switch(tier) {
+                case 'Platinum': return '💎';
+                case 'Gold': return '🥇';
+                case 'Silver': return '🥈';
+                default: return '🥉';
+            }
+        }
+
+        function getNextTierInfo(currentSpent) {
+            if (currentSpent < 20000) {
+                return { tier: 'Silver', discount: 5, remaining: 20000 - currentSpent };
+            } else if (currentSpent < 50000) {
+                return { tier: 'Gold', discount: 10, remaining: 50000 - currentSpent };
+            } else if (currentSpent < 100000) {
+                return { tier: 'Platinum', discount: 12, remaining: 100000 - currentSpent };
+            }
+            return null;
+        }
+
+        function showSetPasswordModal() {
+            document.getElementById('setPasswordModal').style.display = 'flex';
+            document.getElementById('newPasswordModal').value = '';
+            document.getElementById('confirmPasswordModal').value = '';
+        }
+
+        function closeSetPasswordModal() {
+            document.getElementById('setPasswordModal').style.display = 'none';
+        }
+
+        async function confirmSetPasswordModal() {
+            const newPassword = document.getElementById('newPasswordModal').value;
+            const confirmPassword = document.getElementById('confirmPasswordModal').value;
+            
+            if (!newPassword || newPassword.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match');
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: currentUser.email, 
+                        password: newPassword, 
+                        action: 'set_password' 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentUser.has_password = true;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
+                    if (userIndex !== -1) {
+                        allUsers[userIndex].password = newPassword;
+                        localStorage.setItem('attar_users', JSON.stringify(allUsers));
+                    }
+                    showToast('Password set successfully!');
+                    closeSetPasswordModal();
+                    renderCustomerDashboard();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error setting password:', error);
+                showToast('Failed to set password');
+            }
         }
 
         function renderCustomerDashboard() {
             const container = document.getElementById('dashboardContainer');
-            const userOrders = allOrders.filter(o => o.user === currentUser.email);
+            const userOrders = allOrders;
             const wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-            const points = parseInt(localStorage.getItem('loyalty_points')) || 0;
-            const totalSpent = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-            const userReturns = returnRequests.filter(r => r.userEmail === currentUser.email);
+            
+            const tierClass = getTierBadgeClass(userTier);
+            const tierIcon = getTierIcon(userTier);
+            const nextTier = getNextTierInfo(totalSpent);
 
             container.innerHTML = `
                 <div class="welcome-card">
                     <h1>Welcome back, ${escapeHtml(currentUser.name)}!</h1>
                     <p>Your fragrance journey continues with #WE ARE MUSLIM</p>
-                    <div><i class="fas fa-star"></i> ${points} Loyalty Points</div>
+                    <div class="tier-info">
+                        <i class="fas fa-crown"></i> 
+                        <span class="tier-badge ${tierClass}">${tierIcon} ${userTier} Member</span>
+                        <strong>${tierDiscount}% discount</strong> on all orders!
+                        ${nextTier ? `<br><small>🎯 ${nextTier.remaining.toLocaleString()} more to reach ${nextTier.tier} (${nextTier.discount}% off)</small>` : '<br><small>🏆 Maximum tier achieved! Keep enjoying premium benefits.</small>'}
+                    </div>
                 </div>
+                
                 <div class="stats-grid">
                     <div class="stat-card"><i class="fas fa-shopping-bag"></i><div class="stat-number">${userOrders.length}</div><div>Total Orders</div></div>
                     <div class="stat-card"><i class="fas fa-taka-sign"></i><div class="stat-number">৳${totalSpent.toLocaleString()}</div><div>Total Spent</div></div>
                     <div class="stat-card"><i class="fas fa-heart"></i><div class="stat-number">${wishlist.length}</div><div>Wishlist</div></div>
-                    <div class="stat-card"><i class="fas fa-undo-alt"></i><div class="stat-number">${userReturns.length}</div><div>Returns</div></div>
+                    <div class="stat-card"><i class="fas fa-undo-alt"></i><div class="stat-number">${userReturnRequests.length}</div><div>Returns</div></div>
                 </div>
+                
                 <div class="tabs">
                     <button class="tab-btn active" onclick="switchTab('orders')">📦 My Orders</button>
                     <button class="tab-btn" onclick="switchTab('returns')">🔄 Returns & Exchanges</button>
                     <button class="tab-btn" onclick="switchTab('profile')">👤 Profile</button>
                 </div>
-                <div id="ordersTab" class="tab-content active"><div class="card"><h2>Order History</h2><div id="ordersList">${renderOrdersList(userOrders)}</div></div></div>
-                <div id="returnsTab" class="tab-content"><div class="card"><h2>Return / Exchange Requests</h2><div id="returnsList">${renderReturnsList(userReturns)}</div></div></div>
+                
+                <div id="ordersTab" class="tab-content active">
+                    <div class="card">
+                        <h2>Order History</h2>
+                        <div id="ordersList">${renderOrdersList(userOrders)}</div>
+                    </div>
+                </div>
+                
+                <div id="returnsTab" class="tab-content">
+                    <div class="card">
+                        <h2>Return / Exchange Requests</h2>
+                        <div id="returnsList">${renderReturnsList()}</div>
+                    </div>
+                </div>
+                
                 <div id="profileTab" class="tab-content">
-                    <div class="card"><h2>Profile Information</h2>
+                    <div class="card">
+                        <h2>Profile Information</h2>
                         <form onsubmit="event.preventDefault(); updateProfile();">
-                            <div class="form-group"><label>Full Name</label><input type="text" id="profileName" value="${escapeHtml(currentUser.name)}"></div>
-                            <div class="form-group"><label>Email</label><input type="email" id="profileEmail" value="${escapeHtml(currentUser.email)}" readonly></div>
-                            <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone" value="${escapeHtml(currentUser.phone || '')}"></div>
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="profileName" value="${escapeHtml(currentUser.name)}">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="profileEmail" value="${escapeHtml(currentUser.email)}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="profilePhone" value="${escapeHtml(currentUser.phone || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label>Delivery Address</label>
+                                <textarea id="profileAddress" rows="2" placeholder="House #, Road #, Area">${escapeHtml(currentUser.address || '')}</textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" id="profileCity" value="${escapeHtml(currentUser.city || '')}" placeholder="Dhaka">
+                                </div>
+                                <div class="form-group">
+                                    <label>Postal Code</label>
+                                    <input type="text" id="profilePostalCode" value="${escapeHtml(currentUser.postal_code || '')}" placeholder="1213">
+                                </div>
+                            </div>
                             <button type="submit" class="btn btn-primary">Update Profile</button>
                         </form>
                     </div>
-                    <div class="card"><h2>Change Password</h2>
+                    <div class="card">
+                        <h2>Security Settings</h2>
                         <form onsubmit="event.preventDefault(); changePassword();">
-                            <div class="form-group"><label>Current Password</label><input type="password" id="currentPassword"></div>
-                            <div class="form-group"><label>New Password</label><input type="password" id="newPassword"></div>
-                            <div class="form-group"><label>Confirm Password</label><input type="password" id="confirmPassword"></div>
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="currentPassword" placeholder="Enter current password">
+                            </div>
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" id="newPasswordChange" placeholder="Min 6 characters">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <input type="password" id="confirmPasswordChange" placeholder="Confirm new password">
+                            </div>
                             <button type="submit" class="btn btn-primary">Change Password</button>
                         </form>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-warning" onclick="showSetPasswordModal()" style="width: 100%;">
+                                <i class="fas fa-key"></i> Set / Reset Password
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -158,20 +406,31 @@
 
         function renderOrdersList(orders) {
             if (orders.length === 0) return '<div style="text-align:center; padding:2rem;">No orders yet. <a href="shop.html">Start shopping →</a></div>';
+            
             return orders.map(order => {
-                const hasReturnRequest = returnRequests.some(r => r.orderId === order.id && r.status !== 'cancelled');
-                const returnStatus = returnRequests.find(r => r.orderId === order.id);
-                const canRequestReturn = (order.status === 'Delivered') && !hasReturnRequest && (new Date(order.date) > new Date(Date.now() - 30*24*60*60*1000));
+                let items = order.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch(e) { items = []; }
+                }
+                
+                const hasReturnRequest = userReturnRequests.some(r => r.order_id == order.id && r.status !== 'cancelled');
+                const canRequestReturn = (order.status === 'Delivered') && !hasReturnRequest;
+                
                 return `
                     <div class="order-item">
-                        <div><strong>#${order.id}</strong><br><small>${formatDate(order.date)}</small><br><small>${order.items?.length || 0} item(s)</small>
-                        ${order.trackingNumber ? `<div><i class="fas fa-truck"></i> ${order.trackingNumber}</div>` : ''}</div>
-                        <div><strong>৳${(order.total || 0).toLocaleString()}</strong><br>
-                        <span class="order-status status-${(order.status || 'processing').toLowerCase().replace(/ /g, '-')}">${order.status || 'Processing'}</span>
-                        ${returnStatus ? `<div class="return-status"><span class="return-badge">Return: ${returnStatus.status}</span></div>` : ''}</div>
                         <div>
-                            <button class="btn btn-sm btn-primary" onclick="trackOrder('${order.id}')"><i class="fas fa-map-marker-alt"></i> Track</button>
-                            <button class="btn btn-sm" onclick="viewOrderDetails('${order.id}')"><i class="fas fa-eye"></i> View</button>
+                            <strong>${escapeHtml(order.order_number || order.id)}</strong><br>
+                            <small>${formatDate(order.created_at)}</small><br>
+                            <small>${items?.length || 0} item(s)</small>
+                            ${order.tracking_number ? `<div><i class="fas fa-truck"></i> ${order.tracking_number}</div>` : ''}
+                        </div>
+                        <div>
+                            <strong>৳${(parseFloat(order.total) || 0).toLocaleString()}</strong><br>
+                            <span class="order-status status-${(order.status || 'processing').toLowerCase().replace(/ /g, '-')}">${order.status || 'Processing'}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-primary" onclick="trackOrder('${order.order_number || order.id}')"><i class="fas fa-map-marker-alt"></i> Track</button>
+                            <button class="btn btn-sm" onclick="viewOrderDetails('${order.order_number || order.id}')"><i class="fas fa-eye"></i> View</button>
                             ${canRequestReturn ? `<button class="btn btn-sm btn-warning" onclick="showReturnModal('${order.id}')"><i class="fas fa-undo-alt"></i> Return/Exchange</button>` : ''}
                         </div>
                     </div>
@@ -179,74 +438,97 @@
             }).join('');
         }
 
-        function renderReturnsList(returns) {
-            if (returns.length === 0) return '<div style="text-align:center; padding:2rem;">No return requests yet.</div>';
-            return returns.map(r => {
-                const order = allOrders.find(o => o.id === r.orderId);
-                const product = order?.items?.find(i => i.id == r.productId);
-                const statusColors = {
-                    pending: '🟡 Pending',
-                    approved: '🟢 Approved - Please ship product back',
-                    rejected: '🔴 Rejected',
-                    completed: '✅ Completed',
-                    cancelled: '⚪ Cancelled'
-                };
-                return `
-                    <div class="order-item">
-                        <div><strong>Request #${r.id}</strong><br><small>Order: ${r.orderId}</small><br><small>${formatDate(r.date)}</small></div>
-                        <div><strong>${r.type === 'return' ? 'Return' : 'Exchange'}</strong><br>${product?.name || 'Product'}</div>
-                        <div><strong>${statusColors[r.status] || r.status}</strong><br>${r.reason}</div>
-                        <div>${r.adminResponse ? `<small>${r.adminResponse}</small>` : ''}</div>
+        function renderReturnsList() {
+            if (userReturnRequests.length === 0) return '<div style="text-align:center; padding:2rem;">No return requests yet. You can request a return for delivered orders.</div>';
+            
+            const statusColors = {
+                pending: '🟡 Pending',
+                approved: '🟢 Approved - Please ship product back',
+                rejected: '🔴 Rejected',
+                completed: '✅ Completed'
+            };
+            
+            return userReturnRequests.map(r => `
+                <div class="order-item">
+                    <div>
+                        <strong>Request #${escapeHtml(r.request_id)}</strong><br>
+                        <small>Order: ${r.order_id}</small><br>
+                        <small>${formatDate(r.created_at)}</small>
                     </div>
-                `;
-            }).join('');
+                    <div>
+                        <strong>${r.type === 'return' ? 'Return' : 'Exchange'}</strong><br>
+                        Product ID: ${r.product_id}
+                    </div>
+                    <div>
+                        <strong>${statusColors[r.status] || r.status}</strong><br>
+                        ${r.reason}
+                    </div>
+                    <div>${r.admin_response ? `<small>Admin: ${escapeHtml(r.admin_response)}</small>` : ''}</div>
+                </div>
+            `).join('');
         }
 
         function showReturnModal(orderId) {
-            const order = allOrders.find(o => o.id === orderId);
+            const order = allOrders.find(o => o.id == orderId);
             if (!order) return;
+            
             document.getElementById('returnOrderId').value = orderId;
             const productSelect = document.getElementById('returnProductId');
+            
+            let items = order.items;
+            if (typeof items === 'string') {
+                try { items = JSON.parse(items); } catch(e) { items = []; }
+            }
+            
             productSelect.innerHTML = '<option value="">Select product...</option>' + 
-                order.items.map(item => `<option value="${item.id}">${escapeHtml(item.name)} (৳${item.price})</option>`).join('');
+                (items || []).map(item => `<option value="${item.product_id || item.id}">${escapeHtml(item.product_name || item.name)} (৳${item.product_price || item.price})</option>`).join('');
+            
             document.getElementById('returnModal').style.display = 'flex';
         }
 
         function closeReturnModal() { document.getElementById('returnModal').style.display = 'none'; }
 
-        function submitReturnRequest() {
+        async function submitReturnRequest() {
             const orderId = document.getElementById('returnOrderId').value;
             const type = document.getElementById('returnType').value;
             const productId = document.getElementById('returnProductId').value;
             const reason = document.getElementById('returnReason').value;
             const comments = document.getElementById('returnComments').value;
             
-            if (!type || !productId || !reason) { showToast('Please fill all required fields'); return; }
+            if (!type || !productId || !reason) {
+                showToast('Please fill all required fields');
+                return;
+            }
             
-            const newRequest = {
-                id: 'RET' + Date.now(),
-                orderId: orderId,
-                userEmail: currentUser.email,
-                type: type,
-                productId: parseInt(productId),
-                reason: reason,
-                comments: comments,
-                status: 'pending',
-                date: new Date().toISOString(),
-                adminResponse: null
-            };
-            
-            returnRequests.push(newRequest);
-            localStorage.setItem('return_requests', JSON.stringify(returnRequests));
-            
-            // Update order status to show return requested
-            const order = allOrders.find(o => o.id === orderId);
-            if (order) order.status = type === 'return' ? 'Return Requested' : 'Exchange Requested';
-            localStorage.setItem('attar_orders', JSON.stringify(allOrders));
-            
-            showToast('Return request submitted successfully! Admin will review within 24-48 hours.');
-            closeReturnModal();
-            renderCustomerDashboard();
+            try {
+                const response = await fetch('api/return-request.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'create',
+                        order_id: orderId,
+                        user_email: currentUser.email,
+                        type: type,
+                        product_id: parseInt(productId),
+                        reason: reason,
+                        comments: comments
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Return request submitted successfully! Admin will review within 24-48 hours.');
+                    closeReturnModal();
+                    await loadUserReturnRequests();
+                    renderCustomerDashboard();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error submitting return request:', error);
+                showToast('Failed to submit request');
+            }
         }
 
         function switchTab(tabName) {
@@ -259,38 +541,171 @@
             if (event && event.target) event.target.classList.add('active');
         }
 
-        function updateProfile() {
-            const name = document.getElementById('profileName').value;
-            const phone = document.getElementById('profilePhone').value;
+        async function updateProfile() {
+            const name = document.getElementById('profileName').value.trim();
+            const phone = document.getElementById('profilePhone').value.trim();
+            const address = document.getElementById('profileAddress').value.trim();
+            const city = document.getElementById('profileCity').value.trim();
+            const postal_code = document.getElementById('profilePostalCode').value.trim();
+            
             if (!name) { showToast('Please enter your name'); return; }
-            currentUser.name = name; currentUser.phone = phone;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
-            if (userIndex !== -1) { allUsers[userIndex].name = name; allUsers[userIndex].phone = phone; localStorage.setItem('attar_users', JSON.stringify(allUsers)); }
-            showToast('Profile updated!');
+            
+            try {
+                const response = await fetch('api/update-user.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: currentUser.id,
+                        name: name,
+                        email: currentUser.email,
+                        phone: phone,
+                        address: address,
+                        city: city,
+                        postal_code: postal_code,
+                        role: currentUser.role
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update local storage
+                    currentUser.name = name;
+                    currentUser.phone = phone;
+                    currentUser.address = address;
+                    currentUser.city = city;
+                    currentUser.postal_code = postal_code;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    // Update users array
+                    const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
+                    if (userIndex !== -1) {
+                        allUsers[userIndex].name = name;
+                        allUsers[userIndex].phone = phone;
+                        allUsers[userIndex].address = address;
+                        allUsers[userIndex].city = city;
+                        allUsers[userIndex].postal_code = postal_code;
+                        localStorage.setItem('attar_users', JSON.stringify(allUsers));
+                    }
+                    
+                    showToast('Profile updated successfully!');
+                    renderCustomerDashboard();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Failed to update profile');
+            }
         }
 
-        function changePassword() {
-            const current = document.getElementById('currentPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
+        async function changePassword() {
+            const current = document.getElementById('currentPassword')?.value;
+            const newPass = document.getElementById('newPasswordChange')?.value;
+            const confirm = document.getElementById('confirmPasswordChange')?.value;
+            
+            if (!newPass || !confirm) {
+                showToast('Please enter new password');
+                return;
+            }
+            if (newPass.length < 6) {
+                showToast('Password must be 6+ characters');
+                return;
+            }
+            if (newPass !== confirm) {
+                showToast('Passwords do not match');
+                return;
+            }
+            
             const user = allUsers.find(u => u.email === currentUser.email);
             if (!user) { showToast('User not found'); return; }
-            if (user.password !== current) { showToast('Current password incorrect'); return; }
-            if (newPass.length < 6) { showToast('Password must be 6+ characters'); return; }
-            if (newPass !== confirm) { showToast('Passwords do not match'); return; }
-            user.password = newPass;
-            localStorage.setItem('attar_users', JSON.stringify(allUsers));
-            showToast('Password changed! Please login again.');
-            setTimeout(() => logout(), 2000);
+            
+            if (!user.password || user.password === '') {
+                try {
+                    const response = await fetch('api/quick-login.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: currentUser.email, 
+                            password: newPass, 
+                            action: 'set_password' 
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        currentUser.has_password = true;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
+                        if (userIndex !== -1) {
+                            allUsers[userIndex].password = newPass;
+                            localStorage.setItem('attar_users', JSON.stringify(allUsers));
+                        }
+                        showToast('Password set successfully!');
+                        document.getElementById('currentPassword').value = '';
+                        document.getElementById('newPasswordChange').value = '';
+                        document.getElementById('confirmPasswordChange').value = '';
+                        renderCustomerDashboard();
+                    } else {
+                        showToast('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error setting password:', error);
+                    showToast('Failed to set password');
+                }
+                return;
+            }
+            
+            if (!current) {
+                showToast('Please enter current password');
+                return;
+            }
+            
+            try {
+                const verifyResponse = await fetch('api/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentUser.email, password: current })
+                });
+                const verifyResult = await verifyResponse.json();
+                if (!verifyResult.success) {
+                    showToast('Current password is incorrect');
+                    return;
+                }
+                
+                const updateResponse = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentUser.email, password: newPass, action: 'set_password' })
+                });
+                const updateResult = await updateResponse.json();
+                if (updateResult.success) {
+                    showToast('Password changed successfully!');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPasswordChange').value = '';
+                    document.getElementById('confirmPasswordChange').value = '';
+                } else {
+                    showToast('Error: ' + updateResult.error);
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                showToast('Failed to change password');
+            }
         }
 
         function trackOrder(orderId) { window.location.href = `order-tracking.html?order=${orderId}`; }
         
         function viewOrderDetails(orderId) {
-            const order = allOrders.find(o => o.id === orderId);
+            const order = allOrders.find(o => o.order_number === orderId || o.id == orderId);
             if (!order) return;
-            alert(`Order #${order.id}\nDate: ${formatDate(order.date)}\nStatus: ${order.status}\nTotal: ৳${order.total}\nTracking: ${order.trackingNumber || 'N/A'}\nItems: ${order.items?.length || 0}`);
+            let items = order.items;
+            if (typeof items === 'string') {
+                try { items = JSON.parse(items); } catch(e) { items = []; }
+            }
+            let itemsList = '';
+            if (items && items.length) {
+                itemsList = items.map(item => `\n- ${item.product_name || item.name} x ${item.quantity} = ৳${(item.product_price || item.price) * item.quantity}`).join('');
+            }
+            alert(`Order #${order.order_number || order.id}\nDate: ${formatDate(order.created_at)}\nStatus: ${order.status}\nTotal: ৳${order.total}\nTracking: ${order.tracking_number || 'N/A'}\nItems: ${items?.length || 0}${itemsList}`);
         }
 
         window.switchTab = switchTab;
@@ -301,6 +716,9 @@
         window.showReturnModal = showReturnModal;
         window.closeReturnModal = closeReturnModal;
         window.submitReturnRequest = submitReturnRequest;
+        window.showSetPasswordModal = showSetPasswordModal;
+        window.closeSetPasswordModal = closeSetPasswordModal;
+        window.confirmSetPasswordModal = confirmSetPasswordModal;
 
         initDashboard();
     </script>

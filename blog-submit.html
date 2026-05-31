@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Blog - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .submit-container { max-width: 900px; margin: 2rem auto; padding: 0 2rem; }
+        .submit-card { background: white; border-radius: 30px; padding: 2rem; box-shadow: var(--shadow-md); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        #content { min-height: 300px; }
+        .tag-input { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .tag { background: var(--primary-light); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .tag .remove { cursor: pointer; font-weight: bold; }
+        .btn-submit { width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem; }
+        .image-preview { margin-top: 10px; }
+        .image-preview img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+        .drop-zone { border: 2px dashed #ccc; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: all 0.3s ease; }
+        .drop-zone.drag-over { border-color: var(--primary); background: #fdf8f5; }
+        .info-box { background: var(--background); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="submit-container">
+        <div class="submit-card">
+            <h1 style="font-family: 'Cormorant Garamond'; font-size: 2rem; text-align: center;">✍️ Submit Your Blog</h1>
+            <p style="text-align: center; margin-bottom: 2rem;">Share your fragrance knowledge with our community! Your blog will be reviewed by our admin before publishing.</p>
+            
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Guidelines:</strong> Write original content about attars, perfumes, Islamic fragrance traditions, or fragrance tips. Your blog will be reviewed within 24-48 hours.
+            </div>
+            
+            <form id="blogSubmitForm" onsubmit="event.preventDefault(); submitBlog();">
+                <div class="form-group">
+                    <label>Blog Title *</label>
+                    <input type="text" id="title" placeholder="Enter an engaging title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="guide">📖 Guides</option>
+                        <option value="history">🏛️ History</option>
+                        <option value="education">🎓 Education</option>
+                        <option value="seasonal">🌙 Seasonal</option>
+                        <option value="care">💝 Care Tips</option>
+                        <option value="news">📰 News</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="author" placeholder="How should we credit you?">
+                </div>
+                
+                <div class="form-group">
+                    <label>Short Excerpt *</label>
+                    <textarea id="excerpt" rows="2" placeholder="A brief summary of your blog (will appear in blog listings)" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Blog Content *</label>
+                    <textarea id="content" rows="10" placeholder="Write your blog content here... You can use HTML tags for formatting." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Featured Image</label>
+                    <div id="dropZone" class="drop-zone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 30px; color: var(--primary);"></i>
+                        <p>Click or drag an image here</p>
+                        <small>JPG, PNG, GIF (Max 2MB)</small>
+                    </div>
+                    <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                    <div id="imagePreview" class="image-preview"></div>
+                    <input type="hidden" id="imageUrl">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tags (comma separated)</label>
+                    <input type="text" id="tags" placeholder="e.g., oudh, attar, guide, tips">
+                    <small>Separate tags with commas</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-submit">
+                    <i class="fas fa-paper-plane"></i> Submit Blog for Review
+                </button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: #666;">
+                <i class="fas fa-clock"></i> Blogs are reviewed within 24-48 hours. You'll be notified when published.
+            </p>
+        </div>
+    </div>
+    
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let uploadedImages = new Set();
+        
+        const dropZone = document.getElementById('dropZone');
+        const imageFile = document.getElementById('imageFile');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageUrl = document.getElementById('imageUrl');
+        
+        if (dropZone) {
+            dropZone.addEventListener('click', () => imageFile.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    uploadImage(file);
+                }
+            });
+        }
+        
+        if (imageFile) {
+            imageFile.addEventListener('change', (e) => {
+                if (e.target.files[0]) uploadImage(e.target.files[0]);
+            });
+        }
+        
+        async function uploadImage(file) {
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('Image too large! Max 2MB');
+                return;
+            }
+            showToast('Uploading...');
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const response = await fetch('api/upload-image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    imageUrl.value = result.image_url;
+                    imagePreview.innerHTML = '<img src="' + result.image_url + '?t=' + Date.now() + '" alt="Preview">';
+                    showToast('Image uploaded!');
+                } else {
+                    showToast('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Upload failed');
+            }
+        }
+        
+        async function submitBlog() {
+            const user = getCurrentUser();
+            if (!user) {
+                showToast('Please login to submit a blog');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                return;
+            }
+            
+            const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category').value;
+            const author = document.getElementById('author').value.trim() || user.name;
+            const excerpt = document.getElementById('excerpt').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const tags = document.getElementById('tags').value.trim();
+            let image = imageUrl.value;
+            
+            if (!title || !category || !excerpt || !content) {
+                showToast('Please fill all required fields');
+                return;
+            }
+            
+            if (!image) {
+                image = 'https://placehold.co/800x400/e8ddd3/8B5E3C?text=' + encodeURIComponent(title);
+            }
+            
+            showToast('Submitting blog for review...');
+            
+            try {
+                const response = await fetch('api/submit-blog.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        category: category,
+                        author: author,
+                        readTime: 5,
+                        excerpt: excerpt,
+                        content: content,
+                        image: image,
+                        tags: tags,
+                        user_email: user.email,
+                        user_name: user.name
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Blog submitted successfully! Admin will review it soon.');
+                    setTimeout(() => {
+                        window.location.href = 'blog.html';
+                    }, 2000);
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error submitting blog:', error);
+                showToast('Failed to submit blog');
+            }
+        }
+    </script>
+</body>
+</html>

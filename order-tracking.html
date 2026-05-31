@@ -8,195 +8,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .track-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        .track-card {
-            background: white;
-            border-radius: 30px;
-            padding: 2rem;
-            box-shadow: var(--shadow-md);
-        }
-        .track-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .track-header h1 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2rem;
-        }
-        .track-input {
-            display: flex;
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-        .track-input input {
-            flex: 1;
-            padding: 1rem;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            font-size: 1rem;
-        }
-        .track-steps {
-            display: flex;
-            justify-content: space-between;
-            margin: 2rem 0;
-            position: relative;
-            flex-wrap: wrap;
-        }
-        .track-steps::before {
-            content: '';
-            position: absolute;
-            top: 25px;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background: var(--border);
-            z-index: 0;
-        }
-        .step {
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            flex: 1;
-            min-width: 80px;
-        }
-        .step-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.5rem;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-        .step.active .step-icon {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1);
-        }
-        .step.completed .step-icon {
-            background: var(--success);
-            color: white;
-        }
-        .step-label {
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        .step-date {
-            font-size: 0.7rem;
-            color: #999;
-            margin-top: 0.2rem;
-        }
-        .order-details {
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 0;
-            border-bottom: 1px dashed var(--border);
-        }
-        .detail-label {
-            font-weight: 600;
-            color: var(--text-light);
-        }
-        .detail-value {
-            color: var(--text);
-        }
-        .items-list {
-            margin: 1rem 0;
-            background: var(--background);
-            border-radius: 16px;
-            padding: 0.8rem;
-        }
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .item-row:last-child {
-            border-bottom: none;
-        }
-        .tracking-timeline {
-            margin: 1.5rem 0;
-            background: var(--background);
-            border-radius: 16px;
-            padding: 1rem;
-        }
-        .timeline-item {
-            display: flex;
-            gap: 1rem;
-            padding: 0.8rem 0;
-            border-left: 2px solid var(--border);
-            margin-left: 20px;
-            padding-left: 20px;
-            position: relative;
-        }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 12px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--border);
-        }
-        .timeline-item.completed::before {
-            background: var(--success);
-        }
-        .timeline-item.active::before {
-            background: var(--primary);
-            box-shadow: 0 0 0 3px rgba(139,94,60,0.2);
-        }
-        .timeline-date {
-            font-size: 0.7rem;
-            color: #999;
-            min-width: 100px;
-        }
-        .timeline-status {
-            font-weight: 600;
-        }
-        .btn-download {
-            margin-top: 1rem;
-            width: 100%;
-        }
-        .order-not-found {
-            text-align: center;
-            padding: 3rem;
-        }
-        .payment-badge {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-        }
-        .payment-confirmed {
-            background: var(--success);
-            color: white;
-        }
-        .payment-pending {
-            background: var(--warning);
-            color: #333;
-        }
-        @media (max-width: 768px) {
-            .track-steps { flex-direction: column; gap: 1rem; }
-            .track-steps::before { display: none; }
-            .track-input { flex-direction: column; }
-            .timeline-item { flex-direction: column; gap: 0.3rem; }
-            .timeline-date { min-width: auto; }
-        }
+        .track-container { max-width: 900px; margin: 2rem auto; padding: 0 2rem; }
+        .track-card { background: white; border-radius: 30px; padding: 2rem; box-shadow: var(--shadow-md); }
+        .track-header { text-align: center; margin-bottom: 2rem; }
+        .track-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; }
+        .track-input { display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap; }
+        .track-input input { flex: 1; padding: 1rem; border: 1px solid var(--border); border-radius: 50px; font-size: 1rem; }
+        .track-steps { display: flex; justify-content: space-between; margin: 2rem 0; position: relative; flex-wrap: wrap; }
+        .step { text-align: center; position: relative; flex: 1; min-width: 80px; }
+        .step-icon { width: 50px; height: 50px; background: var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-size: 1.2rem; }
+        .step.active .step-icon { background: var(--primary); color: white; }
+        .step.completed .step-icon { background: var(--success); color: white; }
+        .step-label { font-size: 0.8rem; font-weight: 500; }
+        .order-details { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px dashed var(--border); flex-wrap: wrap; gap: 0.5rem; }
+        .detail-label { font-weight: 600; }
+        .items-list { background: var(--background); border-radius: 16px; padding: 0.8rem; margin: 1rem 0; }
+        .item-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .payment-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .payment-confirmed { background: var(--success); color: white; }
+        .payment-pending { background: var(--warning); color: #333; }
+        .order-not-found { text-align: center; padding: 3rem; }
+        .error-message { background: #fee2e2; color: #dc2626; padding: 1rem; border-radius: 12px; margin: 1rem 0; }
+        @media (max-width: 768px) { .track-steps { flex-direction: column; gap: 1rem; } .track-input { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -219,94 +53,92 @@
     <script src="js/utils.js"></script>
     <script>
         let currentOrder = null;
-        let allOrders = [];
 
-        function trackOrder() {
+        async function trackOrder() {
             const orderId = document.getElementById('orderIdInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('trackResult');
+            
             if (!orderId) {
                 showToast('Please enter an order ID');
                 return;
             }
 
-            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
-            const order = allOrders.find(o => o.id === orderId || o.id.toUpperCase() === orderId);
+            resultDiv.innerHTML = '<div class="loading">Searching for your order...</div>';
             
-            if (!order) {
-                document.getElementById('trackResult').innerHTML = `
-                    <div class="order-not-found">
-                        <i class="fas fa-search" style="font-size: 3rem; color: var(--danger);"></i>
-                        <h3>Order Not Found</h3>
-                        <p>We couldn't find an order with ID: ${escapeHtml(orderId)}</p>
-                        <p>Please check your order ID and try again.</p>
-                        <button class="btn btn-primary" onclick="window.location.href='dashboard.html'" style="margin-top: 1rem;">
-                            Go to My Orders
-                        </button>
-                    </div>
-                `;
-                return;
+            try {
+                console.log('Fetching order:', orderId);
+                const response = await fetch(`api/get-order.php?order_id=${orderId}`);
+                
+                // Check if response is OK
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Raw response:', text);
+                
+                // Try to parse JSON
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch(e) {
+                    console.error('JSON parse error:', e);
+                    resultDiv.innerHTML = `<div class="error-message">❌ Server error. Please check if API is working.</div>`;
+                    return;
+                }
+                
+                if (result.success && result.order) {
+                    currentOrder = result.order;
+                    displayTracking(currentOrder);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="order-not-found">
+                            <i class="fas fa-search" style="font-size: 3rem; color: var(--danger);"></i>
+                            <h3>Order Not Found</h3>
+                            <p>We couldn't find an order with ID: <strong>${escapeHtml(orderId)}</strong></p>
+                            <p>Please check your order ID and try again.</p>
+                            <button class="btn btn-primary" onclick="window.location.href='dashboard.html'" style="margin-top: 1rem;">
+                                Go to My Orders
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching order:', error);
+                resultDiv.innerHTML = `<div class="error-message">❌ Failed to fetch order details: ${error.message}</div>`;
+                showToast('Failed to fetch order details');
             }
-
-            currentOrder = order;
-            displayTracking(order);
         }
 
         function displayTracking(order) {
             const resultDiv = document.getElementById('trackResult');
             const status = order.status || 'Processing';
             
-            // Define step order based on payment and shipping status
-            let steps = [];
+            let steps = [
+                { name: 'Order Placed', key: 'placed', icon: 'fa-check-circle' },
+                { name: 'Processing', key: 'processing', icon: 'fa-cog' },
+                { name: 'Shipped', key: 'shipped', icon: 'fa-truck' },
+                { name: 'Delivered', key: 'delivered', icon: 'fa-home' }
+            ];
             
-            if (order.paymentMethod === 'cod') {
-                steps = [
-                    { name: 'Order Placed', key: 'placed', icon: 'fa-check-circle', date: order.date },
-                    { name: 'Payment Pending', key: 'pending', icon: 'fa-clock', date: null },
-                    { name: 'Processing', key: 'processing', icon: 'fa-cog', date: null },
-                    { name: 'Shipped', key: 'shipped', icon: 'fa-truck', date: null },
-                    { name: 'Out for Delivery', key: 'out_for_delivery', icon: 'fa-motorcycle', date: null },
-                    { name: 'Delivered & Payment Collected', key: 'delivered', icon: 'fa-home', date: null }
-                ];
-            } else {
-                steps = [
-                    { name: 'Order Placed', key: 'placed', icon: 'fa-check-circle', date: order.date },
-                    { name: 'Payment Confirmed', key: 'payment', icon: 'fa-credit-card', date: order.paymentConfirmed ? order.date : null },
-                    { name: 'Processing', key: 'processing', icon: 'fa-cog', date: null },
-                    { name: 'Shipped', key: 'shipped', icon: 'fa-truck', date: null },
-                    { name: 'Out for Delivery', key: 'out_for_delivery', icon: 'fa-motorcycle', date: null },
-                    { name: 'Delivered', key: 'delivered', icon: 'fa-home', date: null }
-                ];
-            }
-            
-            // Determine current step index
             let currentStepIndex = 0;
-            if (status === 'Processing') currentStepIndex = 2;
-            else if (status === 'Shipped') currentStepIndex = 3;
-            else if (status === 'Out for Delivery') currentStepIndex = 4;
-            else if (status === 'Delivered') currentStepIndex = 5;
-            else if (status === 'Return Requested') currentStepIndex = 2;
-            else if (status === 'Exchange Requested') currentStepIndex = 2;
-            else if (status === 'Pending (COD)') currentStepIndex = 1;
+            if (status === 'Processing') currentStepIndex = 1;
+            else if (status === 'Shipped') currentStepIndex = 2;
+            else if (status === 'Delivered') currentStepIndex = 3;
             
-            // Calculate estimated delivery date
-            const orderDate = new Date(order.date);
-            const estimatedDate = new Date(orderDate);
-            estimatedDate.setDate(orderDate.getDate() + 5);
+            const isPaymentConfirmed = order.payment_confirmed == 1 || order.payment_method !== 'cod';
             
-            // Get product names
-            const productNames = order.items?.map(item => item.name).join(', ') || 'N/A';
-            
-            // Check if payment is confirmed
-            const isPaymentConfirmed = order.paymentConfirmed || (order.paymentMethod !== 'cod');
+            let items = order.items;
+            if (typeof items === 'string') {
+                try { items = JSON.parse(items); } catch(e) { items = []; }
+            }
             
             resultDiv.innerHTML = `
                 <div class="track-steps">
                     ${steps.map((step, index) => `
                         <div class="step ${index < currentStepIndex ? 'completed' : ''} ${index === currentStepIndex ? 'active' : ''}">
-                            <div class="step-icon">
-                                <i class="fas ${step.icon}"></i>
-                            </div>
+                            <div class="step-icon"><i class="fas ${step.icon}"></i></div>
                             <div class="step-label">${step.name}</div>
-                            ${step.date ? `<div class="step-date">${new Date(step.date).toLocaleDateString()}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -316,206 +148,82 @@
                     
                     <div class="detail-row">
                         <span class="detail-label">Order ID:</span>
-                        <span class="detail-value"><strong>${order.id}</strong></span>
+                        <span><strong>${escapeHtml(order.order_number || order.id)}</strong></span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Order Date:</span>
-                        <span class="detail-value">${new Date(order.date).toLocaleString()}</span>
+                        <span>${new Date(order.created_at).toLocaleString()}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Order Status:</span>
-                        <span class="detail-value">
-                            <span class="status-badge status-${status.toLowerCase().replace(/ /g, '-')}">${status}</span>
-                        </span>
+                        <span>${status}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Payment Status:</span>
-                        <span class="detail-value">
-                            ${isPaymentConfirmed ? 
-                                '<span class="payment-badge payment-confirmed"><i class="fas fa-check-circle"></i> Payment Received</span>' : 
-                                '<span class="payment-badge payment-pending"><i class="fas fa-clock"></i> Payment Pending (COD)</span>'
-                            }
+                        <span class="payment-badge ${isPaymentConfirmed ? 'payment-confirmed' : 'payment-pending'}">
+                            ${isPaymentConfirmed ? '✓ Payment Received' : '⏳ Pending (COD)'}
                         </span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Payment Method:</span>
-                        <span class="detail-value">${order.paymentMethod === 'cod' ? 'Cash on Delivery' : (order.paymentMethod || 'N/A').toUpperCase()}</span>
+                        <span>${order.payment_method === 'cod' ? 'Cash on Delivery' : (order.payment_method || 'N/A').toUpperCase()}</span>
                     </div>
-                    ${order.transactionId ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Transaction ID:</span>
-                            <span class="detail-value"><code>${order.transactionId}</code></span>
-                        </div>
+                    ${order.transaction_id ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Transaction ID:</span>
+                        <span><code>${escapeHtml(order.transaction_id)}</code></span>
+                    </div>
                     ` : ''}
                     <div class="detail-row">
                         <span class="detail-label">Tracking Number:</span>
-                        <span class="detail-value"><code>${order.trackingNumber || 'Not assigned yet'}</code></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Estimated Delivery:</span>
-                        <span class="detail-value">${estimatedDate.toLocaleDateString()}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Courier Service:</span>
-                        <span class="detail-value">${order.courier || 'SA Paribahan'}</span>
+                        <span><code>${order.tracking_number || 'Not assigned yet'}</code></span>
                     </div>
                 </div>
                 
                 <div class="items-list">
-                    <h4 style="margin-bottom: 0.5rem;"><i class="fas fa-box"></i> Items (${order.items?.length || 0})</h4>
-                    ${order.items?.map(item => `
+                    <h4 style="margin-bottom: 0.5rem;"><i class="fas fa-box"></i> Items (${items?.length || 0})</h4>
+                    ${items?.map(item => `
                         <div class="item-row">
                             <div>
-                                <strong>${escapeHtml(item.name)}</strong><br>
-                                <small>${escapeHtml(item.brand)} | ${escapeHtml(item.fragrance)}</small>
+                                <strong>${escapeHtml(item.product_name || item.name)}</strong><br>
+                                <small>Qty: ${item.quantity}</small>
                             </div>
                             <div style="text-align: right;">
-                                ৳${item.price.toLocaleString()} x ${item.quantity}<br>
-                                <strong>৳${(item.price * item.quantity).toLocaleString()}</strong>
+                                ৳${parseFloat(item.product_price || item.price).toLocaleString()} x ${item.quantity}<br>
+                                <strong>৳${(parseFloat(item.product_price || item.price) * item.quantity).toLocaleString()}</strong>
                             </div>
                         </div>
                     `).join('')}
                 </div>
                 
-                <div class="tracking-timeline">
-                    <h4 style="margin-bottom: 0.8rem;"><i class="fas fa-history"></i> Tracking Timeline</h4>
-                    <div class="timeline-item completed">
-                        <div class="timeline-date">${new Date(order.date).toLocaleDateString()}</div>
-                        <div class="timeline-status">Order Confirmed</div>
-                        <div class="timeline-desc">Your order has been placed successfully</div>
-                    </div>
-                    ${order.paymentConfirmed && order.paymentMethod !== 'cod' ? `
-                        <div class="timeline-item completed">
-                            <div class="timeline-date">${new Date(order.date).toLocaleDateString()}</div>
-                            <div class="timeline-status">Payment Confirmed</div>
-                            <div class="timeline-desc">Payment has been received</div>
-                        </div>
-                    ` : ''}
-                    ${status === 'Processing' || status === 'Shipped' || status === 'Out for Delivery' || status === 'Delivered' ? `
-                        <div class="timeline-item ${status !== 'Processing' ? 'completed' : 'active'}">
-                            <div class="timeline-date">${status === 'Processing' ? 'Processing' : new Date(order.date).toLocaleDateString()}</div>
-                            <div class="timeline-status">Order Processing</div>
-                            <div class="timeline-desc">Your order is being prepared for shipment</div>
-                        </div>
-                    ` : ''}
-                    ${status === 'Shipped' || status === 'Out for Delivery' || status === 'Delivered' ? `
-                        <div class="timeline-item ${status !== 'Shipped' ? 'completed' : 'active'}">
-                            <div class="timeline-date">${status === 'Shipped' ? 'Shipped' : ''}</div>
-                            <div class="timeline-status">Order Shipped</div>
-                            <div class="timeline-desc">Your order has been dispatched</div>
-                        </div>
-                    ` : ''}
-                    ${status === 'Out for Delivery' || status === 'Delivered' ? `
-                        <div class="timeline-item ${status !== 'Out for Delivery' ? 'completed' : 'active'}">
-                            <div class="timeline-date">${status === 'Out for Delivery' ? 'Out for Delivery' : ''}</div>
-                            <div class="timeline-status">Out for Delivery</div>
-                            <div class="timeline-desc">Your order is out for delivery</div>
-                        </div>
-                    ` : ''}
-                    ${status === 'Delivered' ? `
-                        <div class="timeline-item completed">
-                            <div class="timeline-date">Delivered</div>
-                            <div class="timeline-status">Delivered</div>
-                            <div class="timeline-desc">Your order has been delivered successfully</div>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                <div class="detail-row" style="background: var(--background); border-radius: 12px; margin-top: 1rem;">
+                <div class="detail-row">
                     <span class="detail-label">Subtotal:</span>
-                    <span>৳${(order.subtotal || 0).toLocaleString()}</span>
+                    <span>৳${parseFloat(order.subtotal || 0).toLocaleString()}</span>
                 </div>
                 <div class="detail-row" style="color: green;">
                     <span class="detail-label">Discount:</span>
-                    <span>-৳${(order.discount || 0).toLocaleString()}</span>
+                    <span>-৳${parseFloat(order.discount || 0).toLocaleString()}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Delivery Charge:</span>
-                    <span>${order.deliveryCharge === 0 ? 'Free' : '৳' + (order.deliveryCharge || 0)}</span>
+                    <span>${parseFloat(order.delivery_charge || 0) === 0 ? 'Free' : '৳' + parseFloat(order.delivery_charge || 0)}</span>
                 </div>
                 <div class="detail-row" style="font-size: 1.1rem; font-weight: bold;">
                     <span class="detail-label">Total Amount:</span>
-                    <span style="color: var(--primary);">৳${(order.total || 0).toLocaleString()}</span>
+                    <span style="color: var(--primary);">৳${parseFloat(order.total || 0).toLocaleString()}</span>
                 </div>
                 
                 <div class="detail-row">
                     <span class="detail-label">Shipping Address:</span>
-                    <span class="detail-value">
-                        ${escapeHtml(order.customer?.name || order.user || 'N/A')}<br>
-                        ${escapeHtml(order.customer?.address || 'N/A')}<br>
-                        ${escapeHtml(order.customer?.city || '')} ${escapeHtml(order.customer?.postalCode || '')}<br>
-                        📞 ${escapeHtml(order.customer?.phone || 'N/A')}
-                    </span>
+                    <span>${escapeHtml(order.customer_address || 'N/A')}</span>
                 </div>
                 
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="downloadInvoice()" style="flex: 1;">
-                        <i class="fas fa-download"></i> Download Invoice
-                    </button>
-                    <button class="btn" onclick="window.location.href='dashboard.html'" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="window.location.href='dashboard.html'" style="flex: 1;">
                         <i class="fas fa-arrow-left"></i> Back to Dashboard
                     </button>
                 </div>
             `;
-        }
-
-        function downloadInvoice() {
-            if (!currentOrder) return;
-            
-            const invoiceHtml = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Invoice ${currentOrder.id}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; }
-                        .header { text-align: center; margin-bottom: 30px; }
-                        .order-info { margin-bottom: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-                        .total { font-size: 1.2em; font-weight: bold; text-align: right; margin-top: 20px; }
-                        .footer { text-align: center; margin-top: 40px; font-size: 0.8em; color: #666; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>#WE ARE MUSLIM</h1>
-                        <p>Premium Attars & Fragrances</p>
-                    </div>
-                    <h2>Invoice #${currentOrder.id}</h2>
-                    <div class="order-info">
-                        <p><strong>Date:</strong> ${new Date(currentOrder.date).toLocaleString()}</p>
-                        <p><strong>Payment Method:</strong> ${currentOrder.paymentMethod || 'N/A'}</p>
-                        <p><strong>Tracking Number:</strong> ${currentOrder.trackingNumber || 'N/A'}</p>
-                    </div>
-                    <table>
-                        <thead><tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead>
-                        <tbody>
-                            ${currentOrder.items?.map(item => `
-                                <tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>৳${item.price}</td><td>৳${item.price * item.quantity}</td></tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <div class="total">
-                        <p>Subtotal: ৳${(currentOrder.subtotal || 0).toLocaleString()}</p>
-                        <p>Discount: -৳${(currentOrder.discount || 0).toLocaleString()}</p>
-                        <p>Delivery: ${currentOrder.deliveryCharge === 0 ? 'Free' : '৳' + (currentOrder.deliveryCharge || 0)}</p>
-                        <h3>Total: ৳${(currentOrder.total || 0).toLocaleString()}</h3>
-                    </div>
-                    <div class="footer">
-                        <p>Thank you for shopping with #WE ARE MUSLIM!</p>
-                        <p>For any queries, contact: info@wearemuslim.com | +880 1234 567890</p>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            const blob = new Blob([invoiceHtml], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `invoice_${currentOrder.id}.html`;
-            link.click();
-            showToast('Invoice downloaded!');
         }
 
         // Auto-track if order ID in URL
@@ -527,7 +235,6 @@
         }
 
         window.trackOrder = trackOrder;
-        window.downloadInvoice = downloadInvoice;
     </script>
 </body>
 </html>

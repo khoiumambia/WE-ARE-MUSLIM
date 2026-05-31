@@ -19,30 +19,39 @@
         .order-header { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
         .order-id { font-weight: 700; font-size: 1rem; color: var(--primary); }
         .order-date { font-size: 0.8rem; color: #666; }
-        .status-badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .status-badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
         .status-processing { background: var(--warning); color: #333; }
         .status-shipped { background: var(--info); color: white; }
-        .status-out-for-delivery { background: #ff9800; color: white; }
         .status-delivered { background: var(--success); color: white; }
         .status-cancelled { background: var(--danger); color: white; }
-        .status-pending-cod { background: #9c27b0; color: white; }
-        .payment-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; font-weight: 600; margin-left: 0.5rem; }
+        .payment-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; font-weight: 600; margin-left: 0.5rem; display: inline-block; }
         .payment-confirmed { background: var(--success); color: white; }
         .payment-pending { background: var(--warning); color: #333; }
-        .order-customer { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
-        .customer-avatar { width: 40px; height: 40px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        .order-items { background: var(--background); border-radius: 12px; padding: 0.8rem; margin: 0.8rem 0; }
+        .order-customer { margin-bottom: 0.8rem; }
+        .order-items { background: var(--background); border-radius: 12px; padding: 0.8rem; margin: 0.8rem 0; max-height: 200px; overflow-y: auto; }
         .order-item-small { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.85rem; border-bottom: 1px dashed var(--border); }
         .order-item-small:last-child { border-bottom: none; }
-        .order-total { display: flex; justify-content: space-between; margin: 0.8rem 0; padding: 0.5rem 0; font-weight: 700; }
+        .order-total { display: flex; justify-content: space-between; margin: 0.8rem 0; padding: 0.5rem 0; font-weight: 700; border-top: 1px solid var(--border); }
         .tracking-box { background: var(--background); border-radius: 8px; padding: 0.5rem; margin: 0.5rem 0; font-family: monospace; font-size: 0.8rem; }
         .order-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
         .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-        .status-select { padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border); background: white; }
+        .status-select { padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; }
         .empty-orders { text-align: center; padding: 3rem; background: white; border-radius: 20px; }
         .stats-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
         .stat-pill { background: white; padding: 0.5rem 1rem; border-radius: 50px; box-shadow: var(--shadow-sm); }
-        .revenue-total { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-cash-received { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-cash-received:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .detail-label { font-weight: 600; }
+        .badge-online { background: #3b82f6; color: white; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; display: inline-block; }
+        .badge-cod { background: #f59e0b; color: #333; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; display: inline-block; }
+        .tier-badge-small { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; }
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
     </style>
 </head>
 <body>
@@ -51,15 +60,14 @@
         <div class="header-actions">
             <h1 style="font-family: 'Cormorant Garamond';">📋 Manage Orders</h1>
             <div class="search-filter">
-                <input type="text" id="searchOrders" placeholder="🔍 Search by Order ID, Customer..." onkeyup="filterOrders()">
+                <input type="text" id="searchOrders" placeholder="🔍 Search by Order ID, Customer, Email..." onkeyup="filterOrders()">
                 <select id="statusFilter" onchange="filterOrders()">
-                    <option value="all">📊 All Status</option>
-                    <option value="Processing">⏳ Processing</option>
-                    <option value="Shipped">🚚 Shipped</option>
-                    <option value="Out for Delivery">📦 Out for Delivery</option>
-                    <option value="Delivered">✅ Delivered</option>
-                    <option value="Cancelled">❌ Cancelled</option>
-                    <option value="Pending (COD)">💰 Pending (COD)</option>
+                    <option value="all">All Status</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="pending_payment">Pending Payment</option>
                 </select>
                 <button class="btn btn-sm" onclick="resetFilters()">Reset</button>
             </div>
@@ -68,9 +76,9 @@
     </div>
 
     <!-- Order Details Modal -->
-    <div id="orderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-        <div style="background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3>Order Details</h3>
                 <button onclick="closeOrderModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
             </div>
@@ -81,7 +89,7 @@
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
-        let allOrders = [], allProducts = [];
+        let allOrders = [];
 
         function checkAdminAccess() {
             const user = getCurrentUser();
@@ -91,147 +99,260 @@
         }
 
         function loadOrders() {
-            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
-            allProducts = JSON.parse(localStorage.getItem('attar_products')) || [];
-            renderOrders();
+            console.log('Fetching orders from API...');
+            fetch('api/get-orders.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allOrders = data.orders;
+                        renderOrders();
+                    } else {
+                        document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Error: ' + data.error + '</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Failed to load orders.</div>';
+                });
+        }
+
+        function getTierClass(tier) {
+            switch(tier) {
+                case 'Platinum': return 'tier-platinum';
+                case 'Gold': return 'tier-gold';
+                case 'Silver': return 'tier-silver';
+                default: return 'tier-bronze';
+            }
+        }
+
+        function getTierIcon(tier) {
+            switch(tier) {
+                case 'Platinum': return '💎';
+                case 'Gold': return '🥇';
+                case 'Silver': return '🥈';
+                default: return '🥉';
+            }
         }
 
         function renderOrders() {
             const searchTerm = document.getElementById('searchOrders')?.value.toLowerCase() || '';
             const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-            let filtered = allOrders;
-            if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
-            if (searchTerm) filtered = filtered.filter(o => o.id.toLowerCase().includes(searchTerm) || (o.customer?.name && o.customer.name.toLowerCase().includes(searchTerm)) || (o.user && o.user.toLowerCase().includes(searchTerm)));
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let filtered = [...allOrders];
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'pending_payment') {
+                    filtered = filtered.filter(o => o.payment_confirmed == 0 && o.status !== 'Cancelled');
+                } else {
+                    filtered = filtered.filter(o => o.status === statusFilter);
+                }
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(o => 
+                    (o.order_number && o.order_number.toLowerCase().includes(searchTerm)) ||
+                    (o.customer_name && o.customer_name.toLowerCase().includes(searchTerm)) ||
+                    (o.customer_email && o.customer_email.toLowerCase().includes(searchTerm))
+                );
+            }
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             
             const container = document.getElementById('ordersList');
-            if (filtered.length === 0) { container.innerHTML = '<div class="empty-orders">📭 No orders found</div>'; return; }
+            if (filtered.length === 0) { 
+                container.innerHTML = '<div class="empty-orders">No orders found</div>'; 
+                return; 
+            }
             
-            // Calculate revenue from CONFIRMED payments ONLY (not COD pending)
-            const confirmedRevenue = filtered.filter(o => o.paymentConfirmed === true).reduce((sum, o) => sum + (o.total || 0), 0);
-            const pendingRevenue = filtered.filter(o => o.paymentConfirmed === false && o.status !== 'Cancelled' && o.status !== 'Delivered').reduce((sum, o) => sum + (o.total || 0), 0);
+            const confirmedRevenue = filtered.filter(o => o.payment_confirmed == 1).reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const pendingPayment = filtered.filter(o => o.payment_confirmed == 0 && o.status !== 'Cancelled').reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
             
             let statsHtml = `
                 <div class="stats-summary">
                     <span class="stat-pill">📊 Total Orders: ${filtered.length}</span>
                     <span class="stat-pill revenue-total">💰 Confirmed Revenue: ৳${confirmedRevenue.toLocaleString()}</span>
-                    <span class="stat-pill">⏳ Pending Payment: ৳${pendingRevenue.toLocaleString()}</span>
+                    <span class="stat-pill">⏳ Pending Payment: ৳${pendingPayment.toLocaleString()}</span>
                 </div>
             `;
             
-            const ordersHtml = filtered.map(order => `
+            const ordersHtml = filtered.map(order => {
+                let items = order.items || [];
+                const isPaymentPending = order.payment_confirmed == 0 && order.status !== 'Cancelled';
+                const isCOD = order.payment_method === 'cod';
+                const isOnline = order.payment_method !== 'cod' && order.payment_method !== null;
+                
+                // Get tier info for display (if available)
+                const customerTier = order.customer_tier || 'Bronze';
+                const tierClass = getTierClass(customerTier);
+                const tierIcon = getTierIcon(customerTier);
+                
+                return `
                 <div class="order-card">
                     <div class="order-header">
-                        <div><span class="order-id">#${order.id}</span><div class="order-date">📅 ${formatDate(order.date)}</div></div>
+                        <div>
+                            <span class="order-id">#${escapeHtml(order.order_number || order.id)}</span>
+                            ${isCOD ? '<span class="badge-cod"><i class="fas fa-money-bill-wave"></i> COD</span>' : ''}
+                            ${isOnline ? '<span class="badge-online"><i class="fas fa-mobile-alt"></i> Online</span>' : ''}
+                            <div class="order-date">${formatDate(order.created_at)}</div>
+                        </div>
                         <div>
                             <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)">
-                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>⏳ Processing</option>
-                                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>🚚 Shipped</option>
-                                <option value="Out for Delivery" ${order.status === 'Out for Delivery' ? 'selected' : ''}>📦 Out for Delivery</option>
-                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
-                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
-                                <option value="Pending (COD)" ${order.status === 'Pending (COD)' ? 'selected' : ''}>💰 Pending (COD)</option>
+                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                             </select>
-                            <span class="payment-badge ${order.paymentConfirmed ? 'payment-confirmed' : 'payment-pending'}">
-                                ${order.paymentConfirmed ? '✓ Payment Received' : '⏳ Payment Pending'}
+                            <span class="payment-badge ${order.payment_confirmed ? 'payment-confirmed' : 'payment-pending'}">
+                                ${order.payment_confirmed ? '✓ Paid' : '⏳ Pending'}
                             </span>
+                            ${customerTier !== 'Bronze' ? `<span class="tier-badge-small ${tierClass}">${tierIcon} ${customerTier}</span>` : ''}
                         </div>
                     </div>
                     <div class="order-customer">
-                        <div class="customer-avatar">${(order.customer?.name?.charAt(0) || order.user?.charAt(0) || 'U').toUpperCase()}</div>
-                        <div><div class="customer-name">${escapeHtml(order.customer?.name || order.user || 'Guest')}</div><div>📞 ${escapeHtml(order.customer?.phone || 'N/A')}</div></div>
+                        <strong>${escapeHtml(order.customer_name || 'Guest')}</strong><br>
+                        📧 ${escapeHtml(order.customer_email || 'N/A')}<br>
+                        📞 ${escapeHtml(order.customer_phone || 'N/A')}<br>
+                        📍 ${escapeHtml(order.customer_address || 'N/A')}
                     </div>
-                    <div class="order-items"><div style="font-weight:600; margin-bottom:0.5rem;">Items (${order.items?.length || 0})</div>
-                        ${order.items?.slice(0,2).map(item => `<div class="order-item-small"><span>${escapeHtml(item.name)} x ${item.quantity}</span><span>৳${(item.price * item.quantity).toLocaleString()}</span></div>`).join('')}
-                        ${order.items?.length > 2 ? `<div class="order-item-small" style="color:#999;">+ ${order.items.length-2} more</div>` : ''}
+                    <div class="order-items">
+                        <div style="font-weight:600; margin-bottom:0.5rem;">Items (${items.length})</div>
+                        ${items.map(item => `
+                            <div class="order-item-small">
+                                <span>${escapeHtml(item.product_name || item.name)} x ${item.quantity}</span>
+                                <span>৳${(parseFloat(item.product_price || item.price) * item.quantity).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
                     </div>
-                    <div class="order-total"><span>Total:</span><span style="font-size:1.2rem;color:var(--primary);">৳${(order.total || 0).toLocaleString()}</span></div>
-                    <div class="tracking-box"><i class="fas fa-truck"></i> Tracking: ${order.trackingNumber || 'Not generated'}
-                        <button class="btn btn-sm btn-success" onclick="generateTrackingNumber('${order.id}')" style="margin-left:0.5rem;"><i class="fas fa-qrcode"></i> Generate</button>
+                    <div class="order-total">
+                        <span>Total:</span>
+                        <span>৳${(parseFloat(order.total) || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="tracking-box">
+                        Tracking: ${order.tracking_number || 'Not generated'}
+                        <button class="btn btn-sm btn-success" onclick="generateTrackingNumber('${order.id}')">Generate</button>
                     </div>
                     <div class="order-actions">
-                        <button class="btn btn-sm btn-primary" onclick="viewOrderDetails('${order.id}')"><i class="fas fa-eye"></i> Details</button>
-                        <button class="btn btn-sm" onclick="window.location.href='order-tracking.html?order=${order.id}'"><i class="fas fa-map-marker-alt"></i> Track</button>
-                        ${order.status !== 'Delivered' && order.status !== 'Cancelled' ? `<button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')"><i class="fas fa-times"></i> Cancel</button>` : ''}
+                        <button class="btn btn-sm btn-primary" onclick="viewOrderDetails('${order.id}')">Details</button>
+                        <button class="btn btn-sm" onclick="window.location.href='order-tracking.html?order=${order.order_number}'">Track</button>
+                        ${order.status !== 'Delivered' && order.status !== 'Cancelled' ? `<button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button>` : ''}
+                        ${isPaymentPending ? `<button class="btn btn-sm btn-cash-received" onclick="confirmPaymentReceived('${order.id}')"><i class="fas fa-money-bill-wave"></i> Confirm Payment</button>` : ''}
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
             container.innerHTML = statsHtml + ordersHtml;
         }
 
         function filterOrders() { renderOrders(); }
-        function resetFilters() { document.getElementById('searchOrders').value = ''; document.getElementById('statusFilter').value = 'all'; renderOrders(); }
+        
+        function resetFilters() { 
+            document.getElementById('searchOrders').value = ''; 
+            document.getElementById('statusFilter').value = 'all'; 
+            renderOrders(); 
+        }
 
         function updateOrderStatus(orderId, newStatus) {
-            const order = allOrders.find(o => o.id === orderId);
-            if (order) {
-                const oldStatus = order.status;
-                order.status = newStatus;
-                
-                // When order is delivered and was COD, mark payment as confirmed
-                if (newStatus === 'Delivered' && order.paymentMethod === 'cod' && order.paymentConfirmed === false) {
-                    order.paymentConfirmed = true;
-                    // Award loyalty points now that payment is received
-                    let points = parseInt(localStorage.getItem('loyalty_points')) || 0;
-                    points += Math.floor(order.total / 100);
-                    localStorage.setItem('loyalty_points', points);
-                    showToast(`Order delivered! Payment confirmed. Customer earned ${Math.floor(order.total / 100)} points.`);
+            fetch('api/update-order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId, status: newStatus })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast(`Order status updated to ${newStatus}`);
+                    loadOrders();
+                } else {
+                    showToast('Error: ' + result.error);
                 }
-                
-                localStorage.setItem('attar_orders', JSON.stringify(allOrders));
-                showToast(`Order ${orderId} status updated to ${newStatus}`);
-                renderOrders();
-                // Update admin dashboard stats if open
-                if (window.opener) window.opener.location.reload();
+            });
+        }
+
+        function confirmPaymentReceived(orderId) {
+            let message = 'Confirm that payment has been received for this order?';
+            
+            const order = allOrders.find(o => o.id == orderId);
+            if (order && order.payment_method === 'cod') {
+                message = 'Confirm that CASH has been received for this COD order?';
+            } else {
+                message = 'Confirm that ONLINE PAYMENT has been received for this order?';
+            }
+            
+            if (confirm(message)) {
+                fetch('api/update-order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: orderId, payment_confirmed: 1 })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showToast('Payment confirmed!');
+                        loadOrders();
+                    } else {
+                        showToast('Error: ' + result.error);
+                    }
+                });
             }
         }
 
         function generateTrackingNumber(orderId) {
-            const order = allOrders.find(o => o.id === orderId);
-            if (order) {
-                const newTracking = 'TRK' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 1000);
-                order.trackingNumber = newTracking;
-                localStorage.setItem('attar_orders', JSON.stringify(allOrders));
-                showToast(`Tracking: ${newTracking}`);
-                renderOrders();
-            }
+            const newTracking = 'TRK' + Date.now().toString().slice(-8);
+            fetch('api/update-order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId, tracking_number: newTracking })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast(`Tracking: ${newTracking}`);
+                    loadOrders();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            });
         }
 
         function cancelOrder(orderId) {
             if (confirm('Cancel this order?')) {
-                const order = allOrders.find(o => o.id === orderId);
-                if (order && (order.status === 'Processing' || order.status === 'Pending (COD)')) {
-                    order.status = 'Cancelled';
-                    // Return stock to inventory
-                    order.items.forEach(item => {
-                        const product = allProducts.find(p => p.id === item.id);
-                        if (product) product.stock += item.quantity;
-                    });
-                    localStorage.setItem('attar_products', JSON.stringify(allProducts));
-                    localStorage.setItem('attar_orders', JSON.stringify(allOrders));
-                    showToast('Order cancelled');
-                    renderOrders();
-                } else { showToast('Cannot cancel this order'); }
+                updateOrderStatus(orderId, 'Cancelled');
             }
         }
 
         function viewOrderDetails(orderId) {
-            const order = allOrders.find(o => o.id === orderId);
+            const order = allOrders.find(o => o.id == orderId);
             if (!order) return;
+            
+            let items = order.items || [];
             const modal = document.getElementById('orderModal');
             const content = document.getElementById('orderModalContent');
+            
+            // Calculate discount information
+            const subtotal = parseFloat(order.subtotal) || 0;
+            const discountAmount = parseFloat(order.discount) || 0;
+            const discountPercent = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
+            
             content.innerHTML = `
-                <p><strong>Order ID:</strong> ${order.id}</p>
-                <p><strong>Date:</strong> ${formatDate(order.date)}</p>
-                <p><strong>Status:</strong> <span class="status-badge status-${order.status.toLowerCase().replace(/ /g,'-')}">${order.status}</span></p>
-                <p><strong>Payment:</strong> ${order.paymentMethod} | ${order.paymentConfirmed ? '✅ Received' : '⏳ Pending'}</p>
-                <p><strong>Tracking:</strong> ${order.trackingNumber || 'N/A'}</p>
-                <hr><h4>Customer</h4>
-                <p>${escapeHtml(order.customer?.name || order.user)}<br>📞 ${order.customer?.phone}<br>📍 ${order.customer?.address}, ${order.customer?.city}</p>
-                <hr><h4>Items</h4>
-                ${order.items?.map(i => `<p>${escapeHtml(i.name)} x ${i.quantity} = ৳${(i.price * i.quantity).toLocaleString()}</p>`).join('')}
-                <hr><h4>Total: ৳${order.total.toLocaleString()}</h4>
-                ${order.transactionId ? `<p><small>Transaction ID: ${order.transactionId}</small></p>` : ''}
+                <div class="detail-row"><span class="detail-label">Order ID:</span><span>${escapeHtml(order.order_number || order.id)}</span></div>
+                <div class="detail-row"><span class="detail-label">Date:</span><span>${formatDate(order.created_at)}</span></div>
+                <div class="detail-row"><span class="detail-label">Status:</span><span>${order.status}</span></div>
+                <div class="detail-row"><span class="detail-label">Payment Method:</span><span>${order.payment_method === 'cod' ? 'Cash on Delivery' : (order.payment_method || 'N/A').toUpperCase()}</span></div>
+                <div class="detail-row"><span class="detail-label">Payment Status:</span><span>${order.payment_confirmed ? '✅ Paid' : '⏳ Pending'}</span></div>
+                <div class="detail-row"><span class="detail-label">Tracking:</span><span>${order.tracking_number || 'N/A'}</span></div>
+                <hr>
+                <h4>Customer</h4>
+                <div class="detail-row"><span class="detail-label">Name:</span><span>${escapeHtml(order.customer_name || 'Guest')}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span>${escapeHtml(order.customer_email || 'N/A')}</span></div>
+                <div class="detail-row"><span class="detail-label">Phone:</span><span>${escapeHtml(order.customer_phone || 'N/A')}</span></div>
+                <div class="detail-row"><span class="detail-label">Address:</span><span>${escapeHtml(order.customer_address || 'N/A')}</span></div>
+                <hr>
+                <h4>Items</h4>
+                ${items.map(item => `
+                    <div class="detail-row"><span>${escapeHtml(item.product_name || item.name)} x ${item.quantity}</span><span>৳${(parseFloat(item.product_price || item.price) * item.quantity).toLocaleString()}</span></div>
+                `).join('')}
+                <hr>
+                <div class="detail-row"><span class="detail-label">Subtotal:</span><span>৳${(parseFloat(order.subtotal) || 0).toLocaleString()}</span></div>
+                ${discountAmount > 0 ? `<div class="detail-row" style="color: green;"><span class="detail-label">Discount (${discountPercent.toFixed(0)}%):</span><span>-৳${discountAmount.toLocaleString()}</span></div>` : ''}
+                <div class="detail-row"><span class="detail-label">Delivery:</span><span>${parseFloat(order.delivery_charge) === 0 ? 'Free' : '৳' + (parseFloat(order.delivery_charge) || 0)}</span></div>
+                <div class="detail-row"><span class="detail-label">Total:</span><span>৳${(parseFloat(order.total) || 0).toLocaleString()}</span></div>
+                <button class="btn btn-primary" style="margin-top:1rem;" onclick="closeOrderModal()">Close</button>
             `;
             modal.style.display = 'flex';
         }
@@ -245,6 +366,7 @@
         window.cancelOrder = cancelOrder;
         window.viewOrderDetails = viewOrderDetails;
         window.closeOrderModal = closeOrderModal;
+        window.confirmPaymentReceived = confirmPaymentReceived;
 
         if (checkAdminAccess()) loadOrders();
     </script>

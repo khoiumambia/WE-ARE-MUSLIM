@@ -42,12 +42,21 @@
             padding: 1rem;
             text-align: center;
             border-bottom: 1px solid var(--border);
+            vertical-align: middle;
         }
 
         .compare-table th {
             background: var(--primary);
             color: white;
             font-weight: 600;
+        }
+
+        .compare-table tr td:first-child,
+        .compare-table tr th:first-child {
+            background: var(--background);
+            font-weight: 600;
+            text-align: left;
+            width: 150px;
         }
 
         .compare-product-img {
@@ -73,11 +82,12 @@
             cursor: pointer;
             transition: all 0.3s ease;
             background: var(--primary);
+            border-radius: 12px;
+            color: white;
         }
 
         .add-more:hover {
             background: var(--primary-light);
-            color: white;
         }
 
         .btn {
@@ -100,6 +110,47 @@
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
+
+        .empty-compare {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .empty-compare i {
+            font-size: 4rem;
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .stock-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .stock-high {
+            background: var(--success);
+            color: white;
+        }
+
+        .stock-low {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .stock-out {
+            background: var(--danger);
+            color: white;
+        }
+
+        .loading-compare {
+            text-align: center;
+            padding: 3rem;
+        }
     </style>
 </head>
 <body>
@@ -111,7 +162,7 @@
         <h1>Compare Products</h1>
         <p>Compare up to 4 products side by side to find your perfect fragrance</p>
     </div>
-    <div id="compareContent"></div>
+    <div id="compareContent"><div class="loading-compare">Loading products...</div></div>
 </div>
 
 <script src="js/navigation.js"></script>
@@ -132,24 +183,66 @@
         return true;
     }
 
-    function loadCompareData() {
+    async function loadCompareData() {
         if (!checkCompareAccess()) {
             return;
         }
         
-        products = JSON.parse(localStorage.getItem('attar_products')) || [];
+        // Load compare list from localStorage
         compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
-        renderCompare();
+        console.log('Compare list IDs:', compareList);
+        
+        // Load products from database via API
+        try {
+            const response = await fetch('api/get-products.php');
+            const data = await response.json();
+            if (data.success) {
+                products = data.products;
+                console.log('Loaded products:', products.length);
+                console.log('Sample product:', products[0]);
+                renderCompare();
+            } else {
+                console.error('API error:', data.error);
+                products = [];
+                renderCompare();
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            products = [];
+            renderCompare();
+        }
+    }
+
+    function getImageUrl(imagePath) {
+        if (!imagePath) return 'https://placehold.co/150x150/e8ddd3/8B5E3C?text=No+Image';
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+        if (imagePath.startsWith('/uploads/')) return imagePath;
+        if (imagePath.startsWith('uploads/')) return imagePath;
+        if (imagePath.startsWith('data:')) return imagePath;
+        return 'uploads/' + imagePath;
+    }
+
+    function getProductValue(product, field, defaultValue = '—') {
+        if (!product) return defaultValue;
+        const value = product[field];
+        if (value === undefined || value === null || value === '') {
+            return defaultValue;
+        }
+        return value;
     }
 
     function renderCompare() {
         const container = document.getElementById('compareContent');
+        
+        // Filter products that are in compare list
         const compareProducts = products.filter(p => compareList.includes(p.id));
-
-        if (compareList.length === 0) {
+        console.log('Compare products found:', compareProducts.length);
+        console.log('Compare products:', compareProducts);
+        
+        if (compareList.length === 0 || compareProducts.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 4rem; background: white; border-radius: 20px;">
-                    <i class="fas fa-chart-line" style="font-size: 3rem; color: var(--primary);"></i>
+                <div class="empty-compare">
+                    <i class="fas fa-chart-line"></i>
                     <h3 style="margin: 1rem 0;">No products to compare</h3>
                     <p>Add products from the shop page to compare them here</p>
                     <button class="btn btn-primary" style="margin-top: 1rem;" onclick="window.location.href='shop.html'">Browse Products →</button>
@@ -158,47 +251,88 @@
             return;
         }
 
-        let html = `
+        // Build the comparison table
+        let tableRows = '';
+        
+        // Define all comparison features
+        const features = [
+            { label: 'Brand', field: 'brand' },
+            { label: 'Fragrance', field: 'fragrance' },
+            { label: 'Price', field: 'price', formatter: (val) => `৳${parseFloat(val).toLocaleString()}` },
+            { label: 'Stock', field: 'stock', formatter: (val, product) => {
+                if (val > 10) return `<span class="stock-badge stock-high">${val} in stock</span>`;
+                if (val > 0) return `<span class="stock-badge stock-low">Only ${val} left</span>`;
+                return `<span class="stock-badge stock-out">Out of stock</span>`;
+            }},
+            { label: 'Rating', field: 'ratings', formatter: (val, product) => `⭐ ${val || 0}/5 (${product.reviews || 0} reviews)` },
+            { label: 'Description', field: 'description', formatter: (val) => {
+                if (!val) return 'Premium quality attar with long-lasting fragrance.';
+                return val.length > 100 ? val.substring(0, 100) + '...' : val;
+            }},
+            { label: 'Action', field: 'action', isAction: true }
+        ];
+
+        // Build each row
+        for (const feature of features) {
+            let row = `<tr><td>${feature.label}</td>`;
+            
+            for (const product of compareProducts) {
+                if (feature.isAction) {
+                    // Action buttons
+                    if (product.stock > 0) {
+                        row += `<td><button class="btn btn-primary" onclick="addToCart(${product.id})">Add to Cart</button></td>`;
+                    } else {
+                        row += `<td><button class="btn" style="background:#6b7280; color:white;" onclick="showStockAlert(${product.id})">Notify Me</button></td>`;
+                    }
+                } else {
+                    // Regular data fields
+                    let value = getProductValue(product, feature.field, '—');
+                    if (feature.formatter) {
+                        value = feature.formatter(value, product);
+                    }
+                    row += `<td>${value}</td>`;
+                }
+            }
+            
+            // Add empty cell for "Add More" column if needed
+            if (compareProducts.length < 4) {
+                row += `<td></td>`;
+            }
+            row += `</tr>`;
+            tableRows += row;
+        }
+
+        // Build header row
+        let headerCells = `<th>Features / Products</th>`;
+        for (const product of compareProducts) {
+            headerCells += `
+                <th>
+                    <img class="compare-product-img" src="${getImageUrl(product.image)}" onerror="this.src='https://placehold.co/150x150/e8ddd3/8B5E3C?text=No+Image'">
+                    <h3 style="margin: 0.8rem 0 0.3rem;">${escapeHtml(product.name)}</h3>
+                    <button class="remove-btn" onclick="removeFromCompare(${product.id})">Remove</button>
+                </th>
+            `;
+        }
+        
+        // Add "Add More" header if needed
+        if (compareProducts.length < 4) {
+            headerCells += `<th><div class="add-more" onclick="addMore()">+ Add Product</div></th>`;
+        }
+
+        const html = `
             <div class="compare-table">
                 <table>
                     <thead>
-                        <tr>
-                            <th style="width: 150px;">Feature</th>
-                            ${compareProducts.map(p => `
-                                <th>
-                                    <img class="compare-product-img" src="${p.image}" onerror="this.src='https://via.placeholder.com/150'">
-                                    <h3>${escapeHtml(p.name)}</h3>
-                                    <button class="remove-btn" onclick="removeFromCompare(${p.id})">Remove</button>
-                                </th>
-                            `).join('')}
-                            ${compareList.length < 4 ? '<th><div class="add-more" onclick="addMore()">+ Add Product</div></th>' : ''}
-                        </tr>
+                        <tr>${headerCells}</tr>
                     </thead>
                     <tbody>
-                        ${renderComparisonRow('Brand', compareProducts, p => p.brand)}
-                        ${renderComparisonRow('Fragrance', compareProducts, p => p.fragrance)}
-                        ${renderComparisonRow('Price', compareProducts, p => `৳${p.price.toLocaleString()}`)}
-                        ${renderComparisonRow('Stock', compareProducts, p => p.stock > 0 ? `${p.stock} in stock` : 'Out of stock', p => p.stock > 0 ? 'success' : 'danger')}
-                        ${renderComparisonRow('Rating', compareProducts, p => `⭐ ${p.ratings || 4.5}/5 (${p.reviews || 0} reviews)`)}
-                        ${renderComparisonRow('Description', compareProducts, p => p.desc || 'Premium quality attar')}
-                        ${renderComparisonRow('Action', compareProducts, p => `<button class="btn btn-primary" onclick="addToCart(${p.id})">Add to Cart</button>`)}
+                        ${tableRows}
                     </tbody>
                 </table>
             </div>
         `;
 
         container.innerHTML = html;
-    }
-
-    function renderComparisonRow(label, products, valueGetter, colorGetter = null) {
-        let row = `<tr><th>${label}</th>`;
-        products.forEach(p => {
-            const value = valueGetter(p);
-            const color = colorGetter ? colorGetter(p) : '';
-            row += `<td style="${color ? `color: ${color === 'success' ? '#10b981' : '#ef4444'}` : ''}">${value}</td>`;
-        });
-        row += `</tr>`;
-        return row;
     }
 
     function removeFromCompare(productId) {
@@ -209,15 +343,21 @@
     }
 
     function addMore() {
+        // Get products not already in compare list
         const availableProducts = products.filter(p => !compareList.includes(p.id));
+        
         if (availableProducts.length === 0) {
             showToast('No more products to add!');
             return;
         }
 
-        let productList = availableProducts.map((p, i) => `${i + 1}. ${p.name} - ৳${p.price}`).join('\n');
-        let selection = prompt(`Select a product to add:\n\n${productList}\n\nEnter product number (1-${availableProducts.length}):`);
-
+        // Create a simple selection dialog
+        let productOptions = availableProducts.map((p, index) => 
+            `${index + 1}. ${p.name} - ৳${parseFloat(p.price).toLocaleString()}`
+        ).join('\n');
+        
+        let selection = prompt(`Select a product to add (1-${availableProducts.length}):\n\n${productOptions}`);
+        
         if (selection && !isNaN(selection) && selection >= 1 && selection <= availableProducts.length) {
             const selectedProduct = availableProducts[selection - 1];
             if (!compareList.includes(selectedProduct.id)) {
@@ -239,6 +379,8 @@
         }
 
         const product = products.find(p => p.id === productId);
+        if (!product) return;
+        
         if (product.stock === 0) {
             showToast('Sorry, out of stock!');
             return;
@@ -247,7 +389,12 @@
         let cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
         let item = cart.find(i => i.id === productId);
         if (item) {
-            item.quantity++;
+            if (item.quantity < product.stock) {
+                item.quantity++;
+            } else {
+                showToast('Not enough stock available!');
+                return;
+            }
         } else {
             cart.push({ id: productId, quantity: 1 });
         }
@@ -259,14 +406,36 @@
         localStorage.setItem('loyalty_points', points);
         updateNavPointsCount();
 
-        showToast(`${product.name} added to cart!`);
+        showToast(`${product.name} added to cart! +${Math.floor(product.price / 100)} points`);
     }
 
+    function showStockAlert(productId) {
+        const product = products.find(p => p.id === productId);
+        const email = prompt(`Notify me when ${product.name} is back in stock.\n\nEnter your email:`);
+        if (email && email.includes('@')) {
+            let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
+            waitlist.push({
+                productId: product.id,
+                productName: product.name,
+                email: email,
+                date: new Date().toISOString(),
+                notified: false
+            });
+            localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
+            showToast(`We'll notify you when ${product.name} is back!`);
+        }
+    }
+
+    // Make functions global
     window.removeFromCompare = removeFromCompare;
     window.addMore = addMore;
     window.addToCart = addToCart;
+    window.showStockAlert = showStockAlert;
 
-    loadCompareData();
+    // Load data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCompareData();
+    });
 </script>
 </body>
 </html>

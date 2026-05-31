@@ -159,6 +159,27 @@
             padding-top: 1rem;
         }
 
+        .tier-info {
+            background: rgba(139,94,60,0.08);
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .tier-badge-small {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+
         .coupon-section {
             margin: 1rem 0;
             padding: 1rem 0;
@@ -177,6 +198,19 @@
             padding: 0.7rem;
             border: 1px solid var(--border);
             border-radius: 50px;
+        }
+
+        .coupon-message {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .coupon-message.success {
+            color: #10b981;
+        }
+
+        .coupon-message.error {
+            color: #ef4444;
         }
 
         .checkout-btn {
@@ -198,6 +232,32 @@
             font-size: 4rem;
             color: var(--primary-light);
             margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
         }
 
         @media (max-width: 768px) {
@@ -239,16 +299,15 @@
 <script>
     let cart = [];
     let products = [];
-    let appliedCoupon = null;
+    let subtotal = 0;
+    let tierDiscountPercent = 0;
+    let tierDiscountAmount = 0;
+    let deliveryCharge = 60;
+    let total = 0;
+    let userTier = 'Bronze';
     let freeShippingThreshold = 2000;
-
-    const coupons = [
-        { code: "WELCOME10", discount: 10, minAmount: 500, type: "percent" },
-        { code: "RAMADAN20", discount: 20, minAmount: 1000, type: "percent" },
-        { code: "FREESHIP", discount: 60, minAmount: 2000, type: "fixed" },
-        { code: "EIDSPECIAL", discount: 25, minAmount: 3000, type: "percent" },
-        { code: "SAVE50", discount: 50, minAmount: 1000, type: "fixed" }
-    ];
+    let appliedCoupon = null;
+    let couponDiscount = 0;
 
     function checkCartAccess() {
         const user = getCurrentUser();
@@ -262,19 +321,45 @@
         return true;
     }
 
-    function loadCartData() {
+    async function loadCartData() {
         if (!checkCartAccess()) {
             return;
         }
         
-        // Load cart and products from localStorage
         cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-        products = JSON.parse(localStorage.getItem('attar_products')) || [];
         
-        console.log('Cart loaded:', cart);
-        console.log('Products loaded:', products);
+        try {
+            const response = await fetch('api/get-products.php');
+            const data = await response.json();
+            if (data.success) {
+                products = data.products;
+            } else {
+                products = [];
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            products = [];
+        }
         
+        await loadUserTier();
         renderCart();
+    }
+
+    async function loadUserTier() {
+        const user = getCurrentUser();
+        if (user && user.email) {
+            try {
+                const response = await fetch(`api/get-user-tier.php?email=${encodeURIComponent(user.email)}`);
+                const result = await response.json();
+                if (result.success) {
+                    userTier = result.tier;
+                    tierDiscountPercent = result.discount;
+                }
+            } catch (error) {
+                console.error('Error loading tier:', error);
+                tierDiscountPercent = 0;
+            }
+        }
     }
 
     function renderCart() {
@@ -294,8 +379,13 @@
             return;
         }
 
-        // Calculate totals first
-        const totals = calculateTotals();
+        calculateTotals();
+        
+        let tierClass = 'tier-bronze';
+        let tierIcon = '🥉';
+        if (userTier === 'Silver') { tierClass = 'tier-silver'; tierIcon = '🥈'; }
+        else if (userTier === 'Gold') { tierClass = 'tier-gold'; tierIcon = '🥇'; }
+        else if (userTier === 'Platinum') { tierClass = 'tier-platinum'; tierIcon = '💎'; }
         
         container.innerHTML = `
             <div class="cart-layout">
@@ -311,30 +401,44 @@
                 
                 <div class="cart-summary">
                     <h3>Order Summary</h3>
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="summarySubtotal">৳${totals.subtotal.toLocaleString()}</span>
-                    </div>
-                    <div class="summary-row" style="color: green;">
-                        <span>Discount</span>
-                        <span id="summaryDiscount">-৳${totals.discount.toLocaleString()}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Delivery Charge</span>
-                        <span id="summaryDelivery">${totals.deliveryCharge === 0 ? 'Free' : `৳${totals.deliveryCharge}`}</span>
-                    </div>
-                    <div class="summary-total">
-                        <span>Total Amount</span>
-                        <span id="summaryTotal">৳${totals.total.toLocaleString()}</span>
+                    <div class="tier-info">
+                        <i class="fas fa-crown"></i> 
+                        <span class="tier-badge-small ${tierClass}">${tierIcon} ${userTier} Member</span>
+                        <br>You get <strong>${tierDiscountPercent}% discount</strong> on this order!
                     </div>
                     
                     <div class="coupon-section">
-                        <label style="font-weight: 600;"><i class="fas fa-tag"></i> Apply Coupon</label>
+                        <label><i class="fas fa-tag"></i> Have a Coupon?</label>
                         <div class="coupon-input">
-                            <input type="text" id="cartCouponCode" placeholder="Enter coupon code">
-                            <button class="btn btn-primary" onclick="applyCartCoupon()">Apply</button>
+                            <input type="text" id="couponCode" placeholder="Enter coupon code">
+                            <button class="btn btn-sm btn-primary" onclick="applyCoupon()">Apply</button>
                         </div>
-                        <div id="cartCouponMessage" style="font-size: 0.8rem; margin-top: 0.5rem;"></div>
+                        <div id="couponMessage" class="coupon-message"></div>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="summarySubtotal">৳${subtotal.toLocaleString()}</span>
+                    </div>
+                    ${tierDiscountPercent > 0 ? `
+                        <div class="summary-row" style="color: green;">
+                            <span>Tier Discount (${tierDiscountPercent}%)</span>
+                            <span id="summaryDiscount">-৳${tierDiscountAmount.toLocaleString()}</span>
+                        </div>
+                    ` : ''}
+                    ${couponDiscount > 0 ? `
+                        <div class="summary-row" style="color: #3b82f6;">
+                            <span>Coupon Discount ${appliedCoupon ? '(' + appliedCoupon.code + ')' : ''}</span>
+                            <span id="summaryCouponDiscount">-৳${couponDiscount.toLocaleString()}</span>
+                        </div>
+                    ` : ''}
+                    <div class="summary-row">
+                        <span>Delivery Charge</span>
+                        <span id="summaryDelivery">${deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`}</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total Amount</span>
+                        <span id="summaryTotal">৳${total.toLocaleString()}</span>
                     </div>
                     
                     <button class="btn btn-primary checkout-btn" onclick="proceedToCheckout()">
@@ -366,10 +470,15 @@
             
             const itemTotal = product.price * item.quantity;
             
+            let imageUrl = product.image;
+            if (!imageUrl || imageUrl === '') {
+                imageUrl = 'https://via.placeholder.com/80?text=' + encodeURIComponent(product.name);
+            }
+            
             cartHtml += `
                 <div class="cart-item">
                     <div class="cart-product">
-                        <img class="cart-product-img" src="${product.image}" onerror="this.src='https://via.placeholder.com/80'">
+                        <img class="cart-product-img" src="${imageUrl}" onerror="this.src='https://via.placeholder.com/80'">
                         <div class="cart-product-info">
                             <h3>${escapeHtml(product.name)}</h3>
                             <p>${escapeHtml(product.brand)} | ${escapeHtml(product.fragrance)}</p>
@@ -396,9 +505,8 @@
     }
 
     function calculateTotals() {
-        let subtotal = 0;
+        subtotal = 0;
         
-        // Calculate subtotal from cart items
         for (const item of cart) {
             const product = products.find(p => p.id === item.id);
             if (product) {
@@ -406,46 +514,35 @@
             }
         }
 
-        // Calculate discount
-        let discountAmount = 0;
-        if (appliedCoupon) {
-            if (appliedCoupon.type === 'percent') {
-                discountAmount = (subtotal * appliedCoupon.discount) / 100;
-            } else if (appliedCoupon.type === 'fixed') {
-                discountAmount = appliedCoupon.discount;
-            }
-            discountAmount = Math.min(discountAmount, subtotal);
+        // Apply tier discount
+        tierDiscountAmount = (subtotal * tierDiscountPercent) / 100;
+        tierDiscountAmount = Math.min(tierDiscountAmount, subtotal);
+        
+        let afterDiscount = subtotal - tierDiscountAmount;
+        
+        // Apply coupon discount (after tier discount)
+        let totalDiscount = tierDiscountAmount;
+        if (appliedCoupon && couponDiscount > 0) {
+            totalDiscount += couponDiscount;
+            afterDiscount = subtotal - totalDiscount;
         }
-
-        // Calculate delivery charge (free over threshold)
-        const afterDiscount = subtotal - discountAmount;
-        const deliveryCharge = afterDiscount >= freeShippingThreshold ? 0 : 60;
         
-        // Calculate final total
-        const total = afterDiscount + deliveryCharge;
-        
-        console.log('Totals calculated:', { subtotal, discountAmount, deliveryCharge, total });
-        
-        return {
-            subtotal: subtotal,
-            discount: discountAmount,
-            deliveryCharge: deliveryCharge,
-            total: total
-        };
+        deliveryCharge = afterDiscount >= freeShippingThreshold ? 0 : 60;
+        total = afterDiscount + deliveryCharge;
     }
 
-    function updateSummaryDisplay() {
-        const totals = calculateTotals();
-        
+    function updateTotalsDisplay() {
         const subtotalEl = document.getElementById('summarySubtotal');
         const discountEl = document.getElementById('summaryDiscount');
+        const couponDiscountEl = document.getElementById('summaryCouponDiscount');
         const deliveryEl = document.getElementById('summaryDelivery');
         const totalEl = document.getElementById('summaryTotal');
         
-        if (subtotalEl) subtotalEl.innerHTML = `৳${totals.subtotal.toLocaleString()}`;
-        if (discountEl) discountEl.innerHTML = `-৳${totals.discount.toLocaleString()}`;
-        if (deliveryEl) deliveryEl.innerHTML = totals.deliveryCharge === 0 ? 'Free' : `৳${totals.deliveryCharge}`;
-        if (totalEl) totalEl.innerHTML = `৳${totals.total.toLocaleString()}`;
+        if (subtotalEl) subtotalEl.innerHTML = `৳${subtotal.toLocaleString()}`;
+        if (discountEl && tierDiscountPercent > 0) discountEl.innerHTML = `-৳${tierDiscountAmount.toLocaleString()}`;
+        if (couponDiscountEl && couponDiscount > 0) couponDiscountEl.innerHTML = `-৳${couponDiscount.toLocaleString()}`;
+        if (deliveryEl) deliveryEl.innerHTML = deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`;
+        if (totalEl) totalEl.innerHTML = `৳${total.toLocaleString()}`;
     }
 
     function updateQuantity(productId, change) {
@@ -470,9 +567,17 @@
         localStorage.setItem('attar_cart', JSON.stringify(cart));
         updateNavCartCount();
         
-        // Re-render both cart items and update summary
+        // Reset coupon when cart changes (since total changed)
+        if (appliedCoupon) {
+            appliedCoupon = null;
+            couponDiscount = 0;
+            document.getElementById('couponCode').value = '';
+            document.getElementById('couponMessage').innerHTML = '';
+        }
+        
+        calculateTotals();
         renderCartItems();
-        updateSummaryDisplay();
+        updateTotalsDisplay();
     }
 
     function removeFromCart(productId) {
@@ -481,37 +586,69 @@
         localStorage.setItem('attar_cart', JSON.stringify(cart));
         updateNavCartCount();
         
+        // Reset coupon when cart changes
+        appliedCoupon = null;
+        couponDiscount = 0;
+        document.getElementById('couponCode').value = '';
+        document.getElementById('couponMessage').innerHTML = '';
+        
         if (cart.length === 0) {
-            renderCart(); // This will show empty cart message
+            renderCart();
         } else {
+            calculateTotals();
             renderCartItems();
-            updateSummaryDisplay();
+            updateTotalsDisplay();
         }
         
         showToast(`${product?.name || 'Item'} removed from cart`);
     }
 
-    function applyCartCoupon() {
-        const code = document.getElementById('cartCouponCode').value.trim().toUpperCase();
-        const coupon = coupons.find(c => c.code === code);
-        const messageDiv = document.getElementById('cartCouponMessage');
+    async function applyCoupon() {
+        const code = document.getElementById('couponCode').value.trim().toUpperCase();
+        const messageDiv = document.getElementById('couponMessage');
         
-        const totals = calculateTotals();
-        const subtotal = totals.subtotal;
-
-        if (!coupon) {
-            messageDiv.innerHTML = '<span style="color: red;">❌ Invalid coupon code</span>';
+        if (!code) {
+            messageDiv.innerHTML = '<span class="error">Please enter a coupon code</span>';
             return;
         }
-
-        if (subtotal < coupon.minAmount) {
-            messageDiv.innerHTML = `<span style="color: red;">❌ Minimum order amount ৳${coupon.minAmount} required</span>`;
+        
+        const user = getCurrentUser();
+        if (!user) {
+            messageDiv.innerHTML = '<span class="error">Please login to apply coupon</span>';
             return;
         }
-
-        appliedCoupon = coupon;
-        messageDiv.innerHTML = `<span style="color: green;">✅ Coupon applied! ${coupon.discount}${coupon.type === 'percent' ? '%' : '৳'} off</span>`;
-        updateSummaryDisplay();
+        
+        messageDiv.innerHTML = '<span>Checking coupon...</span>';
+        
+        try {
+            const response = await fetch('api/coupons.php?action=apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: code,
+                    subtotal: subtotal,
+                    user_email: user.email
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                appliedCoupon = result.coupon;
+                couponDiscount = result.discount;
+                messageDiv.innerHTML = `<span class="success">✓ ${result.message} Discount: ৳${couponDiscount.toLocaleString()}</span>`;
+                calculateTotals();
+                updateTotalsDisplay();
+                renderCart(); // Re-render to show coupon in summary
+            } else {
+                appliedCoupon = null;
+                couponDiscount = 0;
+                messageDiv.innerHTML = `<span class="error">✗ ${result.error}</span>`;
+            }
+        } catch (error) {
+            console.error('Error applying coupon:', error);
+            messageDiv.innerHTML = '<span class="error">Failed to apply coupon. Please try again.</span>';
+        }
     }
 
     function proceedToCheckout() {
@@ -524,23 +661,22 @@
             return;
         }
         
-        // Save applied coupon to localStorage for payment page
+        // Store applied coupon in session for checkout
         if (appliedCoupon) {
-            localStorage.setItem('applied_coupon', JSON.stringify(appliedCoupon));
-        } else {
-            localStorage.removeItem('applied_coupon');
+            sessionStorage.setItem('appliedCoupon', JSON.stringify({
+                code: appliedCoupon.code,
+                discount: couponDiscount
+            }));
         }
         
         window.location.href = 'payment.html';
     }
 
-    // Make functions global
     window.updateQuantity = updateQuantity;
     window.removeFromCart = removeFromCart;
-    window.applyCartCoupon = applyCartCoupon;
     window.proceedToCheckout = proceedToCheckout;
+    window.applyCoupon = applyCoupon;
 
-    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadCartData();
     });

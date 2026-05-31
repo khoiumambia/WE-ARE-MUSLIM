@@ -8,118 +8,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .products-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .search-bar {
-            display: flex;
-            gap: 1rem;
-            flex: 1;
-            max-width: 400px;
-        }
-        .search-bar input {
-            flex: 1;
-            padding: 0.7rem;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-        }
-        .product-table {
-            width: 100%;
-            overflow-x: auto;
-            background: white;
-            border-radius: 20px;
-            padding: 1rem;
-            box-shadow: var(--shadow-sm);
-        }
-        .product-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .product-table th,
-        .product-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        .product-table th {
-            background: var(--background);
-            font-weight: 600;
-        }
-        .product-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        .stock-badge {
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .stock-high { background: var(--success); color: white; }
-        .stock-low { background: var(--warning); color: #333; }
-        .stock-out { background: var(--danger); color: white; }
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .btn-sm {
-            padding: 0.3rem 0.8rem;
-            font-size: 0.75rem;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-        }
+        .products-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .search-bar { display: flex; gap: 1rem; flex: 1; max-width: 400px; }
+        .search-bar input { flex: 1; padding: 0.7rem; border: 1px solid var(--border); border-radius: 50px; }
+        .product-table { width: 100%; overflow-x: auto; background: white; border-radius: 20px; padding: 1rem; box-shadow: var(--shadow-sm); }
+        .product-table table { width: 100%; border-collapse: collapse; }
+        .product-table th, .product-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        .product-table th { background: var(--background); font-weight: 600; }
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #f0f0f0; }
+        .stock-badge { padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; }
+        .stock-high { background: #10b981; color: white; }
+        .stock-low { background: #f59e0b; color: #333; }
+        .stock-out { background: #ef4444; color: white; }
+        .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 12px; }
+        #dropZone { border: 2px dashed #ccc; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: all 0.3s ease; }
+        #dropZone.drag-over { border-color: #8B5E3C; background: #fdf8f5; }
+        #imagePreviewArea { margin-top: 10px; }
+        #imagePreviewArea img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #8B5E3C; background: #f0f0f0; }
+        .image-url-preview { margin-top: 5px; font-size: 0.7rem; color: #666; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -157,13 +73,33 @@
             </div>
             <form id="productForm" onsubmit="event.preventDefault(); saveProduct();">
                 <input type="hidden" id="productId">
-                <div class="form-group"><label>Product Name *</label><input type="text" id="prodName" required></div>
-                <div class="form-group"><label>Brand *</label><input type="text" id="prodBrand" required></div>
-                <div class="form-group"><label>Fragrance *</label><input type="text" id="prodFragrance" required></div>
-                <div class="form-group"><label>Price (৳) *</label><input type="number" id="prodPrice" required min="0"></div>
-                <div class="form-group"><label>Stock Quantity *</label><input type="number" id="prodStock" required min="0"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Product Name *</label><input type="text" id="prodName" required></div>
+                    <div class="form-group"><label>Brand *</label><input type="text" id="prodBrand" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fragrance *</label><input type="text" id="prodFragrance" required></div>
+                    <div class="form-group"><label>Price (৳) *</label><input type="number" id="prodPrice" required min="0"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Stock Quantity *</label><input type="number" id="prodStock" required min="0"></div>
+                    <div class="form-group"><label>Image URL</label><input type="text" id="prodImage" placeholder="https://... or upload below"></div>
+                </div>
                 <div class="form-group"><label>Description</label><textarea id="prodDesc" rows="3"></textarea></div>
-                <div class="form-group"><label>Image URL</label><input type="text" id="prodImage" placeholder="https://..."></div>
+                
+                <!-- Drag & Drop Image Upload -->
+                <div class="form-group">
+                    <label>OR Upload Image (Click or Drag & Drop)</label>
+                    <div id="dropZone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #8B5E3C;"></i>
+                        <p>Drag & drop image here or click to upload</p>
+                        <small>JPG, PNG, GIF, WEBP (Max 2MB)</small>
+                    </div>
+                    <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                    <div id="imagePreviewArea"></div>
+                    <div id="imageUrlPreview" class="image-url-preview"></div>
+                </div>
+                
                 <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                     <button type="submit" class="btn btn-primary" style="flex: 1;">Save Product</button>
                     <button type="button" class="btn" onclick="closeProductModal()" style="flex: 1;">Cancel</button>
@@ -198,9 +134,132 @@
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
+        // Simple placeholder - no SVG to avoid syntax errors
+        const PLACEHOLDER_IMG = 'https://placehold.co/50x50/e8ddd3/8B5E3C?text=No+Img';
+        
+        // Track uploaded images to prevent duplicates (by original name)
+        let uploadedImages = new Set();
+        
+        function getImageUrl(imagePath) {
+            if (!imagePath) return PLACEHOLDER_IMG;
+            if (typeof imagePath !== 'string') return PLACEHOLDER_IMG;
+            if (imagePath.startsWith('data:')) return imagePath;
+            if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+            if (imagePath.startsWith('/uploads/')) return imagePath;
+            if (imagePath.startsWith('uploads/')) return imagePath;
+            return 'uploads/' + imagePath;
+        }
+        
         let allProducts = [];
         let currentEditProduct = null;
         let currentStockProduct = null;
+
+        // Drag & Drop Image Upload with server upload
+        const dropZone = document.getElementById('dropZone');
+        const imageFile = document.getElementById('imageFile');
+        const imagePreviewArea = document.getElementById('imagePreviewArea');
+        const prodImage = document.getElementById('prodImage');
+        const imageUrlPreview = document.getElementById('imageUrlPreview');
+
+        if (dropZone) {
+            dropZone.addEventListener('click', () => imageFile.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    uploadImageToServer(file);
+                } else {
+                    showToast('Please drop an image file');
+                }
+            });
+        }
+
+        if (imageFile) {
+            imageFile.addEventListener('change', (e) => {
+                if (e.target.files[0]) uploadImageToServer(e.target.files[0]);
+            });
+        }
+
+        // Update preview when URL is manually entered
+        if (prodImage) {
+            prodImage.addEventListener('input', function() {
+                const url = this.value;
+                if (url && typeof url === 'string') {
+                    const previewUrl = getImageUrl(url);
+                    imagePreviewArea.innerHTML = '<img src="' + previewUrl + '?t=' + Date.now() + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid #8B5E3C;background:#f0f0f0;">';
+                    imageUrlPreview.innerHTML = 'Image path: ' + (url.length > 60 ? url.substring(0, 60) + '...' : url);
+                } else {
+                    imagePreviewArea.innerHTML = '';
+                    imageUrlPreview.innerHTML = '';
+                }
+            });
+        }
+
+        async function uploadImageToServer(file) {
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('Image too large! Max 2MB');
+                return;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('Please upload an image file');
+                return;
+            }
+            
+            showToast('Uploading image...');
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('api/upload-image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                console.log('Upload response:', result);
+                
+                if (result.success) {
+                    prodImage.value = result.image_url;
+                    const previewUrl = getImageUrl(result.image_url);
+                    imagePreviewArea.innerHTML = '<img src="' + previewUrl + '?t=' + Date.now() + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid #8B5E3C;background:#f0f0f0;">';
+                    imageUrlPreview.innerHTML = 'Uploaded: ' + result.image_url;
+                    
+                    if (result.duplicate) {
+                        showToast('This image already exists. Using existing file.');
+                    } else {
+                        showToast('Image uploaded successfully!');
+                    }
+                } else {
+                    showToast('Upload failed: ' + result.error);
+                    convertToBase64(file);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Server upload failed, using Base64');
+                convertToBase64(file);
+            }
+        }
+        function convertToBase64(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
+                prodImage.value = imageUrl;
+                imagePreviewArea.innerHTML = '<img src="' + imageUrl + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid #8B5E3C;background:#f0f0f0;">';
+                imageUrlPreview.innerHTML = 'Base64 image saved';
+                showToast('Image saved as Base64');
+            };
+            reader.readAsDataURL(file);
+        }
 
         function checkAdminAccess() {
             const user = getCurrentUser();
@@ -210,8 +269,21 @@
         }
 
         function loadProducts() {
-            allProducts = JSON.parse(localStorage.getItem('attar_products')) || [];
-            renderProductsTable();
+            fetch('api/get-products.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allProducts = data.products;
+                        console.log('Products loaded:', allProducts.length);
+                        renderProductsTable();
+                    } else {
+                        showToast('Error loading products: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error);
+                    showToast('Failed to load products');
+                });
         }
 
         function renderProductsTable() {
@@ -232,25 +304,29 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(p => {
+            let html = '';
+            for (let i = 0; i < filtered.length; i++) {
+                const p = filtered[i];
                 let stockClass = p.stock > 10 ? 'stock-high' : (p.stock > 0 ? 'stock-low' : 'stock-out');
-                let stockText = p.stock > 10 ? `${p.stock} in stock` : (p.stock > 0 ? `${p.stock} left` : 'Out of stock');
-                return `
-                    <tr>
-                        <td><img class="product-img" src="${p.image}" onerror="this.src='https://via.placeholder.com/50'"></td>
-                        <td><strong>${escapeHtml(p.name)}</strong><br><small>${escapeHtml(p.fragrance)}</small></td>
-                        <td>${escapeHtml(p.brand)}</td>
-                        <td>৳${p.price.toLocaleString()}</td>
-                        <td><span class="stock-badge ${stockClass}">${stockText}</span></td>
-                        <td>${p.stock > 0 ? '<span style="color: green;">● Active</span>' : '<span style="color: red;">● Out of Stock</span>'}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-sm" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Edit</button>
-                            <button class="btn btn-sm btn-success" onclick="showAddStockModal(${p.id})"><i class="fas fa-plus"></i> Stock</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Delete</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                let stockText = p.stock > 10 ? p.stock + ' in stock' : (p.stock > 0 ? p.stock + ' left' : 'Out of stock');
+                let imageUrl = getImageUrl(p.image);
+                const cacheBuster = '?t=' + Date.now();
+                
+                html += '<tr>' +
+                    '<td><img class="product-img" src="' + imageUrl + cacheBuster + '" onerror="this.src=\'' + PLACEHOLDER_IMG + '\'"></td>' +
+                    '<td><strong>' + escapeHtml(p.name) + '</strong><br><small>' + escapeHtml(p.fragrance) + '</small></td>' +
+                    '<td>' + escapeHtml(p.brand) + '</td>' +
+                    '<td>৳' + parseFloat(p.price).toLocaleString() + '</td>' +
+                    '<td><span class="stock-badge ' + stockClass + '">' + stockText + '</span></td>' +
+                    '<td>' + (p.stock > 0 ? '<span style="color: green;">● Active</span>' : '<span style="color: red;">● Out of Stock</span>') + '</td>' +
+                    '<td class="action-buttons">' +
+                        '<button class="btn btn-sm" onclick="editProduct(' + p.id + ')"><i class="fas fa-edit"></i> Edit</button>' +
+                        '<button class="btn btn-sm btn-success" onclick="showAddStockModal(' + p.id + ')"><i class="fas fa-plus"></i> Stock</button>' +
+                        '<button class="btn btn-sm btn-danger" onclick="deleteProduct(' + p.id + ')"><i class="fas fa-trash"></i> Delete</button>' +
+                    '</td>' +
+                '</tr>';
+            }
+            tbody.innerHTML = html;
         }
 
         function filterProducts() { renderProductsTable(); }
@@ -265,12 +341,19 @@
             document.getElementById('prodStock').value = '10';
             document.getElementById('prodDesc').value = '';
             document.getElementById('prodImage').value = '';
+            imagePreviewArea.innerHTML = '';
+            imageUrlPreview.innerHTML = '';
+            uploadedImages.clear();
             document.getElementById('productModal').style.display = 'flex';
         }
 
         function editProduct(productId) {
             const product = allProducts.find(p => p.id === productId);
             if (!product) return;
+            
+            console.log('Editing product:', product.id, product.name);
+            console.log('Current image:', product.image);
+            
             currentEditProduct = product;
             document.getElementById('modalTitle').innerText = 'Edit Product';
             document.getElementById('productId').value = product.id;
@@ -279,8 +362,18 @@
             document.getElementById('prodFragrance').value = product.fragrance;
             document.getElementById('prodPrice').value = product.price;
             document.getElementById('prodStock').value = product.stock;
-            document.getElementById('prodDesc').value = product.desc || '';
+            document.getElementById('prodDesc').value = product.description || '';
             document.getElementById('prodImage').value = product.image || '';
+            
+            if (product.image && product.image !== '') {
+                let previewUrl = getImageUrl(product.image);
+                imagePreviewArea.innerHTML = '<img src="' + previewUrl + '?t=' + Date.now() + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid #8B5E3C;background:#f0f0f0;">';
+                imageUrlPreview.innerHTML = 'Current image: ' + (product.image.length > 50 ? product.image.substring(0, 50) + '...' : product.image);
+            } else {
+                imagePreviewArea.innerHTML = '';
+                imageUrlPreview.innerHTML = '';
+            }
+            uploadedImages.clear();
             document.getElementById('productModal').style.display = 'flex';
         }
 
@@ -289,7 +382,7 @@
             const name = document.getElementById('prodName').value;
             const brand = document.getElementById('prodBrand').value;
             const fragrance = document.getElementById('prodFragrance').value;
-            const price = parseInt(document.getElementById('prodPrice').value);
+            const price = parseFloat(document.getElementById('prodPrice').value);
             const stock = parseInt(document.getElementById('prodStock').value);
             const desc = document.getElementById('prodDesc').value;
             let image = document.getElementById('prodImage').value;
@@ -299,32 +392,33 @@
                 return;
             }
             
-            if (!image) image = 'https://via.placeholder.com/300x250?text=' + encodeURIComponent(name);
+            if (!image) {
+                image = 'https://placehold.co/300x250/e8ddd3/8B5E3C?text=' + encodeURIComponent(name);
+            }
+            
+            if (image && typeof image === 'string' && !image.startsWith('http') && !image.startsWith('data:') && !image.startsWith('uploads/')) {
+                image = 'uploads/' + image;
+            }
+            
+            console.log('Saving product:', { id, name, image });
             
             try {
-                let response;
-                if (id) {
-                    // Update existing product
-                    response = await fetch('/.netlify/functions/update-product', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id, name, brand, fragrance, price, stock, description: desc, image })
-                    });
-                } else {
-                    // Add new product
-                    response = await fetch('/.netlify/functions/add-product', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, brand, fragrance, price, stock, description: desc, image })
-                    });
-                }
+                let url = id ? 'api/update-product.php' : 'api/add-product.php';
+                let method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, brand, fragrance, price, stock, description: desc, image })
+                });
                 
                 const result = await response.json();
+                console.log('Save result:', result);
                 
                 if (result.success) {
                     showToast(result.message);
                     closeProductModal();
-                    loadProducts(); // Refresh the product list
+                    await loadProducts();
                 } else {
                     showToast('Error: ' + result.error);
                 }
@@ -333,10 +427,11 @@
                 showToast('Failed to save product');
             }
         }
+
         function showAddStockModal(productId) {
             currentStockProduct = allProducts.find(p => p.id === productId);
             if (!currentStockProduct) return;
-            document.getElementById('stockProductName').innerHTML = `<strong>${escapeHtml(currentStockProduct.name)}</strong>`;
+            document.getElementById('stockProductName').innerHTML = '<strong>' + escapeHtml(currentStockProduct.name) + '</strong>';
             document.getElementById('currentStock').value = currentStockProduct.stock;
             document.getElementById('addStockQty').value = 10;
             document.getElementById('stockModal').style.display = 'flex';
@@ -349,31 +444,55 @@
                 showToast('Please enter a valid quantity');
                 return;
             }
-            currentStockProduct.stock += addQty;
-            localStorage.setItem('attar_products', JSON.stringify(allProducts));
-            showToast(`Added ${addQty} units to ${currentStockProduct.name}`);
-            closeStockModal();
-            renderProductsTable();
+            
+            const newStock = currentStockProduct.stock + addQty;
+            
+            fetch('api/update-stock.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: currentStockProduct.id, stock: newStock })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('Added ' + addQty + ' units to ' + currentStockProduct.name);
+                    closeStockModal();
+                    loadProducts();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating stock:', error);
+                showToast('Failed to update stock');
+            });
         }
 
         function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-                allProducts = allProducts.filter(p => p.id !== productId);
-                localStorage.setItem('attar_products', JSON.stringify(allProducts));
-                showToast('Product deleted');
-                renderProductsTable();
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch('api/delete-product.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: productId })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showToast(result.message);
+                        loadProducts();
+                    } else {
+                        showToast('Error: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting product:', error);
+                    showToast('Failed to delete product');
+                });
             }
         }
 
-        function closeProductModal() {
-            document.getElementById('productModal').style.display = 'none';
-            currentEditProduct = null;
-        }
-
-        function closeStockModal() {
-            document.getElementById('stockModal').style.display = 'none';
-            currentStockProduct = null;
-        }
+        function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
+        function closeStockModal() { document.getElementById('stockModal').style.display = 'none'; }
 
         window.filterProducts = filterProducts;
         window.showAddProductModal = showAddProductModal;
@@ -385,9 +504,7 @@
         window.closeProductModal = closeProductModal;
         window.closeStockModal = closeStockModal;
 
-        if (checkAdminAccess()) {
-            loadProducts();
-        }
+        if (checkAdminAccess()) { loadProducts(); }
     </script>
 </body>
 </html>

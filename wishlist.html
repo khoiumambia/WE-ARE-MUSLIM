@@ -26,6 +26,12 @@
             border-radius: 20px;
         }
 
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
         .product-card {
             background: var(--surface);
             border-radius: 20px;
@@ -99,6 +105,32 @@
         .out-of-stock {
             color: var(--danger);
         }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .loading-wishlist {
+            text-align: center;
+            padding: 3rem;
+        }
     </style>
 </head>
 <body>
@@ -112,13 +144,13 @@
         </button>
     </div>
     <h1 style="font-family: 'Cormorant Garamond'; font-size: 2.5rem;">My Wishlist</h1>
-    <div id="wishlistGrid" class="product-grid"></div>
+    <div id="wishlistGrid" class="product-grid"><div class="loading-wishlist">Loading your wishlist...</div></div>
 </div>
 
 <script src="js/navigation.js"></script>
 <script src="js/utils.js"></script>
 <script>
-    let wishlist = [];
+    let wishlistIds = [];
     let products = [];
 
     function checkWishlistAccess() {
@@ -133,60 +165,113 @@
         return true;
     }
 
-    function loadWishlistData() {
+    async function loadWishlistData() {
         if (!checkWishlistAccess()) {
             return;
         }
         
-        products = JSON.parse(localStorage.getItem('attar_products')) || [];
-        wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-        displayWishlist();
+        // Load wishlist IDs from localStorage
+        wishlistIds = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+        console.log('Wishlist IDs:', wishlistIds);
+        
+        if (wishlistIds.length === 0) {
+            displayEmptyWishlist();
+            return;
+        }
+        
+        // Load products from database API
+        try {
+            const response = await fetch('api/get-products.php');
+            const data = await response.json();
+            if (data.success) {
+                products = data.products;
+                console.log('Loaded products:', products.length);
+                displayWishlist();
+            } else {
+                console.error('API error:', data.error);
+                products = [];
+                displayEmptyWishlist();
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            products = [];
+            displayEmptyWishlist();
+        }
+    }
+
+    function displayEmptyWishlist() {
+        const grid = document.getElementById('wishlistGrid');
+        grid.innerHTML = `
+            <div class="empty-wishlist">
+                <i class="far fa-heart" style="font-size: 4rem; color: var(--primary);"></i>
+                <h2 style="margin: 1rem 0;">Your wishlist is empty</h2>
+                <p>Save your favorite items here for later!</p>
+                <button class="btn btn-primary" onclick="window.location.href='shop.html'" style="width: auto; margin-top: 1rem; padding: 0.8rem 2rem;">Start Shopping →</button>
+            </div>
+        `;
+    }
+
+    function getImageUrl(imagePath) {
+        if (!imagePath) return 'https://placehold.co/300x250/e8ddd3/8B5E3C?text=No+Image';
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+        if (imagePath.startsWith('/uploads/')) return imagePath;
+        if (imagePath.startsWith('uploads/')) return imagePath;
+        if (imagePath.startsWith('data:')) return imagePath;
+        return 'uploads/' + imagePath;
     }
 
     function displayWishlist() {
-        const wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        // Filter products that are in wishlist
+        const wishlistProducts = products.filter(p => wishlistIds.includes(p.id));
+        console.log('Wishlist products found:', wishlistProducts.length);
+        
         const grid = document.getElementById('wishlistGrid');
 
         if (wishlistProducts.length === 0) {
-            grid.innerHTML = `
-                <div class="empty-wishlist">
-                    <i class="far fa-heart" style="font-size: 4rem; color: var(--primary);"></i>
-                    <h2 style="margin: 1rem 0;">Your wishlist is empty</h2>
-                    <p>Save your favorite items here for later!</p>
-                    <button class="btn btn-primary" onclick="window.location.href='shop.html'" style="width: auto; margin-top: 1rem; padding: 0.8rem 2rem;">Start Shopping →</button>
-                </div>
-            `;
+            displayEmptyWishlist();
             return;
         }
 
-        grid.innerHTML = wishlistProducts.map(p => `
-            <div class="product-card">
-                <div class="product-actions">
-                    <button onclick="event.stopPropagation(); removeFromWishlist(${p.id})"><i class="fas fa-trash"></i></button>
-                </div>
-                <img class="product-img" src="${p.image}" onclick="viewProduct(${p.id})" onerror="this.src='https://via.placeholder.com/300x250?text=Attar'">
-                <div class="product-info" onclick="viewProduct(${p.id})">
-                    <div class="product-title">${escapeHtml(p.name)}</div>
-                    <p style="color: #666;">${escapeHtml(p.brand)} | ${escapeHtml(p.fragrance)}</p>
-                    <div class="product-price">৳${p.price.toLocaleString()}</div>
-                    <div class="stock-status ${p.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                        ${p.stock > 0 ? '✓ In Stock' : '✗ Out of Stock'}
+        grid.innerHTML = wishlistProducts.map(p => {
+            const imageUrl = getImageUrl(p.image);
+            const stockStatus = p.stock > 0 ? 'in-stock' : 'out-of-stock';
+            const stockText = p.stock > 0 ? '✓ In Stock' : '✗ Out of Stock';
+            
+            return `
+                <div class="product-card">
+                    <div class="product-actions">
+                        <button onclick="event.stopPropagation(); removeFromWishlist(${p.id})"><i class="fas fa-trash"></i></button>
                     </div>
-                    ${p.stock > 0 ?
-                        `<button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); moveToCart(${p.id})">
-                            <i class="fas fa-shopping-cart"></i> Move to Cart
-                        </button>` :
-                        `<button class="btn" style="width:100%; margin-top: 10px; background: #6b7280; color: white;" onclick="event.stopPropagation(); showStockAlert(${p.id})">
-                            <i class="fas fa-bell"></i> Notify Me
-                        </button>`
-                    }
+                    <img class="product-img" src="${imageUrl}" onclick="viewProduct(${p.id})" onerror="this.src='https://placehold.co/300x250/e8ddd3/8B5E3C?text=No+Image'">
+                    <div class="product-info" onclick="viewProduct(${p.id})">
+                        <div class="product-title">${escapeHtml(p.name)}</div>
+                        <p style="color: #666;">${escapeHtml(p.brand)} | ${escapeHtml(p.fragrance)}</p>
+                        <div class="product-price">৳${parseFloat(p.price).toLocaleString()}</div>
+                        <div class="stock-status ${stockStatus}">
+                            ${stockText}
+                        </div>
+                        ${p.stock > 0 ?
+                            `<button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); moveToCart(${p.id})">
+                                <i class="fas fa-shopping-cart"></i> Move to Cart
+                            </button>` :
+                            `<button class="btn" style="width:100%; margin-top: 10px; background: #6b7280; color: white;" onclick="event.stopPropagation(); showStockAlert(${p.id})">
+                                <i class="fas fa-bell"></i> Notify Me
+                            </button>`
+                        }
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    function moveToCart(productId) {
+    async function moveToCart(productId) {
+        // Find product from products array
         const product = products.find(p => p.id === productId);
+        if (!product) {
+            showToast('Product not found');
+            return;
+        }
+        
         if (product.stock === 0) {
             showToast('Sorry, this product is out of stock!');
             return;
@@ -195,44 +280,81 @@
         let cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
         let item = cart.find(i => i.id === productId);
         if (item) {
-            item.quantity++;
+            if (item.quantity < product.stock) {
+                item.quantity++;
+            } else {
+                showToast('Not enough stock available!');
+                return;
+            }
         } else {
             cart.push({ id: productId, quantity: 1 });
         }
         localStorage.setItem('attar_cart', JSON.stringify(cart));
         updateNavCartCount();
 
-        removeFromWishlist(productId);
-        showToast(`${product.name} moved to cart!`);
+        // Remove from wishlist after moving to cart
+        await removeFromWishlist(productId);
+        
+        // Add loyalty points
+        let points = parseInt(localStorage.getItem('loyalty_points')) || 0;
+        points += Math.floor(product.price / 100);
+        localStorage.setItem('loyalty_points', points);
+        updateNavPointsCount();
+        
+        showToast(`${product.name} moved to cart! +${Math.floor(product.price / 100)} points`);
     }
 
-    function removeFromWishlist(productId) {
+    async function removeFromWishlist(productId) {
         const product = products.find(p => p.id === productId);
-        wishlist = wishlist.filter(id => id !== productId);
-        localStorage.setItem('attar_wishlist', JSON.stringify(wishlist));
+        wishlistIds = wishlistIds.filter(id => id !== productId);
+        localStorage.setItem('attar_wishlist', JSON.stringify(wishlistIds));
         updateNavWishlistCount();
-        displayWishlist();
-        showToast(`${product?.name} removed from wishlist`);
+        
+        // Refresh the display
+        if (wishlistIds.length === 0) {
+            displayEmptyWishlist();
+        } else {
+            displayWishlist();
+        }
+        
+        showToast(`${product?.name || 'Product'} removed from wishlist`);
     }
 
     function showStockAlert(productId) {
         const product = products.find(p => p.id === productId);
+        if (!product) return;
+        
         const email = prompt(`Notify me when ${product.name} is back in stock.\n\nEnter your email:`);
         if (email && email.includes('@')) {
             let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
-            waitlist.push({ productId: product.id, productName: product.name, email: email, date: new Date().toISOString() });
+            waitlist.push({ 
+                productId: product.id, 
+                productName: product.name, 
+                email: email, 
+                date: new Date().toISOString(),
+                notified: false
+            });
             localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
             showToast(`We'll notify you when ${product.name} is back!`);
         }
     }
 
     function shareWishlist() {
-        const wishlistProducts = products.filter(p => wishlist.includes(p.id));
+        const wishlistProducts = products.filter(p => wishlistIds.includes(p.id));
+        if (wishlistProducts.length === 0) {
+            showToast('Your wishlist is empty!');
+            return;
+        }
+        
         const productNames = wishlistProducts.map(p => p.name).join(', ');
         const shareText = `Check out my wishlist at WE ARE MUSLIM! I'm interested in: ${productNames}`;
 
         if (navigator.share) {
-            navigator.share({ title: 'My Wishlist - WE ARE MUSLIM', text: shareText, url: window.location.href });
+            navigator.share({ 
+                title: 'My Wishlist - WE ARE MUSLIM', 
+                text: shareText, 
+                url: window.location.href 
+            });
         } else {
             prompt('Share this wishlist link:', window.location.href);
         }
@@ -243,13 +365,17 @@
         window.location.href = 'products.html';
     }
 
+    // Make functions global
     window.moveToCart = moveToCart;
     window.removeFromWishlist = removeFromWishlist;
     window.shareWishlist = shareWishlist;
     window.showStockAlert = showStockAlert;
     window.viewProduct = viewProduct;
 
-    loadWishlistData();
+    // Load data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadWishlistData();
+    });
 </script>
 </body>
 </html>

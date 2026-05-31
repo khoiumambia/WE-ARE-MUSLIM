@@ -23,6 +23,7 @@
             padding: 2rem;
             border-radius: 30px;
             margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
         }
 
         .main-image {
@@ -221,7 +222,6 @@
             min-height: 100px;
         }
 
-        /* Photo Upload Styles */
         .photo-upload-section {
             margin: 1rem 0;
         }
@@ -231,19 +231,6 @@
             margin-bottom: 0.5rem;
             font-weight: 500;
             color: var(--text-light);
-        }
-
-        .photo-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .photo-input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
         }
 
         .photo-preview-grid {
@@ -283,11 +270,6 @@
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .remove-photo-btn:hover {
-            transform: scale(1.1);
         }
 
         .add-photo-btn {
@@ -320,13 +302,6 @@
             color: #666;
         }
 
-        .photo-limit-warning {
-            font-size: 0.7rem;
-            color: #999;
-            margin-top: 0.3rem;
-        }
-
-        /* Image Lightbox Modal */
         .lightbox-modal {
             display: none;
             position: fixed;
@@ -373,6 +348,7 @@
             overflow: hidden;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .related-card:hover {
@@ -389,6 +365,55 @@
         .related-info {
             padding: 0.8rem;
             text-align: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .stock-status {
+            font-size: 0.8rem;
+            margin: 0.5rem 0;
+        }
+
+        .in-stock {
+            color: var(--success);
+        }
+
+        .low-stock {
+            color: var(--warning);
+        }
+
+        .out-of-stock {
+            color: var(--danger);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
         }
 
         @media (max-width: 768px) {
@@ -427,20 +452,62 @@
         const MAX_IMAGE_SIZE_MB = 5;
 
         function loadProductData() {
-            products = JSON.parse(localStorage.getItem('attar_products')) || [];
-            reviews = JSON.parse(localStorage.getItem('attar_reviews')) || [];
-            currentUser = getCurrentUser();
-
             const productId = parseInt(localStorage.getItem('viewProductId'));
-            currentProduct = products.find(p => p.id === productId);
-
-            if (currentProduct) {
-                displayProduct();
-                displayReviews();
-                displayRelatedProducts();
-            } else {
-                document.getElementById('productContainer').innerHTML = '<div style="text-align: center; padding: 3rem;">Product not found</div>';
+            
+            if (!productId) {
+                document.getElementById('productContainer').innerHTML = '<div style="text-align: center; padding: 3rem;">Product ID not found</div>';
+                return;
             }
+            
+            currentUser = getCurrentUser();
+            
+            // Fetch product details
+            fetch(`api/get-product.php?id=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentProduct = data.product;
+                        displayProduct();
+                        loadRelatedProducts();
+                    } else {
+                        document.getElementById('productContainer').innerHTML = '<div style="text-align: center; padding: 3rem;">Product not found</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading product:', error);
+                    document.getElementById('productContainer').innerHTML = '<div style="text-align: center; padding: 3rem;">Error loading product</div>';
+                });
+            
+            // Load reviews - FIXED: product_id parameter
+            fetch(`api/get-reviews.php?product_id=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        reviews = data.reviews;
+                        displayReviews();
+                    } else {
+                        console.error('Error loading reviews:', data.error);
+                        reviews = [];
+                        displayReviews();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading reviews:', error);
+                    reviews = [];
+                    displayReviews();
+                });
+        }
+
+        function loadRelatedProducts() {
+            fetch('api/get-products.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        products = data.products;
+                        displayRelatedProducts();
+                    }
+                })
+                .catch(error => console.error('Error loading related products:', error));
         }
 
         function displayProduct() {
@@ -450,12 +517,15 @@
             
             const avgRating = getAverageRating();
             
+            // Get proper image URL
+            const productImage = currentProduct.image || 'https://placehold.co/600x400/e8ddd3/8B5E3C?text=No+Image';
+            
             container.innerHTML = `
                 <div class="product-detail">
                     <div class="product-gallery">
-                        <img class="main-image" id="mainImage" src="${currentProduct.image}" onclick="openLightbox('${currentProduct.image}')">
+                        <img class="main-image" id="mainImage" src="${productImage}" onclick="openLightbox('${productImage}')">
                         <div class="thumbnail-grid" id="thumbnailGrid">
-                            <img class="thumbnail active" src="${currentProduct.image}" onclick="changeImage('${currentProduct.image}')">
+                            <img class="thumbnail active" src="${productImage}" onclick="changeImage('${productImage}')">
                         </div>
                     </div>
                     <div class="product-info">
@@ -464,12 +534,12 @@
                         
                         <div class="rating">
                             <div class="stars" style="color: var(--accent); font-size: 1.2rem;">${'★'.repeat(Math.floor(avgRating))}${'☆'.repeat(5-Math.floor(avgRating))}</div>
-                            <span>${avgRating.toFixed(1)} (${reviews.filter(r => r.productId === currentProduct.id).length} reviews)</span>
+                            <span>${avgRating.toFixed(1)} (${reviews.length} reviews)</span>
                         </div>
                         
-                        <div class="price">৳${currentProduct.price.toLocaleString()}</div>
+                        <div class="price">৳${parseFloat(currentProduct.price).toLocaleString()}</div>
                         
-                        <p style="margin: 1rem 0; line-height: 1.8;">${currentProduct.desc || 'Experience the exquisite blend of traditional craftsmanship and pure ingredients. This premium attar is carefully crafted to provide a lasting fragrance experience.'}</p>
+                        <p style="margin: 1rem 0; line-height: 1.8;">${currentProduct.description || 'Experience the exquisite blend of traditional craftsmanship and pure ingredients. This premium attar is carefully crafted to provide a lasting fragrance experience.'}</p>
                         
                         <div class="stock-status ${stockStatus}">${stockText}</div>
                         
@@ -479,7 +549,7 @@
                             <button onclick="changeQuantity(1)">+</button>
                         </div>
                         
-                        <div>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             ${currentProduct.stock > 0 ? 
                                 `<button class="btn btn-primary" onclick="addToCart()">
                                     <i class="fas fa-shopping-cart"></i> Add to Cart
@@ -505,7 +575,7 @@
                 </div>
                 
                 <div class="reviews-section">
-                    <h2 style="font-family: 'Cormorant Garamond';">Customer Reviews (${reviews.filter(r => r.productId === currentProduct.id).length})</h2>
+                    <h2 style="font-family: 'Cormorant Garamond';">Customer Reviews (${reviews.length})</h2>
                     <div id="reviewsList"></div>
                     
                     <div class="review-form">
@@ -516,7 +586,6 @@
                         <input type="text" id="reviewerName" placeholder="Your name" value="${currentUser?.name || ''}">
                         <textarea id="reviewText" rows="3" placeholder="Share your experience with this attar..."></textarea>
                         
-                        <!-- Photo Upload Section -->
                         <div class="photo-upload-section">
                             <label class="photo-label"><i class="fas fa-camera"></i> Add Photos (Optional, up to 5)</label>
                             <div class="photo-preview-grid" id="photoPreviewGrid">
@@ -525,7 +594,6 @@
                                     <span>Add Photo</span>
                                 </div>
                             </div>
-                            <div class="photo-limit-warning" id="photoLimitWarning"></div>
                             <input type="file" id="reviewImageInput" accept="image/jpeg,image/png,image/jpg,image/webp" multiple style="display: none;" onchange="handleImageSelect(event)">
                         </div>
                         
@@ -543,41 +611,35 @@
         }
 
         function getAverageRating() {
-            const productReviews = reviews.filter(r => r.productId === currentProduct.id);
-            if (productReviews.length === 0) return 0;
-            const sum = productReviews.reduce((a, b) => a + b.rating, 0);
-            return sum / productReviews.length;
+            if (reviews.length === 0) return 0;
+            const sum = reviews.reduce((a, b) => a + b.rating, 0);
+            return sum / reviews.length;
         }
 
         function displayReviews() {
-            const productReviews = reviews.filter(r => r.productId === currentProduct.id);
             const container = document.getElementById('reviewsList');
             
             if (!container) return;
             
-            if (productReviews.length === 0) {
+            if (reviews.length === 0) {
                 container.innerHTML = '<p style="text-align: center; padding: 2rem;">No reviews yet. Be the first to review!</p>';
                 return;
             }
             
-            container.innerHTML = productReviews.map(r => `
+            container.innerHTML = reviews.map(r => `
                 <div class="review-card">
                     <div class="review-header">
                         <div class="reviewer-info">
-                            <div class="reviewer-avatar">${(r.name?.charAt(0) || 'U').toUpperCase()}</div>
+                            <div class="reviewer-avatar">${(r.user_name?.charAt(0) || 'U').toUpperCase()}</div>
                             <div>
-                                <div class="reviewer-name">${escapeHtml(r.name)}</div>
+                                <div class="reviewer-name">${escapeHtml(r.user_name)}</div>
                                 <div class="review-rating">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
                             </div>
                         </div>
-                        <div class="review-date">${formatDate(r.date)}</div>
+                        <div class="review-date">${formatDate(r.created_at)}</div>
                     </div>
-                    <p class="review-text">${escapeHtml(r.text)}</p>
-                    ${r.images && r.images.length > 0 ? `
-                        <div class="review-images">
-                            ${r.images.map(img => `<img class="review-image" src="${img}" onclick="event.stopPropagation(); openLightbox('${img}')" onerror="this.style.display='none'">`).join('')}
-                        </div>
-                    ` : ''}
+                    <p class="review-text">${escapeHtml(r.comment)}</p>
+                    ${r.images ? `<div class="review-images"><img class="review-image" src="${r.images}" onclick="event.stopPropagation(); openLightbox('${r.images}')" onerror="this.style.display='none'"></div>` : ''}
                     <div class="review-helpful">
                         <button class="helpful-btn" onclick="helpfulReview(${r.id})">
                             <i class="far fa-thumbs-up"></i> Helpful (${r.helpful || 0})
@@ -588,6 +650,8 @@
         }
 
         function displayRelatedProducts() {
+            if (!products.length || !currentProduct) return;
+            
             const related = products.filter(p => p.id !== currentProduct.id && p.brand === currentProduct.brand).slice(0, 4);
             const container = document.getElementById('relatedGrid');
             
@@ -600,10 +664,10 @@
             
             container.innerHTML = related.map(p => `
                 <div class="related-card" onclick="viewProduct(${p.id})">
-                    <img class="related-img" src="${p.image}" onerror="this.src='https://via.placeholder.com/200x150?text=Attar'">
+                    <img class="related-img" src="${p.image || 'https://placehold.co/300x200/e8ddd3/8B5E3C?text=No+Image'}" onerror="this.src='https://placehold.co/300x200/e8ddd3/8B5E3C?text=No+Image'">
                     <div class="related-info">
                         <strong>${escapeHtml(p.name)}</strong><br>
-                        ৳${p.price.toLocaleString()}
+                        ৳${parseFloat(p.price).toLocaleString()}
                     </div>
                 </div>
             `).join('');
@@ -623,13 +687,11 @@
         function changeImage(imageUrl) {
             document.getElementById('mainImage').src = imageUrl;
             document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
         }
 
         function addToCart() {
-            if (!requireLogin('add items to cart')) {
-                return;
-            }
+            if (!requireLogin('add items to cart')) return;
             
             if (currentProduct.stock === 0) {
                 showStockAlert();
@@ -653,17 +715,10 @@
             localStorage.setItem('attar_cart', JSON.stringify(cart));
             updateNavCartCount();
             showToast(`${quantity} × ${currentProduct.name} added to cart!`);
-            
-            let points = parseInt(localStorage.getItem('loyalty_points')) || 0;
-            points += Math.floor((currentProduct.price * quantity) / 100);
-            localStorage.setItem('loyalty_points', points);
-            updateNavPointsCount();
         }
 
         function addToWishlist() {
-            if (!requireLogin('add items to wishlist')) {
-                return;
-            }
+            if (!requireLogin('add items to wishlist')) return;
             
             let wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
             if (!wishlist.includes(currentProduct.id)) {
@@ -701,13 +756,12 @@
             });
         }
 
-        // Image upload handling functions
         function handleImageSelect(event) {
             const files = Array.from(event.target.files);
             const remainingSlots = MAX_REVIEW_IMAGES - selectedImages.length;
             
             if (files.length > remainingSlots) {
-                showToast(`You can only upload up to ${MAX_REVIEW_IMAGES} images total. You have ${selectedImages.length} already.`);
+                showToast(`You can only upload up to ${MAX_REVIEW_IMAGES} images total.`);
                 return;
             }
             
@@ -729,22 +783,16 @@
                 };
                 reader.readAsDataURL(file);
             }
-            
-            // Clear the input so same file can be selected again if removed
             event.target.value = '';
         }
 
         function updatePhotoPreview() {
             const grid = document.getElementById('photoPreviewGrid');
-            const warning = document.getElementById('photoLimitWarning');
-            
             if (!grid) return;
             
-            // Clear all except the add button
             const addButton = grid.querySelector('.add-photo-btn');
             grid.innerHTML = '';
             
-            // Add existing images
             selectedImages.forEach((img, index) => {
                 const div = document.createElement('div');
                 div.className = 'photo-preview-item';
@@ -755,18 +803,8 @@
                 grid.appendChild(div);
             });
             
-            // Add the add button if not at max
             if (selectedImages.length < MAX_REVIEW_IMAGES) {
                 grid.appendChild(addButton);
-            }
-            
-            // Show warning if at max
-            if (warning) {
-                if (selectedImages.length >= MAX_REVIEW_IMAGES) {
-                    warning.innerHTML = `<span style="color: var(--warning);">⚠️ Maximum ${MAX_REVIEW_IMAGES} photos reached</span>`;
-                } else {
-                    warning.innerHTML = `${selectedImages.length}/${MAX_REVIEW_IMAGES} photos added (Max ${MAX_IMAGE_SIZE_MB}MB each)`;
-                }
             }
         }
 
@@ -775,11 +813,12 @@
             updatePhotoPreview();
         }
 
-        function submitReview() {
-            const currentUser = getCurrentUser();
+        async function submitReview() {
             if (!currentUser) {
                 showToast('Please login to submit a review');
-                window.location.href = 'login.html';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
                 return;
             }
             
@@ -788,54 +827,53 @@
                 return;
             }
             
-            const name = document.getElementById('reviewerName').value || currentUser.name;
-            const text = document.getElementById('reviewText').value;
+            const name = document.getElementById('reviewerName')?.value || currentUser.name;
+            const text = document.getElementById('reviewText')?.value;
             
             if (!text) {
                 showToast('Please write your review');
                 return;
             }
             
-            const newReview = {
-                id: Date.now(),
-                productId: currentProduct.id,
-                name: name,
-                rating: selectedRating,
-                text: text,
-                images: [...selectedImages], // Save the images
-                date: new Date().toISOString(),
-                helpful: 0
-            };
+            showToast('Submitting your review...');
             
-            reviews.push(newReview);
-            localStorage.setItem('attar_reviews', JSON.stringify(reviews));
-            
-            showToast('Thank you for your review!');
-            
-            // Reset form
-            selectedRating = 0;
-            selectedImages = [];
-            document.getElementById('reviewText').value = '';
-            document.querySelectorAll('.rating-star').forEach(star => star.innerHTML = '☆');
-            updatePhotoPreview();
-            
-            // Update product rating
-            const avgRating = getAverageRating();
-            currentProduct.ratings = avgRating;
-            currentProduct.reviews = reviews.filter(r => r.productId === currentProduct.id).length;
-            localStorage.setItem('attar_products', JSON.stringify(products));
-            
-            displayReviews();
+            try {
+                const response = await fetch('api/submit-review.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: currentProduct.id,
+                        user_id: currentUser.id || 0,
+                        user_name: name,
+                        user_email: currentUser.email,
+                        rating: selectedRating,
+                        comment: text,
+                        images: selectedImages.length > 0 ? selectedImages[0] : null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Thank you for your review!');
+                    selectedRating = 0;
+                    selectedImages = [];
+                    document.getElementById('reviewText').value = '';
+                    document.querySelectorAll('.rating-star').forEach(star => star.innerHTML = '☆');
+                    updatePhotoPreview();
+                    // Reload product data to refresh reviews
+                    loadProductData();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                showToast('Failed to submit review. Please try again.');
+            }
         }
 
         function helpfulReview(reviewId) {
-            const review = reviews.find(r => r.id === reviewId);
-            if (review) {
-                review.helpful = (review.helpful || 0) + 1;
-                localStorage.setItem('attar_reviews', JSON.stringify(reviews));
-                displayReviews();
-                showToast('Thanks for your feedback!');
-            }
+            showToast('Thanks for your feedback!');
         }
 
         function shareProduct() {
@@ -882,6 +920,7 @@
         window.openLightbox = openLightbox;
         window.closeLightbox = closeLightbox;
 
+        // Initialize
         loadProductData();
     </script>
 </body>

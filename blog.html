@@ -8,324 +8,260 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .blog-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .blog-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .blog-header h1 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .search-blog {
-            max-width: 500px;
-            margin: 1rem auto;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .search-blog input {
-            flex: 1;
-            padding: 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-        }
-
-        .categories {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 2rem 0;
-        }
-
-        .category-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .category-btn.active,
-        .category-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .blog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .blog-card {
-            background: var(--surface);
-            border-radius: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .blog-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .blog-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .blog-content {
-            padding: 1.5rem;
-        }
-
-        .blog-meta {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .blog-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .blog-excerpt {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .read-more {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin: 3rem 0;
-        }
-
-        .page-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            background: white;
-            cursor: pointer;
-            border-radius: 8px;
-        }
-
-        .page-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+        .blog-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .blog-header { text-align: center; margin-bottom: 3rem; }
+        .blog-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 3rem; margin-bottom: 1rem; }
+        .search-blog { max-width: 500px; margin: 1rem auto; display: flex; gap: 0.5rem; }
+        .search-blog input { flex: 1; padding: 0.8rem; border: 1px solid var(--border); border-radius: 50px; }
+        .categories { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0; }
+        .category-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 50px; background: white; cursor: pointer; transition: all 0.3s ease; }
+        .category-btn.active, .category-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .blog-card { background: var(--surface); border-radius: 20px; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: var(--shadow-sm); }
+        .blog-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .blog-image { width: 100%; height: 200px; object-fit: cover; }
+        .blog-content { padding: 1.5rem; }
+        .blog-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .blog-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .blog-excerpt { color: #666; line-height: 1.6; margin-bottom: 1rem; }
+        .read-more { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin: 3rem 0; }
+        .page-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 8px; }
+        .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .submit-blog-btn { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.8rem 1.5rem; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s ease; margin-left: 1rem; }
+        .submit-blog-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .header-buttons { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .drop-zone { border: 2px dashed #ccc; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 10px; transition: all 0.3s ease; }
+        .drop-zone.drag-over { border-color: var(--primary); background: #fdf8f5; }
+        .image-preview { margin-top: 10px; }
+        .image-preview img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+        .info-box { background: var(--background); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .loading { text-align: center; padding: 3rem; }
     </style>
 </head>
 <body>
-
-<div id="navigation-placeholder"></div>
-
-<div class="blog-container">
-    <div class="blog-header">
-        <h1>📝 Fragrance Journal</h1>
-        <p>Discover the art of attar making, fragrance guides, and Islamic perfumery traditions</p>
-
-        <div class="search-blog">
-            <input type="text" id="searchBlog" placeholder="Search articles...">
-            <button class="btn btn-primary" onclick="searchPosts()">Search</button>
+    <div id="navigation-placeholder"></div>
+    <div class="blog-container">
+        <div class="header-buttons">
+            <button class="submit-blog-btn" onclick="showSubmitModal()"><i class="fas fa-pen-fancy"></i> Write a Blog</button>
         </div>
-
-        <div class="categories" id="categories"></div>
+        
+        <div class="blog-header">
+            <h1>📝 Fragrance Journal</h1>
+            <p>Discover the art of attar making, fragrance guides, and Islamic perfumery traditions</p>
+            <div class="search-blog">
+                <input type="text" id="searchBlog" placeholder="Search articles...">
+                <button class="btn btn-primary" onclick="searchPosts()">Search</button>
+            </div>
+            <div class="categories" id="categories"></div>
+        </div>
+        
+        <div class="blog-grid" id="blogGrid"><div class="loading">Loading articles...</div></div>
+        <div class="pagination" id="pagination"></div>
     </div>
 
-    <div class="blog-grid" id="blogGrid"></div>
-
-    <div class="pagination" id="pagination"></div>
-</div>
-
-<footer class="footer">
-    <div class="footer-content">
-        <div>
-            <h3>#WE ARE MUSLIM</h3>
-            <p>Premium attars crafted with tradition and passion.</p>
-        </div>
-        <div>
-            <h4>Quick Links</h4>
-            <a href="shop.html">Shop</a>
-            <a href="blog.html">Blog</a>
-            <a href="affiliate.html">Affiliate Program</a>
-        </div>
-        <div>
-            <h4>Contact</h4>
-            <p>📧 info@wearemuslim.com</p>
-            <p>📞 +880 1234 567890</p>
+    <!-- Submit Blog Modal -->
+    <div id="submitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-fancy"></i> Submit Your Blog</h3>
+                <button onclick="closeSubmitModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Guidelines:</strong> Write original content about attars, perfumes, Islamic fragrance traditions, or fragrance tips. Your blog will be reviewed within 24-48 hours.
+            </div>
+            <form id="blogSubmitForm" onsubmit="event.preventDefault(); submitBlog();">
+                <div class="form-group"><label>Blog Title *</label><input type="text" id="subTitle" required></div>
+                <div class="form-group"><label>Category *</label>
+                    <select id="subCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="guide">📖 Guides</option>
+                        <option value="history">🏛️ History</option>
+                        <option value="education">🎓 Education</option>
+                        <option value="seasonal">🌙 Seasonal</option>
+                        <option value="care">💝 Care Tips</option>
+                        <option value="news">📰 News</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Your Name</label><input type="text" id="subAuthor" placeholder="How should we credit you?"></div>
+                <div class="form-group"><label>Short Excerpt *</label><textarea id="subExcerpt" rows="2" placeholder="Brief summary of your blog" required></textarea></div>
+                <div class="form-group"><label>Blog Content *</label><textarea id="subContent" rows="8" placeholder="Write your blog content here... You can use HTML tags for formatting." required></textarea></div>
+                <div class="form-group">
+                    <label>Featured Image</label>
+                    <div id="subDropZone" class="drop-zone"><i class="fas fa-cloud-upload-alt"></i> Click or drag an image here</div>
+                    <input type="file" id="subImageFile" accept="image/*" style="display: none;">
+                    <div id="subImagePreview" class="image-preview"></div>
+                    <input type="hidden" id="subImageUrl">
+                </div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="subTags" placeholder="e.g., oudh, attar, guide"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%; padding: 1rem;">Submit for Review</button>
+            </form>
         </div>
     </div>
-</footer>
 
-<script src="js/navigation.js"></script>
-<script src="js/utils.js"></script>
-<script>
-    let allPosts = [];
-    let currentCategory = 'all';
-    let currentPage = 1;
-    const postsPerPage = 6;
+    <footer class="footer">
+        <div class="footer-content">
+            <div><h3>#WE ARE MUSLIM</h3><p>Premium attars crafted with tradition and passion.</p></div>
+            <div><h4>Quick Links</h4><a href="shop.html">Shop</a><a href="blog.html">Blog</a></div>
+            <div><h4>Contact</h4><p>📧 info@wearemuslim.com</p><p>📞 +880 1234 567890</p></div>
+        </div>
+    </footer>
 
-    function initBlog() {
-        const stored = localStorage.getItem('blog_posts');
-        if (stored) {
-            allPosts = JSON.parse(stored);
-        } else {
-            allPosts = [
-                { id: 1, title: "The Ultimate Guide to Choosing Your First Attar", excerpt: "New to attars? Learn how to select the perfect fragrance based on your personality and occasion...", content: "Full content here...", image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400", category: "guide", author: "Muhammad Rahman", date: "2024-12-15", readTime: 5, views: 1234 },
-                { id: 2, title: "The Rich History of Oudh in Islamic Culture", excerpt: "Explore the sacred significance of Oudh in Islamic traditions and its use throughout history...", image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400", category: "history", author: "Aisha Khan", date: "2024-12-10", readTime: 7, views: 2345 },
-                { id: 3, title: "How to Layer Fragrances Like a Pro", excerpt: "Master the art of combining different attars to create your unique signature scent...", image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400", category: "guide", author: "Omar Faruq", date: "2024-12-05", readTime: 6, views: 987 },
-                { id: 4, title: "The Difference Between Attar and Perfume", excerpt: "Understanding the unique characteristics of alcohol-free attars vs conventional perfumes...", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400", category: "education", author: "Muhammad Rahman", date: "2024-11-28", readTime: 4, views: 3456 },
-                { id: 5, title: "Top 5 Attars for Ramadan and Eid", excerpt: "Discover the most popular fragrances to wear during the blessed month and celebrations...", image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400", category: "seasonal", author: "Aisha Khan", date: "2024-11-20", readTime: 5, views: 5678 },
-                { id: 6, title: "How to Store Your Attars Properly", excerpt: "Tips to preserve the longevity and quality of your precious attar collection...", image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400", category: "care", author: "Omar Faruq", date: "2024-11-15", readTime: 3, views: 876 }
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let allPosts = [];
+        let currentCategory = 'all';
+        let currentPage = 1;
+        const postsPerPage = 6;
+
+        // Image upload for submission modal
+        const subDropZone = document.getElementById('subDropZone');
+        const subImageFile = document.getElementById('subImageFile');
+        const subImagePreview = document.getElementById('subImagePreview');
+        const subImageUrl = document.getElementById('subImageUrl');
+
+        if (subDropZone) {
+            subDropZone.addEventListener('click', () => subImageFile.click());
+            subDropZone.addEventListener('dragover', (e) => { e.preventDefault(); subDropZone.classList.add('drag-over'); });
+            subDropZone.addEventListener('dragleave', () => { subDropZone.classList.remove('drag-over'); });
+            subDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                subDropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) uploadSubmissionImage(file);
+            });
+        }
+        if (subImageFile) subImageFile.addEventListener('change', (e) => { if (e.target.files[0]) uploadSubmissionImage(e.target.files[0]); });
+
+        async function uploadSubmissionImage(file) {
+            if (file.size > 2 * 1024 * 1024) { showToast('Image too large! Max 2MB'); return; }
+            showToast('Uploading...');
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const response = await fetch('api/upload-image.php', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.success) {
+                    subImageUrl.value = result.image_url;
+                    subImagePreview.innerHTML = '<img src="' + result.image_url + '?t=' + Date.now() + '" alt="Preview">';
+                    showToast('Image uploaded!');
+                } else showToast('Upload failed: ' + result.error);
+            } catch (error) { console.error('Upload error:', error); showToast('Upload failed'); }
+        }
+
+        function showSubmitModal() {
+            const user = getCurrentUser();
+            if (!user) { showToast('Please login to submit a blog'); setTimeout(() => { window.location.href = 'login.html'; }, 1500); return; }
+            document.getElementById('subTitle').value = '';
+            document.getElementById('subCategory').value = '';
+            document.getElementById('subAuthor').value = user.name || '';
+            document.getElementById('subExcerpt').value = '';
+            document.getElementById('subContent').value = '';
+            document.getElementById('subTags').value = '';
+            subImageUrl.value = '';
+            subImagePreview.innerHTML = '';
+            document.getElementById('submitModal').style.display = 'flex';
+        }
+
+        function closeSubmitModal() { document.getElementById('submitModal').style.display = 'none'; }
+
+        async function submitBlog() {
+            const user = getCurrentUser();
+            if (!user) { showToast('Please login to submit a blog'); closeSubmitModal(); window.location.href = 'login.html'; return; }
+            const title = document.getElementById('subTitle').value.trim();
+            const category = document.getElementById('subCategory').value;
+            const author = document.getElementById('subAuthor').value.trim() || user.name;
+            const excerpt = document.getElementById('subExcerpt').value.trim();
+            const content = document.getElementById('subContent').value.trim();
+            const tags = document.getElementById('subTags').value.trim();
+            let image = subImageUrl.value;
+            if (!title || !category || !excerpt || !content) { showToast('Please fill all required fields'); return; }
+            if (!image) image = 'https://placehold.co/800x400/e8ddd3/8B5E3C?text=' + encodeURIComponent(title);
+            showToast('Submitting blog for review...');
+            try {
+                const response = await fetch('api/submit-blog.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, category, author, readTime: 5, excerpt, content, image, tags, user_email: user.email, user_name: user.name })
+                });
+                const result = await response.json();
+                if (result.success) { showToast('Blog submitted successfully! Admin will review it soon.'); closeSubmitModal(); }
+                else showToast('Error: ' + result.error);
+            } catch (error) { console.error('Error submitting blog:', error); showToast('Failed to submit blog'); }
+        }
+
+        function loadBlogData() {
+            fetch('api/get-blogs.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) { allPosts = data.blogs.filter(post => post.status === 'published'); renderCategories(); renderPosts(); }
+                    else { console.error('API error:', data.error); allPosts = []; renderPosts(); }
+                })
+                .catch(error => { console.error('Error loading blogs:', error); allPosts = []; renderPosts(); });
+        }
+
+        function renderCategories() {
+            const categories = [
+                { id: 'all', name: 'All Posts', icon: '📚' }, { id: 'guide', name: 'Guides', icon: '📖' },
+                { id: 'history', name: 'History', icon: '🏛️' }, { id: 'education', name: 'Education', icon: '🎓' },
+                { id: 'seasonal', name: 'Seasonal', icon: '🌙' }, { id: 'care', name: 'Care Tips', icon: '💝' }, { id: 'news', name: 'News', icon: '📰' }
             ];
-            localStorage.setItem('blog_posts', JSON.stringify(allPosts));
+            const container = document.getElementById('categories');
+            container.innerHTML = categories.map(cat => `<button class="category-btn ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">${cat.icon} ${cat.name}</button>`).join('');
         }
 
-        renderCategories();
-        renderPosts();
-    }
-
-    function renderCategories() {
-        const categories = [
-            { id: 'all', name: 'All Posts', icon: '📚' },
-            { id: 'guide', name: 'Guides', icon: '📖' },
-            { id: 'history', name: 'History', icon: '🏛️' },
-            { id: 'education', name: 'Education', icon: '🎓' },
-            { id: 'seasonal', name: 'Seasonal', icon: '🌙' },
-            { id: 'care', name: 'Care Tips', icon: '💝' }
-        ];
-
-        const container = document.getElementById('categories');
-        container.innerHTML = categories.map(cat => `
-            <button class="category-btn ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">
-                ${cat.icon} ${cat.name}
-            </button>
-        `).join('');
-    }
-
-    function filterCategory(category) {
-        currentCategory = category;
-        currentPage = 1;
-        renderCategories();
-        renderPosts();
-    }
-
-    function searchPosts() {
-        const searchTerm = document.getElementById('searchBlog').value.toLowerCase();
-        const filtered = allPosts.filter(p => p.title.toLowerCase().includes(searchTerm) || p.excerpt.toLowerCase().includes(searchTerm));
-
-        if (searchTerm) {
-            renderFilteredPosts(filtered);
-        } else {
-            renderPosts();
-        }
-    }
-
-    function renderPosts() {
-        let filtered = allPosts;
-        if (currentCategory !== 'all') {
-            filtered = allPosts.filter(p => p.category === currentCategory);
-        }
-        renderFilteredPosts(filtered);
-    }
-
-    function renderFilteredPosts(filtered) {
-        const totalPages = Math.ceil(filtered.length / postsPerPage);
-        const start = (currentPage - 1) * postsPerPage;
-        const paginated = filtered.slice(start, start + postsPerPage);
-
-        const container = document.getElementById('blogGrid');
-
-        if (paginated.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 3rem;">No posts found 😢</div>';
-            return;
-        }
-
-        container.innerHTML = paginated.map(post => `
-            <div class="blog-card" onclick="viewPost(${post.id})">
-                <img class="blog-image" src="${post.image}" onerror="this.src='https://via.placeholder.com/400x200?text=Blog'">
-                <div class="blog-content">
-                    <div class="blog-meta">
-                        <span><i class="far fa-calendar"></i> ${new Date(post.date).toLocaleDateString()}</span>
-                        <span><i class="far fa-clock"></i> ${post.readTime} min read</span>
-                        <span><i class="far fa-eye"></i> ${post.views} views</span>
-                    </div>
-                    <h3 class="blog-title">${escapeHtml(post.title)}</h3>
-                    <p class="blog-excerpt">${post.excerpt.substring(0, 120)}...</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span class="read-more">Read More →</span>
-                        <span><i class="fas fa-share-alt" onclick="event.stopPropagation(); sharePost(${post.id})"></i></span>
+        function filterCategory(category) { currentCategory = category; currentPage = 1; renderCategories(); renderPosts(); }
+        function searchPosts() { const searchTerm = document.getElementById('searchBlog').value.toLowerCase(); const filtered = allPosts.filter(p => p.title.toLowerCase().includes(searchTerm) || (p.excerpt && p.excerpt.toLowerCase().includes(searchTerm))); renderFilteredPosts(filtered); }
+        function renderPosts() { let filtered = allPosts; if (currentCategory !== 'all') filtered = allPosts.filter(p => p.category === currentCategory); renderFilteredPosts(filtered); }
+        
+        function renderFilteredPosts(filtered) {
+            const totalPages = Math.ceil(filtered.length / postsPerPage);
+            const start = (currentPage - 1) * postsPerPage;
+            const paginated = filtered.slice(start, start + postsPerPage);
+            const container = document.getElementById('blogGrid');
+            if (paginated.length === 0) { container.innerHTML = '<div style="text-align: center; padding: 3rem;">No posts found 😢</div>'; return; }
+            container.innerHTML = paginated.map(post => `
+                <div class="blog-card" onclick="viewPost(${post.id})">
+                    <img class="blog-image" src="${post.image}" onerror="this.src='https://placehold.co/400x200/e8ddd3/8B5E3C?text=Blog'">
+                    <div class="blog-content">
+                        <div class="blog-meta"><span><i class="far fa-calendar"></i> ${formatDate(post.created_at)}</span><span><i class="far fa-clock"></i> ${post.read_time || 5} min read</span><span><i class="far fa-eye"></i> ${post.views || 0} views</span></div>
+                        <h3 class="blog-title">${escapeHtml(post.title)}</h3>
+                        <p class="blog-excerpt">${(post.excerpt || post.content?.substring(0, 120) || '').substring(0, 120)}...</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;"><span class="read-more">Read More →</span><span><i class="fas fa-share-alt" onclick="event.stopPropagation(); sharePost(${post.id})"></i></span></div>
                     </div>
                 </div>
-            </div>
-        `).join('');
-
-        const paginationContainer = document.getElementById('pagination');
-        if (totalPages > 1) {
-            let paginationHtml = '';
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-            }
-            paginationContainer.innerHTML = paginationHtml;
-        } else {
-            paginationContainer.innerHTML = '';
+            `).join('');
+            const paginationContainer = document.getElementById('pagination');
+            if (totalPages > 1) {
+                let paginationHtml = '';
+                for (let i = 1; i <= totalPages; i++) paginationHtml += `<button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                paginationContainer.innerHTML = paginationHtml;
+            } else paginationContainer.innerHTML = '';
         }
-    }
 
-    function goToPage(page) {
-        currentPage = page;
-        renderPosts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+        function goToPage(page) { currentPage = page; renderPosts(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function viewPost(postId) { localStorage.setItem('viewPostId', postId); window.location.href = 'blog-post.html'; }
+        function sharePost(postId) { const post = allPosts.find(p => p.id === postId); if (navigator.share) navigator.share({ title: post.title, text: post.excerpt, url: window.location.href + '?post=' + postId }); else prompt('Share this link:', window.location.href + '?post=' + postId); }
 
-    function viewPost(postId) {
-        localStorage.setItem('viewPostId', postId);
-        window.open('blog-post.html', '_blank');
-    }
+        window.filterCategory = filterCategory;
+        window.searchPosts = searchPosts;
+        window.goToPage = goToPage;
+        window.viewPost = viewPost;
+        window.sharePost = sharePost;
+        window.showSubmitModal = showSubmitModal;
+        window.closeSubmitModal = closeSubmitModal;
+        window.submitBlog = submitBlog;
 
-    function sharePost(postId) {
-        const post = allPosts.find(p => p.id === postId);
-        if (navigator.share) {
-            navigator.share({ title: post.title, text: post.excerpt, url: window.location.href + '?post=' + postId });
-        } else {
-            prompt('Share this link:', window.location.href + '?post=' + postId);
-        }
-    }
-
-    window.filterCategory = filterCategory;
-    window.searchPosts = searchPosts;
-    window.goToPage = goToPage;
-    window.viewPost = viewPost;
-    window.sharePost = sharePost;
-
-    initBlog();
-</script>
+        loadBlogData();
+    </script>
 </body>
 </html>

@@ -38,14 +38,12 @@
             background: var(--background);
         }
 
-        /* Main Container */
         .users-container {
             max-width: 1400px;
             margin: 2rem auto;
             padding: 0 2rem;
         }
 
-        /* Page Header */
         .page-header {
             margin-bottom: 2rem;
         }
@@ -70,7 +68,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -122,7 +119,6 @@
             color: var(--text-light);
         }
 
-        /* Action Bar */
         .action-bar {
             background: var(--surface);
             border-radius: 16px;
@@ -187,7 +183,6 @@
             flex-wrap: wrap;
         }
 
-        /* Buttons */
         .btn {
             padding: 0.8rem 1.5rem;
             border-radius: 50px;
@@ -232,12 +227,6 @@
             font-size: 0.8rem;
         }
 
-        .btn-icon {
-            padding: 0.5rem;
-            border-radius: 10px;
-        }
-
-        /* Users Table */
         .users-table-wrapper {
             background: var(--surface);
             border-radius: 20px;
@@ -278,7 +267,6 @@
             background: rgba(139, 94, 60, 0.02);
         }
 
-        /* User Avatar */
         .user-avatar {
             width: 45px;
             height: 45px;
@@ -292,7 +280,6 @@
             font-size: 1.1rem;
         }
 
-        /* Role Badges */
         .role-badge {
             display: inline-flex;
             align-items: center;
@@ -313,33 +300,6 @@
             color: white;
         }
 
-        /* Password Display */
-        .password-cell {
-            max-width: 180px;
-        }
-
-        .password-value {
-            font-family: 'Courier New', monospace;
-            background: var(--background);
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            display: inline-block;
-            word-break: break-all;
-        }
-
-        /* Auth Badge */
-        .auth-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            background: var(--background);
-        }
-
-        /* Action Icons */
         .action-icons {
             display: flex;
             gap: 0.5rem;
@@ -369,7 +329,6 @@
         .action-icon.reset:hover { background: #ff9800; color: white; }
         .action-icon.delete:hover { background: var(--danger); color: white; }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem;
@@ -381,16 +340,6 @@
             margin-bottom: 1rem;
         }
 
-        .empty-state h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: var(--text-light);
-        }
-
-        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -489,30 +438,11 @@
             margin-top: 0.3rem;
         }
 
-        .password-show {
-            font-family: monospace;
-            background: var(--background);
-            padding: 0.5rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            word-break: break-all;
+        .loading-users {
+            text-align: center;
+            padding: 3rem;
         }
 
-        .order-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .order-item {
-            border-bottom: 1px solid var(--border);
-            padding: 0.8rem 0;
-        }
-
-        .order-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .users-container {
                 padding: 0 1rem;
@@ -524,28 +454,19 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .users-table th:nth-child(4),
-            .users-table td:nth-child(4),
-            .users-table th:nth-child(7),
-            .users-table td:nth-child(7) {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
     <div id="navigation-placeholder"></div>
     <div class="users-container">
-        <!-- Page Header -->
         <div class="page-header">
             <h1><i class="fas fa-users"></i> User Management</h1>
             <p>Manage customer accounts, view details, and control access permissions</p>
         </div>
 
-        <!-- Stats Cards will be inserted here -->
         <div id="statsContainer"></div>
 
-        <!-- Action Bar -->
         <div class="action-bar">
             <div class="search-section">
                 <div class="search-box">
@@ -562,13 +483,12 @@
                 <button class="btn btn-primary" onclick="showAddUserModal()">
                     <i class="fas fa-plus"></i> Add New User
                 </button>
-                <button class="btn btn-outline" onclick="syncWithFirebase()">
-                    <i class="fas fa-sync-alt"></i> Sync Firebase
+                <button class="btn btn-outline" onclick="loadUsers()">
+                    <i class="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
         </div>
 
-        <!-- Users Table -->
         <div class="users-table-wrapper">
             <div class="users-table">
                 <table>
@@ -577,14 +497,13 @@
                             <th>User</th>
                             <th>Contact</th>
                             <th>Role</th>
-                            <th>Password</th>
                             <th>Orders</th>
-                            <th>Auth</th>
+                            <th>Joined</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <tr><td colspan="7" style="text-align: center; padding: 3rem;"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
+                        <tr><td colspan="6" style="text-align: center; padding: 3rem;"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -658,36 +577,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
-        // ==================== FIREBASE CONFIGURATION ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCP8Uh6Yxu-dIpywGVEXtnQYSUVIoCViyg",
-            authDomain: "attar-website-e4434.firebaseapp.com",
-            projectId: "attar-website-e4434",
-            storageBucket: "attar-website-e4434.firebasestorage.app",
-            messagingSenderId: "1002231077102",
-            appId: "1:1002231077102:web:b85ab766484bc4f65ebbff",
-            measurementId: "G-HRJQW7M430"
-        };
-        
-        let auth = null;
-        let isFirebaseInitialized = false;
-        
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            isFirebaseInitialized = true;
-            console.log("Firebase initialized");
-        } catch (error) {
-            console.error("Firebase error:", error);
-        }
-        
         let allUsers = [];
         let allOrders = [];
         let currentAdmin = null;
@@ -703,65 +595,53 @@
             return true;
         }
 
-        async function syncWithFirebase() {
-            if (!isFirebaseInitialized) {
-                showToast('Firebase not initialized.');
-                return;
-            }
-            showToast('Syncing with Firebase...');
-            try {
-                const usersFromFirebase = [];
-                let nextPageToken = null;
-                do {
-                    const result = await auth.listUsers(1000, nextPageToken);
-                    usersFromFirebase.push(...result.users);
-                    nextPageToken = result.pageToken;
-                } while (nextPageToken);
-                
-                for (const firebaseUser of usersFromFirebase) {
-                    const email = firebaseUser.email;
-                    if (!allUsers.find(u => u.email === email)) {
-                        allUsers.push({
-                            id: Date.now() + Math.random(),
-                            email: email,
-                            password: 'firebase_user',
-                            role: 'user',
-                            name: firebaseUser.displayName || email.split('@')[0],
-                            phone: firebaseUser.phoneNumber || '',
-                            createdAt: new Date(firebaseUser.metadata.creationTime).toISOString(),
-                            authProvider: 'firebase',
-                            firebaseUid: firebaseUser.uid
-                        });
-                    }
-                }
-                localStorage.setItem('attar_users', JSON.stringify(allUsers));
-                showToast(`Synced ${usersFromFirebase.length} users`);
-                loadUsers();
-            } catch (error) {
-                showToast('Sync failed');
-            }
-        }
-
-        function loadUsers() {
-            allUsers = JSON.parse(localStorage.getItem('attar_users')) || [];
-            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
+        async function loadUsers() {
+            if (!checkAdminAccess()) return;
             
-            if (!allUsers.find(u => u.role === 'admin')) {
-                allUsers.push({ 
-                    id: 1, email: "admin@attar.com", password: "admin123", role: "admin", 
-                    name: "Admin User", phone: "", createdAt: new Date().toISOString() 
-                });
-                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 3rem;"><i class="fas fa-spinner fa-spin"></i> Loading users from database...</td></tr>';
             }
-            renderStats();
-            renderUsers();
+            
+            try {
+                // Fetch users from API
+                const response = await fetch('api/get-users.php');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allUsers = result.users || [];
+                    console.log('Loaded users:', allUsers.length);
+                } else {
+                    console.error('API error:', result.error);
+                    allUsers = [];
+                }
+                
+                // Fetch orders for order counts
+                const ordersResponse = await fetch('api/get-orders.php');
+                const ordersResult = await ordersResponse.json();
+                if (ordersResult.success) {
+                    allOrders = ordersResult.orders || [];
+                } else {
+                    allOrders = [];
+                }
+                
+                renderStats();
+                renderUsers();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 3rem; color: red;"><i class="fas fa-exclamation-triangle"></i> Error loading users. Please refresh.</td></tr>';
+                }
+                allUsers = [];
+                renderStats();
+                renderUsers();
+            }
         }
 
         function renderStats() {
             const totalUsers = allUsers.length;
             const adminCount = allUsers.filter(u => u.role === 'admin').length;
             const customerCount = allUsers.filter(u => u.role === 'user').length;
-            const firebaseCount = allUsers.filter(u => u.authProvider === 'firebase' || u.authProvider === 'firebase_google').length;
             
             const statsHtml = `
                 <div class="stats-grid">
@@ -778,8 +658,8 @@
                         <div class="stat-info"><h3>${customerCount}</h3><p>Customers</p></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fab fa-firebase"></i></div>
-                        <div class="stat-info"><h3>${firebaseCount}</h3><p>Firebase Users</p></div>
+                        <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="stat-info"><h3>${allOrders.length}</h3><p>Total Orders</p></div>
                     </div>
                 </div>
             `;
@@ -790,8 +670,8 @@
             let filtered = [...allUsers];
             if (searchTerm) {
                 filtered = filtered.filter(u => 
-                    u.name.toLowerCase().includes(searchTerm) || 
-                    u.email.toLowerCase().includes(searchTerm) ||
+                    (u.name && u.name.toLowerCase().includes(searchTerm)) || 
+                    (u.email && u.email.toLowerCase().includes(searchTerm)) ||
                     (u.phone && u.phone.includes(searchTerm))
                 );
             }
@@ -803,7 +683,7 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7">
+                        <td colspan="6">
                             <div class="empty-state">
                                 <i class="fas fa-user-slash"></i>
                                 <h3>No users found</h3>
@@ -819,16 +699,11 @@
             }
             
             tbody.innerHTML = filtered.map(user => {
-                const userOrders = allOrders.filter(o => o.user === user.email);
+                const userOrders = allOrders.filter(o => o.customer_email === user.email);
                 const orderCount = userOrders.length;
+                const totalSpent = userOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
                 const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
                 const canDelete = user.email !== currentAdmin?.email;
-                const isFirebaseUser = user.authProvider === 'firebase' || user.authProvider === 'firebase_google';
-                
-                let displayPassword = '—';
-                if (user.password && user.password !== 'firebase_user' && user.password !== 'firebase_google_') {
-                    displayPassword = user.password;
-                }
                 
                 return `
                     <tr>
@@ -836,23 +711,18 @@
                             <div style="display: flex; align-items: center; gap: 0.8rem;">
                                 <div class="user-avatar">${initial}</div>
                                 <div>
-                                    <div style="font-weight: 600;">${escapeHtml(user.name)}</div>
+                                    <div style="font-weight: 600;">${escapeHtml(user.name || user.email)}</div>
                                     <div style="font-size: 0.75rem; color: var(--text-light);">${escapeHtml(user.email)}</div>
                                 </div>
                             </div>
                         </td>
                         <td>${user.phone || '<span style="color: #ccc;">—</span>'}</td>
                         <td><span class="role-badge ${user.role === 'admin' ? 'role-admin' : 'role-user'}">${user.role === 'admin' ? '👑 Admin' : '👤 Customer'}</span></td>
-                        <td class="password-cell"><code class="password-value">${escapeHtml(displayPassword)}</code></td>
                         <td>
                             <div style="font-weight: 600;">${orderCount} orders</div>
-                            <div style="font-size: 0.7rem; color: var(--text-light);">${userOrders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString()} ৳</div>
+                            <div style="font-size: 0.7rem; color: var(--text-light);">৳${totalSpent.toLocaleString()}</div>
                         </td>
-                        <td>
-                            <span class="auth-badge">
-                                ${isFirebaseUser ? '<i class="fab fa-firebase"></i> Firebase' : '<i class="fas fa-database"></i> Local'}
-                            </span>
-                        </td>
+                        <td><small>${user.created_at ? formatDate(user.created_at) : '—'}</small></td>
                         <td>
                             <div class="action-icons">
                                 <button class="action-icon view" onclick="viewUserDetails('${user.email}')" title="View Details"><i class="fas fa-eye"></i></button>
@@ -889,7 +759,7 @@
             if (!user) return;
             document.getElementById('addUserTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit User';
             document.getElementById('editUserId').value = user.id;
-            document.getElementById('userName').value = user.name;
+            document.getElementById('userName').value = user.name || '';
             document.getElementById('userEmail').value = user.email;
             document.getElementById('userPassword').value = '';
             document.getElementById('userPassword').required = false;
@@ -911,71 +781,88 @@
                 return;
             }
             
+            if (!email.includes('@')) {
+                showToast('Please enter a valid email address');
+                return;
+            }
+            
             if (id) {
-                const userIndex = allUsers.findIndex(u => u.id == id);
-                if (userIndex !== -1) {
-                    allUsers[userIndex].name = name;
-                    allUsers[userIndex].phone = phone;
-                    allUsers[userIndex].role = role;
-                    if (password && password.length >= 6) {
-                        allUsers[userIndex].password = password;
-                        if (isFirebaseInitialized) {
-                            try {
-                                const userCredential = await auth.signInWithEmailAndPassword(email, allUsers[userIndex].password);
-                                await userCredential.user.updatePassword(password);
-                            } catch(e) {}
-                        }
+                // Update existing user via API
+                try {
+                    const response = await fetch('api/update-user.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, name, email, phone, role, password: password || undefined })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast('User updated successfully');
+                        closeAddUserModal();
+                        await loadUsers();
+                    } else {
+                        showToast('Error: ' + result.error);
                     }
-                    showToast('User updated');
+                } catch (error) {
+                    console.error('Error updating user:', error);
+                    showToast('Failed to update user');
                 }
             } else {
+                // Create new user
                 if (!password || password.length < 6) {
-                    showToast('Password must be at least 6 characters');
+                    showToast('Password must be at least 6 characters for new users');
                     return;
                 }
+                
                 if (allUsers.find(u => u.email === email)) {
                     showToast('Email already exists');
                     return;
                 }
                 
-                let firebaseCreated = false;
-                if (isFirebaseInitialized) {
-                    try {
-                        await auth.createUserWithEmailAndPassword(email, password);
-                        firebaseCreated = true;
-                    } catch(e) {}
+                try {
+                    const response = await fetch('api/register.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, password, phone, role })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast('User added successfully');
+                        closeAddUserModal();
+                        await loadUsers();
+                    } else {
+                        showToast('Error: ' + (result.error || 'Failed to add user'));
+                    }
+                } catch (error) {
+                    console.error('Error adding user:', error);
+                    showToast('Failed to add user');
                 }
-                
-                allUsers.push({
-                    id: Date.now(),
-                    email: email,
-                    password: password,
-                    role: role,
-                    name: name,
-                    phone: phone,
-                    createdAt: new Date().toISOString(),
-                    authProvider: firebaseCreated ? 'firebase' : 'local'
-                });
-                showToast('User added');
             }
-            
-            localStorage.setItem('attar_users', JSON.stringify(allUsers));
-            closeAddUserModal();
-            renderStats();
-            renderUsers();
         }
 
-        function deleteUser(email) {
+        async function deleteUser(email) {
             if (email === currentAdmin?.email) {
                 showToast('You cannot delete your own account');
                 return;
             }
+            
             if (confirm(`Delete user: ${email}? This cannot be undone.`)) {
-                allUsers = allUsers.filter(u => u.email !== email);
-                localStorage.setItem('attar_users', JSON.stringify(allUsers));
-                showToast('User deleted');
-                renderStats();
-                renderUsers();
+                try {
+                    const response = await fetch('api/delete-user.php', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast('User deleted successfully');
+                        await loadUsers();
+                    } else {
+                        showToast('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    showToast('Failed to delete user');
+                }
             }
         }
 
@@ -983,46 +870,54 @@
             const user = allUsers.find(u => u.email === email);
             if (!user) return;
             
-            const userOrders = allOrders.filter(o => o.user === email);
-            const totalSpent = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+            const userOrders = allOrders.filter(o => o.customer_email === email);
+            const totalSpent = userOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
             const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
-            
-            let displayPassword = 'No password saved';
-            if (user.password && user.password !== 'firebase_user' && user.password !== 'firebase_google_') {
-                displayPassword = user.password;
-            } else if (user.authProvider === 'firebase') {
-                displayPassword = 'Managed by Firebase';
-            }
             
             const modal = document.getElementById('userModal');
             const content = document.getElementById('userModalContent');
+            
+            let ordersHtml = '';
+            if (userOrders.length > 0) {
+                ordersHtml = '<h4 style="margin: 1rem 0 0.5rem;">Recent Orders</h4><div style="max-height: 200px; overflow-y: auto;">';
+                for (let i = 0; i < Math.min(userOrders.length, 5); i++) {
+                    const order = userOrders[i];
+                    ordersHtml += '<div style="border-bottom: 1px solid var(--border); padding: 0.5rem 0;">' +
+                        '<div><strong>' + (order.order_number || order.id) + '</strong> - ' + formatDate(order.created_at) + '</div>' +
+                        '<div>Total: ৳' + parseFloat(order.total).toLocaleString() + ' | Status: ' + (order.status || 'Processing') + '</div>' +
+                    '</div>';
+                }
+                ordersHtml += '</div>';
+            }
+            
             content.innerHTML = `
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto;">${initial}</div>
-                    <h3 style="margin-top: 0.8rem;">${escapeHtml(user.name)}</h3>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="width: 60px; height: 60px; font-size: 1.5rem; margin: 0 auto;">${initial}</div>
+                    <h3 style="margin-top: 0.8rem;">${escapeHtml(user.name || user.email)}</h3>
                     <p style="color: var(--text-light);">${escapeHtml(user.email)}</p>
                 </div>
-                <div class="form-group"><label>Phone Number</label><p>${user.phone || 'Not provided'}</p></div>
-                <div class="form-group"><label>Role</label><p>${user.role === 'admin' ? 'Administrator' : 'Customer'}</p></div>
-                <div class="form-group"><label>Password</label><p><code class="password-value">${escapeHtml(displayPassword)}</code></p></div>
-                <div class="form-group"><label>Joined</label><p>${user.createdAt ? formatDate(user.createdAt) : 'Unknown'}</p></div>
-                <div class="form-group"><label>Auth Provider</label><p>${user.authProvider === 'firebase' ? 'Firebase Email/Password' : (user.authProvider === 'firebase_google' ? 'Firebase Google' : 'Local Storage')}</p></div>
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                    <strong>Phone:</strong> <span>${user.phone || 'Not provided'}</span>
+                </div>
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                    <strong>Role:</strong> <span>${user.role === 'admin' ? 'Administrator' : 'Customer'}</span>
+                </div>
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                    <strong>Joined:</strong> <span>${user.created_at ? formatDate(user.created_at) : 'Unknown'}</span>
+                </div>
                 <hr style="margin: 1rem 0;">
                 <h4>Order Summary</h4>
-                <div class="form-group"><label>Total Orders</label><p>${userOrders.length}</p></div>
-                <div class="form-group"><label>Total Spent</label><p>৳${totalSpent.toLocaleString()}</p></div>
-                ${userOrders.length > 0 ? `
-                    <h4>Recent Orders</h4>
-                    <div class="order-list">
-                        ${userOrders.slice(0, 5).map(order => `
-                            <div class="order-item">
-                                <div><strong>${order.id}</strong> - ${formatDate(order.date)}</div>
-                                <div>Total: ৳${order.total} | Status: ${order.status}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <div style="margin-top: 1.5rem;">
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                    <strong>Total Orders:</strong> <span>${userOrders.length}</span>
+                </div>
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                    <strong>Total Spent:</strong> <span>৳${totalSpent.toLocaleString()}</span>
+                </div>
+                <div class="detail-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                    <strong>Average Order Value:</strong> <span>৳${userOrders.length > 0 ? Math.round(totalSpent / userOrders.length).toLocaleString() : 0}</span>
+                </div>
+                ${ordersHtml}
+                <div style="margin-top: 1rem;">
                     <button class="btn btn-primary" onclick="closeUserModal()" style="width: 100%;">Close</button>
                 </div>
             `;
@@ -1040,20 +935,15 @@
                 <form onsubmit="event.preventDefault(); resetUserPassword();">
                     <div class="form-group">
                         <label>User</label>
-                        <input type="text" value="${escapeHtml(user.name)} (${escapeHtml(user.email)})" readonly style="background:#f5f5f5;">
-                    </div>
-                    <div class="form-group">
-                        <label>Current Password</label>
-                        <input type="text" value="${user.password && user.password !== 'firebase_user' ? user.password : 'Unknown'}" readonly style="background:#f5f5f5;">
-                        <div class="form-hint">Current password for reference</div>
+                        <input type="text" value="${escapeHtml(user.name || user.email)} (${escapeHtml(user.email)})" readonly style="background:#f5f5f5;">
                     </div>
                     <div class="form-group">
                         <label>New Password *</label>
-                        <input type="password" id="newPassword" required minlength="6">
+                        <input type="password" id="newPassword" required minlength="6" placeholder="Enter new password">
                     </div>
                     <div class="form-group">
                         <label>Confirm Password *</label>
-                        <input type="password" id="confirmPassword" required>
+                        <input type="password" id="confirmPassword" required placeholder="Confirm new password">
                     </div>
                     <div style="display: flex; gap: 1rem;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fas fa-save"></i> Reset Password</button>
@@ -1077,22 +967,30 @@
                 return;
             }
             
-            const userIndex = allUsers.findIndex(u => u.email === currentResetUser.email);
-            if (userIndex !== -1) {
-                allUsers[userIndex].password = newPassword;
-                localStorage.setItem('attar_users', JSON.stringify(allUsers));
+            try {
+                const response = await fetch('api/update-user.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: currentResetUser.email, 
+                        password: newPassword,
+                        action: 'reset_password'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(`Password reset successfully for ${currentResetUser.email}`);
+                    closeResetPasswordModal();
+                    await loadUsers();
+                } else {
+                    showToast('Error: ' + (result.error || 'Failed to reset password'));
+                }
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                showToast('Failed to reset password');
             }
-            
-            if (isFirebaseInitialized) {
-                try {
-                    await auth.sendPasswordResetEmail(currentResetUser.email);
-                    showToast(`Password reset email sent to ${currentResetUser.email}`);
-                } catch(e) {}
-            }
-            
-            showToast(`Password reset successfully! New password: ${newPassword}`);
-            closeResetPasswordModal();
-            renderUsers();
         }
 
         function closeUserModal() { document.getElementById('userModal').style.display = 'none'; }
@@ -1110,7 +1008,7 @@
         window.showResetPasswordModal = showResetPasswordModal;
         window.resetUserPassword = resetUserPassword;
         window.closeResetPasswordModal = closeResetPasswordModal;
-        window.syncWithFirebase = syncWithFirebase;
+        window.loadUsers = loadUsers;
 
         if (checkAdminAccess()) {
             loadUsers();

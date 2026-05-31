@@ -8,28 +8,219 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .returns-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-        .search-filter { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .search-filter input { padding: 0.7rem; border: 1px solid var(--border); border-radius: 50px; min-width: 250px; }
-        .search-filter select { padding: 0.7rem; border: 1px solid var(--border); border-radius: 12px; background: white; }
-        .returns-grid { display: grid; gap: 1.5rem; }
-        .return-card { background: white; border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-        .return-header { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
-        .return-id { font-weight: 700; color: var(--primary); }
-        .status-badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
-        .status-pending { background: var(--warning); color: #333; }
-        .status-approved { background: var(--success); color: white; }
-        .status-rejected { background: var(--danger); color: white; }
+        .returns-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .search-filter input {
+            padding: 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            min-width: 250px;
+        }
+        .search-filter select {
+            padding: 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: white;
+        }
+        .returns-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .return-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .return-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .return-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .return-id {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-pending { background: #f59e0b; color: #333; }
+        .status-approved { background: #10b981; color: white; }
+        .status-rejected { background: #ef4444; color: white; }
         .status-completed { background: #9c27b0; color: white; }
-        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 500px; width: 90%; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
-        .stats-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-        .stat-pill { background: white; padding: 0.5rem 1rem; border-radius: 50px; box-shadow: var(--shadow-sm); }
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            margin: 0.2rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .stats-summary {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .stat-pill {
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-sm);
+            font-size: 0.9rem;
+        }
+        .empty-returns {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .modal-header h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: #333;
+        }
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .refresh-btn {
+            background: var(--primary-light);
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        .default-message-hint {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 0.3rem;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +229,7 @@
         <div class="header-actions">
             <h1 style="font-family: 'Cormorant Garamond';">🔄 Return & Exchange Requests</h1>
             <div class="search-filter">
-                <input type="text" id="searchReturns" placeholder="🔍 Search by Order ID..." onkeyup="filterReturns()">
+                <input type="text" id="searchReturns" placeholder="🔍 Search by Order ID, Request ID, or Email..." onkeyup="filterReturns()">
                 <select id="statusFilter" onchange="filterReturns()">
                     <option value="all">All Status</option>
                     <option value="pending">⏳ Pending</option>
@@ -46,82 +237,252 @@
                     <option value="rejected">❌ Rejected</option>
                     <option value="completed">🎉 Completed</option>
                 </select>
-                <button class="btn btn-sm" onclick="resetFilters()">Reset</button>
+                <button class="btn btn-sm btn-primary" onclick="resetFilters()">Reset</button>
+                <button class="btn btn-sm refresh-btn" onclick="loadReturns()"><i class="fas fa-sync-alt"></i> Refresh</button>
             </div>
         </div>
-        <div id="returnsList" class="returns-grid"><div class="loading">Loading requests...</div></div>
+        <div id="returnsList" class="returns-grid"><div class="loading">Loading requests from database...</div></div>
     </div>
 
     <!-- Process Return Modal -->
     <div id="processModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header" style="display: flex; justify-content: space-between;">
-                <h3>Process Return Request</h3>
+            <div class="modal-header">
+                <h3><i class="fas fa-clipboard-list"></i> Process Return Request</h3>
                 <button onclick="closeProcessModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <div id="processModalContent"></div>
         </div>
     </div>
 
+    <!-- View Details Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Return Request Details</h3>
+                <button onclick="closeViewModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="viewModalContent"></div>
+        </div>
+    </div>
+
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
     <script>
-        let allReturns = [], allOrders = [], allProducts = [];
+        let allReturns = [];
+        let allOrders = [];
+        let allProducts = [];
+        let currentUser = null;
+
+        // Default response messages based on action
+        const defaultMessages = {
+            approve: `Dear Customer,
+
+Thank you for your return/exchange request. We are happy to inform you that your request has been APPROVED.
+
+Please follow these steps:
+1. Pack the item securely in its original packaging
+2. Ship it back to our address
+3. Share the tracking number with us
+
+Once we receive the product, we will process your refund/exchange within 3-5 business days.
+
+Thank you for shopping with #WE ARE MUSLIM!`,
+
+            reject: `Dear Customer,
+
+Thank you for your return/exchange request. After careful review, we regret to inform you that your request has been DECLINED.
+
+Reason: The product does not meet our return policy criteria.
+
+If you have any questions, please contact our support team.
+
+Thank you for understanding.`,
+
+            complete: `Dear Customer,
+
+We are pleased to inform you that your return/exchange request has been COMPLETED successfully.
+
+The refund amount has been processed to your original payment method. Please allow 3-5 business days for the amount to reflect in your account.
+
+For exchange orders, your new item has been shipped. Tracking details will be shared soon.
+
+Thank you for shopping with #WE ARE MUSLIM!`
+        };
 
         function checkAdminAccess() {
-            const user = getCurrentUser();
-            if (!user) { window.location.href = 'login.html'; return false; }
-            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            currentUser = getCurrentUser();
+            if (!currentUser) { 
+                window.location.href = 'login.html'; 
+                return false; 
+            }
+            if (currentUser.role !== 'admin') { 
+                window.location.href = 'index.html'; 
+                return false; 
+            }
             return true;
         }
 
-        function loadReturns() {
-            allReturns = JSON.parse(localStorage.getItem('return_requests')) || [];
-            allOrders = JSON.parse(localStorage.getItem('attar_orders')) || [];
-            allProducts = JSON.parse(localStorage.getItem('attar_products')) || [];
-            renderReturns();
+        async function loadReturns() {
+            if (!checkAdminAccess()) return;
+            
+            const container = document.getElementById('returnsList');
+            if (container) {
+                container.innerHTML = '<div class="loading">Loading requests from database...</div>';
+            }
+            
+            try {
+                console.log('Fetching return requests...');
+                const response = await fetch('api/return-request.php?all=1');
+                const result = await response.json();
+                
+                console.log('API Response:', result);
+                
+                if (result.success) {
+                    allReturns = result.requests || [];
+                    console.log('Loaded returns:', allReturns.length);
+                } else {
+                    console.error('API error:', result.error);
+                    allReturns = [];
+                    if (container) {
+                        container.innerHTML = `<div class="error-message">❌ API Error: ${result.error}</div>`;
+                        return;
+                    }
+                }
+                
+                // Fetch orders
+                const ordersResponse = await fetch('api/get-orders.php');
+                const ordersResult = await ordersResponse.json();
+                if (ordersResult.success) {
+                    allOrders = ordersResult.orders || [];
+                } else {
+                    allOrders = [];
+                }
+                
+                // Fetch products
+                const productsResponse = await fetch('api/get-products.php');
+                const productsResult = await productsResponse.json();
+                if (productsResult.success) {
+                    allProducts = productsResult.products || [];
+                } else {
+                    allProducts = [];
+                }
+                
+                renderReturns();
+            } catch (error) {
+                console.error('Error loading returns:', error);
+                if (container) {
+                    container.innerHTML = `<div class="error-message">❌ Connection Error: ${error.message}. Please check your internet connection.</div>`;
+                }
+            }
         }
 
         function renderReturns() {
             const searchTerm = document.getElementById('searchReturns')?.value.toLowerCase() || '';
             const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-            let filtered = allReturns;
-            if (statusFilter !== 'all') filtered = filtered.filter(r => r.status === statusFilter);
-            if (searchTerm) filtered = filtered.filter(r => r.orderId.toLowerCase().includes(searchTerm) || r.id.toLowerCase().includes(searchTerm));
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let filtered = [...allReturns];
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(r => r.status === statusFilter);
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(r => 
+                    (r.request_id && r.request_id.toLowerCase().includes(searchTerm)) ||
+                    (r.order_id && r.order_id.toString().toLowerCase().includes(searchTerm)) ||
+                    (r.user_email && r.user_email.toLowerCase().includes(searchTerm))
+                );
+            }
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             
             const container = document.getElementById('returnsList');
-            if (filtered.length === 0) { container.innerHTML = '<div class="empty-orders">📭 No return requests found</div>'; return; }
+            if (!container) return;
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-returns">📭 No return requests found</div>';
+                return;
+            }
             
             const pending = filtered.filter(r => r.status === 'pending').length;
             const approved = filtered.filter(r => r.status === 'approved').length;
+            const rejected = filtered.filter(r => r.status === 'rejected').length;
+            const completed = filtered.filter(r => r.status === 'completed').length;
             
             container.innerHTML = `
                 <div class="stats-summary">
                     <span class="stat-pill">📊 Total: ${filtered.length}</span>
                     <span class="stat-pill">⏳ Pending: ${pending}</span>
                     <span class="stat-pill">✅ Approved: ${approved}</span>
+                    <span class="stat-pill">❌ Rejected: ${rejected}</span>
+                    <span class="stat-pill">🎉 Completed: ${completed}</span>
                 </div>
                 <div class="returns-grid">
                     ${filtered.map(r => {
-                        const order = allOrders.find(o => o.id === r.orderId);
-                        const product = order?.items?.find(i => i.id == r.productId);
-                        const statusClass = r.status === 'pending' ? 'status-pending' : (r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-completed'));
+                        // Find order and product
+                        const order = allOrders.find(o => o.id == r.order_id || o.order_number == r.order_id);
+                        let product = null;
+                        if (order && order.items) {
+                            let items = order.items;
+                            if (typeof items === 'string') {
+                                try { items = JSON.parse(items); } catch(e) { items = []; }
+                            }
+                            product = items?.find(i => i.product_id == r.product_id || i.id == r.product_id);
+                        }
+                        if (!product && allProducts.length) {
+                            product = allProducts.find(p => p.id == r.product_id);
+                        }
+                        
+                        const statusClass = r.status === 'pending' ? 'status-pending' : 
+                                          (r.status === 'approved' ? 'status-approved' : 
+                                          (r.status === 'rejected' ? 'status-rejected' : 'status-completed'));
+                        const statusText = r.status === 'pending' ? '⏳ Pending' : 
+                                          (r.status === 'approved' ? '✅ Approved' : 
+                                          (r.status === 'rejected' ? '❌ Rejected' : '🎉 Completed'));
+                        
                         return `
                             <div class="return-card">
                                 <div class="return-header">
-                                    <div><span class="return-id">${r.id}</span><br><small>Order: ${r.orderId}</small><br><small>${formatDate(r.date)}</small></div>
-                                    <div><span class="status-badge ${statusClass}">${r.status.toUpperCase()}</span></div>
+                                    <div>
+                                        <span class="return-id">📋 ${escapeHtml(r.request_id)}</span><br>
+                                        <small>Order: <strong>${escapeHtml(r.order_id)}</strong></small><br>
+                                        <small>${formatDate(r.created_at)}</small>
+                                    </div>
+                                    <div>
+                                        <span class="status-badge ${statusClass}">${statusText}</span>
+                                    </div>
                                 </div>
-                                <p><strong>Customer:</strong> ${escapeHtml(r.userEmail)}</p>
-                                <p><strong>Type:</strong> ${r.type === 'return' ? '🔄 Return (Refund)' : '🔄 Exchange'}</p>
-                                <p><strong>Product:</strong> ${product?.name || 'N/A'} (৳${product?.price || 0})</p>
-                                <p><strong>Reason:</strong> ${r.reason}</p>
-                                <p><strong>Comments:</strong> ${r.comments || 'No comments'}</p>
-                                ${r.adminResponse ? `<p><strong>Admin Response:</strong> ${r.adminResponse}</p>` : ''}
-                                <div class="order-actions" style="margin-top:1rem;">
-                                    <button class="btn btn-sm btn-primary" onclick="processReturn('${r.id}')"><i class="fas fa-edit"></i> Process</button>
-                                    <button class="btn btn-sm" onclick="viewReturnDetails('${r.id}')"><i class="fas fa-eye"></i> Details</button>
+                                <div class="detail-row">
+                                    <span class="detail-label">Customer:</span>
+                                    <span>${escapeHtml(r.user_email)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Type:</span>
+                                    <span>${r.type === 'return' ? '🔄 Return (Refund)' : '🔄 Exchange'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Product:</span>
+                                    <span>${product ? escapeHtml(product.product_name || product.name) : 'Product ID: ' + r.product_id}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Reason:</span>
+                                    <span>${escapeHtml(r.reason)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Comments:</span>
+                                    <span>${r.comments ? escapeHtml(r.comments.substring(0, 100)) : 'No comments'}</span>
+                                </div>
+                                ${r.admin_response ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Admin Response:</span>
+                                    <span>${escapeHtml(r.admin_response.substring(0, 100))}</span>
+                                </div>
+                                ` : ''}
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="processReturn('${r.request_id}')">
+                                        <i class="fas fa-edit"></i> Process
+                                    </button>
+                                    <button class="btn btn-sm" onclick="viewReturnDetails('${r.request_id}')">
+                                        <i class="fas fa-eye"></i> Details
+                                    </button>
                                 </div>
                             </div>
                         `;
@@ -130,32 +491,97 @@
             `;
         }
 
-        function processReturn(returnId) {
-            const request = allReturns.find(r => r.id === returnId);
+        // Function to update default message when action changes
+        function updateDefaultMessage() {
+            const actionSelect = document.getElementById('actionSelect');
+            const adminResponse = document.getElementById('adminResponse');
+            
+            if (actionSelect && adminResponse) {
+                const selectedAction = actionSelect.value;
+                if (selectedAction && defaultMessages[selectedAction]) {
+                    adminResponse.value = defaultMessages[selectedAction];
+                }
+            }
+        }
+
+        async function processReturn(requestId) {
+            const request = allReturns.find(r => r.request_id === requestId);
             if (!request) return;
-            const order = allOrders.find(o => o.id === request.orderId);
-            const product = order?.items?.find(i => i.id == request.productId);
+            
+            // Fetch fresh order and product data
+            const ordersResponse = await fetch('api/get-orders.php');
+            const ordersResult = await ordersResponse.json();
+            if (ordersResult.success) allOrders = ordersResult.orders || [];
+            
+            const productsResponse = await fetch('api/get-products.php');
+            const productsResult = await productsResponse.json();
+            if (productsResult.success) allProducts = productsResult.products || [];
+            
+            const order = allOrders.find(o => o.id == request.order_id || o.order_number == request.order_id);
+            let product = null;
+            if (order && order.items) {
+                let items = order.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch(e) { items = []; }
+                }
+                product = items?.find(i => i.product_id == request.product_id || i.id == request.product_id);
+            }
+            if (!product && allProducts.length) {
+                product = allProducts.find(p => p.id == request.product_id);
+            }
             
             const modal = document.getElementById('processModal');
             const content = document.getElementById('processModalContent');
+            
             content.innerHTML = `
-                <form onsubmit="event.preventDefault(); submitProcessReturn('${returnId}');">
-                    <div class="form-group"><label>Request Type</label><input type="text" value="${request.type === 'return' ? 'Return (Refund)' : 'Exchange'}" readonly></div>
-                    <div class="form-group"><label>Order ID</label><input type="text" value="${request.orderId}" readonly></div>
-                    <div class="form-group"><label>Product</label><input type="text" value="${product?.name || 'N/A'}" readonly></div>
-                    <div class="form-group"><label>Amount</label><input type="text" value="৳${product?.price || 0}" readonly></div>
-                    <div class="form-group"><label>Action *</label>
-                        <select id="actionSelect" required>
+                <form onsubmit="event.preventDefault(); submitProcessReturn('${requestId}');">
+                    <div class="form-group">
+                        <label>Request ID</label>
+                        <input type="text" value="${escapeHtml(request.request_id)}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Request Type</label>
+                        <input type="text" value="${request.type === 'return' ? 'Return (Refund)' : 'Exchange'}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Order ID</label>
+                        <input type="text" value="${escapeHtml(request.order_id)}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Product</label>
+                        <input type="text" value="${product ? escapeHtml(product.product_name || product.name) : 'Product ID: ' + request.product_id}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Email</label>
+                        <input type="text" value="${escapeHtml(request.user_email)}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <textarea readonly rows="2">${escapeHtml(request.reason)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Comments</label>
+                        <textarea readonly rows="2">${request.comments ? escapeHtml(request.comments) : 'No comments'}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Action *</label>
+                        <select id="actionSelect" required onchange="updateDefaultMessage()">
                             <option value="">Select action...</option>
                             <option value="approve">✅ Approve Return/Exchange</option>
                             <option value="reject">❌ Reject Request</option>
+                            <option value="complete">🎉 Mark as Completed</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>Response to Customer *</label>
-                        <textarea id="adminResponse" rows="3" placeholder="Explain your decision..."></textarea>
+                    <div class="form-group">
+                        <label>Response to Customer *</label>
+                        <textarea id="adminResponse" rows="8" placeholder="Write your response to the customer..."></textarea>
+                        <div class="default-message-hint">
+                            <i class="fas fa-info-circle"></i> Default message will appear when you select an action above. You can edit it as needed.
+                        </div>
                     </div>
                     ${request.type === 'exchange' ? `
-                        <div class="form-group"><label>Exchange Product</label>
+                        <div class="form-group">
+                            <label>Exchange Product (Optional)</label>
                             <select id="exchangeProductId">
                                 <option value="">Select replacement product...</option>
                                 ${allProducts.filter(p => p.stock > 0).map(p => `<option value="${p.id}">${escapeHtml(p.name)} - ৳${p.price}</option>`).join('')}
@@ -171,71 +597,184 @@
             modal.style.display = 'flex';
         }
 
-        function submitProcessReturn(returnId) {
-            const request = allReturns.find(r => r.id === returnId);
+        async function submitProcessReturn(requestId) {
+            const request = allReturns.find(r => r.request_id === requestId);
+            if (!request) return;
+            
             const action = document.getElementById('actionSelect').value;
             const adminResponse = document.getElementById('adminResponse').value;
             
-            if (!action || !adminResponse) { showToast('Please select action and provide response'); return; }
-            
-            const order = allOrders.find(o => o.id === request.orderId);
-            const product = order?.items?.find(i => i.id == request.productId);
-            
-            if (action === 'approve') {
-                request.status = 'approved';
-                
-                if (request.type === 'return') {
-                    // For return: Update order status
-                    if (order) order.status = 'Return Approved - Pending Shipment';
-                    
-                } else if (request.type === 'exchange') {
-                    const exchangeProductId = document.getElementById('exchangeProductId')?.value;
-                    if (!exchangeProductId) { showToast('Please select exchange product'); return; }
-                    const newProduct = allProducts.find(p => p.id == exchangeProductId);
-                    if (newProduct && newProduct.stock > 0) {
-                        request.exchangeProductId = exchangeProductId;
-                        request.exchangeProductName = newProduct.name;
-                        newProduct.stock -= 1;
-                        localStorage.setItem('attar_products', JSON.stringify(allProducts));
-                        if (order) order.status = 'Exchange Approved - Pending Shipment';
-                    }
-                }
-            } else {
-                request.status = 'rejected';
-                if (order) order.status = 'Return Request Denied';
+            if (!action) {
+                showToast('Please select an action');
+                return;
+            }
+            if (!adminResponse) {
+                showToast('Please provide a response to the customer');
+                return;
             }
             
-            request.adminResponse = adminResponse;
-            request.processedDate = new Date().toISOString();
+            let newStatus = '';
+            if (action === 'approve') newStatus = 'approved';
+            else if (action === 'reject') newStatus = 'rejected';
+            else if (action === 'complete') newStatus = 'completed';
             
-            localStorage.setItem('return_requests', JSON.stringify(allReturns));
-            if (order) localStorage.setItem('attar_orders', JSON.stringify(allOrders));
+            let exchangeProductId = null;
+            let exchangeProductName = null;
             
-            showToast(`Request ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
-            closeProcessModal();
-            renderReturns();
+            if (action === 'approve' && request.type === 'exchange') {
+                exchangeProductId = document.getElementById('exchangeProductId')?.value;
+                if (exchangeProductId) {
+                    const newProduct = allProducts.find(p => p.id == exchangeProductId);
+                    if (newProduct) {
+                        exchangeProductName = newProduct.name;
+                    }
+                }
+            }
+            
+            try {
+                const response = await fetch('api/return-request.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_status',
+                        request_id: requestId,
+                        status: newStatus,
+                        admin_response: adminResponse,
+                        exchange_product_id: exchangeProductId,
+                        exchange_product_name: exchangeProductName
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Update response:', result);
+                
+                if (result.success) {
+                    showToast(`Request ${newStatus} successfully!`);
+                    closeProcessModal();
+                    await loadReturns(); // Reload from database
+                } else {
+                    showToast('Error: ' + (result.error || 'Failed to update'));
+                }
+            } catch (error) {
+                console.error('Error updating return request:', error);
+                showToast('Failed to update return request: ' + error.message);
+            }
         }
 
-        function viewReturnDetails(returnId) {
-            const request = allReturns.find(r => r.id === returnId);
+        async function viewReturnDetails(requestId) {
+            const request = allReturns.find(r => r.request_id === requestId);
             if (!request) return;
-            const order = allOrders.find(o => o.id === request.orderId);
-            const product = order?.items?.find(i => i.id == request.productId);
-            alert(`📋 RETURN REQUEST DETAILS\n\nID: ${request.id}\nOrder: ${request.orderId}\nDate: ${formatDate(request.date)}\nType: ${request.type}\nProduct: ${product?.name}\nReason: ${request.reason}\nComments: ${request.comments || 'None'}\nStatus: ${request.status}\nAdmin Response: ${request.adminResponse || 'Pending'}`);
+            
+            // Fetch fresh order data
+            const ordersResponse = await fetch('api/get-orders.php');
+            const ordersResult = await ordersResponse.json();
+            if (ordersResult.success) allOrders = ordersResult.orders || [];
+            
+            const order = allOrders.find(o => o.id == request.order_id || o.order_number == request.order_id);
+            let product = null;
+            if (order && order.items) {
+                let items = order.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch(e) { items = []; }
+                }
+                product = items?.find(i => i.product_id == request.product_id || i.id == request.product_id);
+            }
+            
+            const modal = document.getElementById('viewModal');
+            const content = document.getElementById('viewModalContent');
+            
+            content.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Request ID:</span>
+                    <span>${escapeHtml(request.request_id)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span>${escapeHtml(request.order_id)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date Submitted:</span>
+                    <span>${formatDate(request.created_at)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer:</span>
+                    <span>${escapeHtml(request.user_email)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span>${request.type === 'return' ? 'Return (Refund)' : 'Exchange'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Product:</span>
+                    <span>${product ? escapeHtml(product.product_name || product.name) : 'Product ID: ' + request.product_id}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reason:</span>
+                    <span>${escapeHtml(request.reason)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer Comments:</span>
+                    <span>${request.comments ? escapeHtml(request.comments) : 'No comments'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span>${request.status.toUpperCase()}</span>
+                </div>
+                ${request.admin_response ? `
+                <div class="detail-row">
+                    <span class="detail-label">Admin Response:</span>
+                    <span>${escapeHtml(request.admin_response)}</span>
+                </div>
+                ` : ''}
+                ${request.processed_at ? `
+                <div class="detail-row">
+                    <span class="detail-label">Processed Date:</span>
+                    <span>${formatDate(request.processed_at)}</span>
+                </div>
+                ` : ''}
+                ${request.exchange_product_name ? `
+                <div class="detail-row">
+                    <span class="detail-label">Exchange Product:</span>
+                    <span>${escapeHtml(request.exchange_product_name)}</span>
+                </div>
+                ` : ''}
+                <div style="margin-top: 1rem; text-align: center;">
+                    <button class="btn btn-primary" onclick="closeViewModal()">Close</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
         }
 
         function filterReturns() { renderReturns(); }
-        function resetFilters() { document.getElementById('searchReturns').value = ''; document.getElementById('statusFilter').value = 'all'; renderReturns(); }
-        function closeProcessModal() { document.getElementById('processModal').style.display = 'none'; }
+        
+        function resetFilters() { 
+            document.getElementById('searchReturns').value = ''; 
+            document.getElementById('statusFilter').value = 'all'; 
+            renderReturns(); 
+        }
+        
+        function closeProcessModal() { 
+            document.getElementById('processModal').style.display = 'none'; 
+        }
+        
+        function closeViewModal() { 
+            document.getElementById('viewModal').style.display = 'none'; 
+        }
 
+        // Make functions global
         window.filterReturns = filterReturns;
         window.resetFilters = resetFilters;
         window.processReturn = processReturn;
         window.submitProcessReturn = submitProcessReturn;
         window.viewReturnDetails = viewReturnDetails;
         window.closeProcessModal = closeProcessModal;
+        window.closeViewModal = closeViewModal;
+        window.loadReturns = loadReturns;
+        window.updateDefaultMessage = updateDefaultMessage;
 
-        if (checkAdminAccess()) loadReturns();
+        if (checkAdminAccess()) {
+            loadReturns();
+        }
     </script>
 </body>
 </html>
