@@ -235,7 +235,7 @@
         const container = document.getElementById('compareContent');
         
         // Filter products that are in compare list
-        const compareProducts = products.filter(p => compareList.includes(p.id));
+        const compareProducts = products.filter(p => compareList.includes(parseInt(p.id)));
         console.log('Compare products found:', compareProducts.length);
         console.log('Compare products:', compareProducts);
         

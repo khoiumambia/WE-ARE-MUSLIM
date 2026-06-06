@@ -199,8 +199,8 @@
                                 <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                                 <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                             </select>
-                            <span class="payment-badge ${order.payment_confirmed ? 'payment-confirmed' : 'payment-pending'}">
-                                ${order.payment_confirmed ? '✓ Paid' : '⏳ Pending'}
+                            <span class="payment-badge ${parseInt(order.payment_confirmed) === 1 ? 'payment-confirmed' : 'payment-pending'}">
+                                ${parseInt(order.payment_confirmed) === 1 ? '✓ Paid' : '⏳ Pending'}
                             </span>
                             ${customerTier !== 'Bronze' ? `<span class="tier-badge-small ${tierClass}">${tierIcon} ${customerTier}</span>` : ''}
                         </div>

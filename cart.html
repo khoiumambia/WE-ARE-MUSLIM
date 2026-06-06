@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart - WE ARE MUSLIM</title>
+    <title>Cart - WE ARE MUSLIM | Premium Attars</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -14,121 +15,91 @@
             padding: 0 2rem;
         }
 
-        .cart-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .cart-header h1 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .cart-layout {
+        .cart-grid {
             display: grid;
             grid-template-columns: 1fr 380px;
             gap: 2rem;
         }
 
-        .cart-items-card {
-            background: white;
-            border-radius: 24px;
+        .cart-items {
+            background: var(--surface);
+            border-radius: 20px;
             padding: 1.5rem;
             box-shadow: var(--shadow-sm);
         }
 
-        .cart-items-header {
-            display: grid;
-            grid-template-columns: 3fr 1fr 1fr 0.5fr;
-            padding: 0.8rem 0;
-            border-bottom: 2px solid var(--border);
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
         .cart-item {
             display: grid;
-            grid-template-columns: 3fr 1fr 1fr 0.5fr;
+            grid-template-columns: 100px 1fr auto auto;
+            gap: 1rem;
             align-items: center;
-            padding: 1.2rem 0;
+            padding: 1rem 0;
             border-bottom: 1px solid var(--border);
         }
 
-        .cart-product {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .cart-item:last-child {
+            border-bottom: none;
         }
 
-        .cart-product-img {
+        .cart-item-img {
             width: 80px;
             height: 80px;
             object-fit: cover;
             border-radius: 12px;
         }
 
-        .cart-product-info h3 {
+        .cart-item-info h4 {
+            margin: 0 0 0.25rem 0;
             font-size: 1rem;
-            margin-bottom: 0.3rem;
         }
 
-        .cart-product-info p {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        .cart-price {
-            font-weight: 600;
+        .cart-item-price {
             color: var(--primary);
+            font-weight: 600;
         }
 
-        .quantity-control {
+        .cart-item-quantity {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .quantity-control button {
+        .cart-item-quantity button {
             width: 30px;
             height: 30px;
+            border-radius: 50%;
             border: 1px solid var(--border);
             background: white;
-            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 1.1rem;
         }
 
-        .quantity-control button:hover {
+        .cart-item-quantity button:hover {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
         }
 
-        .quantity-control input {
-            width: 50px;
+        .cart-item-quantity span {
+            min-width: 30px;
             text-align: center;
-            padding: 0.3rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
         }
 
-        .remove-item {
+        .cart-item-total {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .cart-item-remove {
+            color: var(--danger);
+            cursor: pointer;
             background: none;
             border: none;
-            color: var(--danger);
             font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .remove-item:hover {
-            transform: scale(1.1);
         }
 
         .cart-summary {
-            background: white;
-            border-radius: 24px;
+            background: var(--surface);
+            border-radius: 20px;
             padding: 1.5rem;
             box-shadow: var(--shadow-sm);
             height: fit-content;
@@ -136,118 +107,40 @@
             top: 100px;
         }
 
-        .cart-summary h3 {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border);
-        }
-
         .summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.8rem 0;
-        }
-
-        .summary-total {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--primary);
-            border-top: 2px solid var(--border);
-            margin-top: 0.5rem;
-            padding-top: 1rem;
-        }
-
-        .tier-info {
-            background: rgba(139,94,60,0.08);
-            border-radius: 12px;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            font-size: 0.8rem;
-            text-align: center;
-        }
-
-        .tier-badge-small {
-            display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .tier-bronze { background: #CD7F32; color: white; }
-        .tier-silver { background: #C0C0C0; color: #333; }
-        .tier-gold { background: #FFD700; color: #333; }
-        .tier-platinum { background: #E5E4E2; color: #333; }
-
-        .coupon-section {
-            margin: 1rem 0;
-            padding: 1rem 0;
-            border-top: 1px solid var(--border);
+            padding: 0.75rem 0;
             border-bottom: 1px solid var(--border);
         }
 
-        .coupon-input {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .coupon-input input {
-            flex: 1;
-            padding: 0.7rem;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-        }
-
-        .coupon-message {
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .coupon-message.success {
-            color: #10b981;
-        }
-
-        .coupon-message.error {
-            color: #ef4444;
-        }
-
-        .checkout-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-top: 1rem;
+        .summary-row.total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: none;
+            padding-top: 1rem;
         }
 
         .empty-cart {
             text-align: center;
-            padding: 4rem;
-            background: white;
-            border-radius: 24px;
-        }
-
-        .empty-cart i {
-            font-size: 4rem;
-            color: var(--primary-light);
-            margin-bottom: 1rem;
+            padding: 3rem;
         }
 
         .btn {
-            padding: 0.6rem 1.2rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 50px;
             font-weight: 500;
-            transition: all 0.3s ease;
             cursor: pointer;
             border: none;
             text-decoration: none;
             display: inline-block;
+            transition: all 0.3s ease;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
+            width: 100%;
         }
 
         .btn-primary:hover {
@@ -255,431 +148,544 @@
             box-shadow: var(--shadow-md);
         }
 
-        .btn-sm {
-            padding: 0.3rem 0.8rem;
-            font-size: 0.75rem;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
         }
 
+        .coupon-section {
+            margin: 1rem 0;
+        }
+
+        .coupon-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .coupon-input input {
+            flex: 1;
+            padding: 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .discount-applied {
+            background: var(--success-light);
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .tier-info {
+            background: rgba(139, 94, 60, 0.08);
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+
         @media (max-width: 768px) {
-            .cart-layout {
+            .cart-grid {
                 grid-template-columns: 1fr;
             }
-            .cart-items-header {
-                display: none;
-            }
+            
             .cart-item {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+                grid-template-columns: 70px 1fr;
+                gap: 0.8rem;
             }
-            .cart-product {
-                flex-direction: column;
-                text-align: center;
-            }
-            .quantity-control {
+            
+            .cart-item-quantity {
+                grid-column: span 2;
                 justify-content: center;
             }
         }
     </style>
 </head>
+
 <body>
 
-<div id="navigation-placeholder"></div>
+    <div id="navigation-placeholder"></div>
 
-<div class="cart-container">
-    <div class="cart-header">
-        <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
-        <p>Review your items before proceeding to checkout</p>
-    </div>
-
-    <div id="cartContent"></div>
-</div>
-
-<script src="js/navigation.js"></script>
-<script src="js/utils.js"></script>
-<script>
-    let cart = [];
-    let products = [];
-    let subtotal = 0;
-    let tierDiscountPercent = 0;
-    let tierDiscountAmount = 0;
-    let deliveryCharge = 60;
-    let total = 0;
-    let userTier = 'Bronze';
-    let freeShippingThreshold = 2000;
-    let appliedCoupon = null;
-    let couponDiscount = 0;
-
-    function checkCartAccess() {
-        const user = getCurrentUser();
-        if (!user) {
-            showToast('⚠️ Please login to view your cart', 'error');
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1500);
-            return false;
-        }
-        return true;
-    }
-
-    async function loadCartData() {
-        if (!checkCartAccess()) {
-            return;
-        }
+    <div class="cart-container">
+        <h1 style="margin-bottom: 2rem;">🛒 Your Cart</h1>
         
-        cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-        
-        try {
-            const response = await fetch('api/get-products.php');
-            const data = await response.json();
-            if (data.success) {
-                products = data.products;
-            } else {
-                products = [];
-            }
-        } catch (error) {
-            console.error('Error loading products:', error);
-            products = [];
-        }
-        
-        await loadUserTier();
-        renderCart();
-    }
-
-    async function loadUserTier() {
-        const user = getCurrentUser();
-        if (user && user.email) {
-            try {
-                const response = await fetch(`api/get-user-tier.php?email=${encodeURIComponent(user.email)}`);
-                const result = await response.json();
-                if (result.success) {
-                    userTier = result.tier;
-                    tierDiscountPercent = result.discount;
-                }
-            } catch (error) {
-                console.error('Error loading tier:', error);
-                tierDiscountPercent = 0;
-            }
-        }
-    }
-
-    function renderCart() {
-        const container = document.getElementById('cartContent');
-        
-        if (!cart || cart.length === 0) {
-            container.innerHTML = `
-                <div class="empty-cart">
-                    <i class="fas fa-shopping-cart"></i>
-                    <h2>Your cart is empty</h2>
-                    <p>Looks like you haven't added any items to your cart yet.</p>
-                    <button class="btn btn-primary" onclick="window.location.href='shop.html'" style="margin-top: 1rem;">
-                        <i class="fas fa-shop"></i> Continue Shopping
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        calculateTotals();
-        
-        let tierClass = 'tier-bronze';
-        let tierIcon = '🥉';
-        if (userTier === 'Silver') { tierClass = 'tier-silver'; tierIcon = '🥈'; }
-        else if (userTier === 'Gold') { tierClass = 'tier-gold'; tierIcon = '🥇'; }
-        else if (userTier === 'Platinum') { tierClass = 'tier-platinum'; tierIcon = '💎'; }
-        
-        container.innerHTML = `
-            <div class="cart-layout">
-                <div class="cart-items-card">
-                    <div class="cart-items-header">
-                        <span>Product</span>
-                        <span>Price</span>
-                        <span>Quantity</span>
-                        <span>Total</span>
-                    </div>
-                    <div id="cartItemsList"></div>
+        <div class="cart-grid">
+            <div class="cart-items" id="cartItems">
+                <div class="loading">Loading cart...</div>
+            </div>
+            
+            <div class="cart-summary" id="cartSummary">
+                <h3>Order Summary</h3>
+                
+                <!-- Tier Discount Info -->
+                <div class="tier-info" id="tierInfo">
+                    <i class="fas fa-crown"></i> Loading tier info...
                 </div>
                 
-                <div class="cart-summary">
-                    <h3>Order Summary</h3>
-                    <div class="tier-info">
-                        <i class="fas fa-crown"></i> 
-                        <span class="tier-badge-small ${tierClass}">${tierIcon} ${userTier} Member</span>
-                        <br>You get <strong>${tierDiscountPercent}% discount</strong> on this order!
-                    </div>
-                    
-                    <div class="coupon-section">
-                        <label><i class="fas fa-tag"></i> Have a Coupon?</label>
-                        <div class="coupon-input">
-                            <input type="text" id="couponCode" placeholder="Enter coupon code">
-                            <button class="btn btn-sm btn-primary" onclick="applyCoupon()">Apply</button>
-                        </div>
-                        <div id="couponMessage" class="coupon-message"></div>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span id="summarySubtotal">৳${subtotal.toLocaleString()}</span>
-                    </div>
-                    ${tierDiscountPercent > 0 ? `
-                        <div class="summary-row" style="color: green;">
-                            <span>Tier Discount (${tierDiscountPercent}%)</span>
-                            <span id="summaryDiscount">-৳${tierDiscountAmount.toLocaleString()}</span>
-                        </div>
-                    ` : ''}
-                    ${couponDiscount > 0 ? `
-                        <div class="summary-row" style="color: #3b82f6;">
-                            <span>Coupon Discount ${appliedCoupon ? '(' + appliedCoupon.code + ')' : ''}</span>
-                            <span id="summaryCouponDiscount">-৳${couponDiscount.toLocaleString()}</span>
-                        </div>
-                    ` : ''}
-                    <div class="summary-row">
-                        <span>Delivery Charge</span>
-                        <span id="summaryDelivery">${deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`}</span>
-                    </div>
-                    <div class="summary-total">
-                        <span>Total Amount</span>
-                        <span id="summaryTotal">৳${total.toLocaleString()}</span>
-                    </div>
-                    
-                    <button class="btn btn-primary checkout-btn" onclick="proceedToCheckout()">
-                        <i class="fas fa-credit-card"></i> Proceed to Checkout
-                    </button>
-                    
-                    <button class="btn" onclick="window.location.href='shop.html'" style="width:100%; margin-top: 0.5rem;">
-                        <i class="fas fa-shop"></i> Continue Shopping
-                    </button>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">৳0</span>
                 </div>
+                
+                <!-- Tier Discount Row -->
+                <div class="summary-row" id="tierDiscountRow" style="display: none; color: green;">
+                    <span>Tier Discount (<span id="tierDiscountPercent">0</span>%)</span>
+                    <span id="tierDiscountAmount" style="color: green;">-৳0</span>
+                </div>
+                
+                <div class="coupon-section">
+                    <div class="coupon-input">
+                        <input type="text" id="couponCode" placeholder="Coupon code">
+                        <button class="btn btn-outline" onclick="applyCoupon()" style="padding: 0.7rem 1rem;">Apply</button>
+                    </div>
+                    <div id="couponMessage"></div>
+                </div>
+                
+                <!-- Coupon Discount Row -->
+                <div class="summary-row" id="couponDiscountRow" style="display: none; color: #3b82f6;">
+                    <span>Coupon Discount</span>
+                    <span id="couponDiscountAmount" style="color: #3b82f6;">-৳0</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Delivery Charge</span>
+                    <span id="deliveryCharge">৳60</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="total">৳0</span>
+                </div>
+                
+                <button class="btn btn-primary" onclick="checkout()" style="margin-top: 1.5rem;" id="checkoutBtn">
+                    Proceed to Checkout
+                </button>
+                
+                <a href="shop.html" style="display: block; text-align: center; margin-top: 1rem; color: var(--primary);">
+                    ← Continue Shopping
+                </a>
             </div>
-        `;
-        
-        renderCartItems();
-    }
+        </div>
+    </div>
 
-    function renderCartItems() {
-        const container = document.getElementById('cartItemsList');
-        if (!container) return;
-        
-        let cartHtml = '';
-        
-        for (const item of cart) {
-            const product = products.find(p => p.id === item.id);
-            if (!product) {
-                console.warn('Product not found for id:', item.id);
-                continue;
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let cartItems = [];
+        let products = [];
+        let appliedCoupon = null;
+        let currentUser = null;
+        let userTier = null;
+        let tierDiscountPercent = 0;
+        let tierDiscountAmount = 0;
+        let couponDiscountAmount = 0;
+        let freeShippingThreshold = 10000;
+
+        // Tier thresholds
+        const TIER_THRESHOLDS = {
+            'Platinum': { min: 100000, discount: 12, icon: '💎', color: '#E5E4E2' },
+            'Gold': { min: 50000, discount: 10, icon: '🥇', color: '#FFD700' },
+            'Silver': { min: 20000, discount: 5, icon: '🥈', color: '#C0C0C0' },
+            'Bronze': { min: 0, discount: 0, icon: '🥉', color: '#CD7F32' }
+        };
+
+        // Load user tier from database
+        async function loadUserTier() {
+            currentUser = getCurrentUser();
+            if (!currentUser || !currentUser.email) {
+                userTier = 'Bronze';
+                tierDiscountPercent = 0;
+                updateTierDisplay();
+                return;
             }
             
-            const itemTotal = product.price * item.quantity;
+            try {
+                const response = await fetch(`api/get-user-tier.php?email=${encodeURIComponent(currentUser.email)}`);
+                const data = await response.json();
+                if (data.success) {
+                    userTier = data.tier;
+                    tierDiscountPercent = data.discount;
+                    console.log(`User tier: ${userTier} (${tierDiscountPercent}% discount)`);
+                } else {
+                    userTier = 'Bronze';
+                    tierDiscountPercent = 0;
+                }
+            } catch (error) {
+                console.error('Error loading user tier:', error);
+                userTier = 'Bronze';
+                tierDiscountPercent = 0;
+            }
+            updateTierDisplay();
+        }
+
+        // Update tier display in summary
+        function updateTierDisplay() {
+            const tierInfo = document.getElementById('tierInfo');
+            const tierData = TIER_THRESHOLDS[userTier] || TIER_THRESHOLDS['Bronze'];
             
-            let imageUrl = product.image;
-            if (!imageUrl || imageUrl === '') {
-                imageUrl = 'https://via.placeholder.com/80?text=' + encodeURIComponent(product.name);
+            let nextTier = null;
+            let spendToNext = null;
+            
+            if (userTier === 'Bronze') {
+                nextTier = 'Silver';
+                spendToNext = 20000;
+            } else if (userTier === 'Silver') {
+                nextTier = 'Gold';
+                spendToNext = 50000;
+            } else if (userTier === 'Gold') {
+                nextTier = 'Platinum';
+                spendToNext = 100000;
             }
             
-            cartHtml += `
-                <div class="cart-item">
-                    <div class="cart-product">
-                        <img class="cart-product-img" src="${imageUrl}" onerror="this.src='https://via.placeholder.com/80'">
-                        <div class="cart-product-info">
-                            <h3>${escapeHtml(product.name)}</h3>
-                            <p>${escapeHtml(product.brand)} | ${escapeHtml(product.fragrance)}</p>
-                            ${product.stock <= 5 && product.stock > 0 ? `<p style="color: var(--warning);">⚠️ Only ${product.stock} left</p>` : ''}
-                        </div>
-                    </div>
-                    <div class="cart-price">৳${product.price.toLocaleString()}</div>
-                    <div class="quantity-control">
-                        <button onclick="updateQuantity(${item.id}, -1)">-</button>
-                        <input type="number" id="qty_${item.id}" value="${item.quantity}" min="1" max="${product.stock}" readonly>
-                        <button onclick="updateQuantity(${item.id}, 1)">+</button>
-                    </div>
-                    <div class="cart-price">৳${itemTotal.toLocaleString()}</div>
-                    <button class="remove-item" onclick="removeFromCart(${item.id})"><i class="fas fa-trash-alt"></i></button>
-                </div>
+            let nextTierHtml = '';
+            if (nextTier && currentUser) {
+                nextTierHtml = `<br><small style="font-size: 0.7rem;">Spend ৳${spendToNext.toLocaleString()} more to reach ${nextTier} tier!</small>`;
+            }
+            
+            tierInfo.innerHTML = `
+                <i class="fas fa-crown"></i> 
+                <span class="tier-badge tier-${userTier.toLowerCase()}">${tierData.icon} ${userTier} Member</span>
+                <br>You get <strong>${tierDiscountPercent}% discount</strong> on this order!${nextTierHtml}
             `;
         }
-        
-        if (cartHtml === '') {
-            container.innerHTML = '<div style="text-align: center; padding: 2rem;">No valid items in cart</div>';
-        } else {
-            container.innerHTML = cartHtml;
-        }
-    }
 
-    function calculateTotals() {
-        subtotal = 0;
-        
-        for (const item of cart) {
-            const product = products.find(p => p.id === item.id);
-            if (product) {
-                subtotal += product.price * item.quantity;
+        // Load all products from database
+        async function loadProducts() {
+            try {
+                const response = await fetch('api/get-products.php');
+                const data = await response.json();
+                if (data.success) {
+                    products = data.products;
+                    console.log(`Loaded ${products.length} products`);
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
             }
         }
 
-        // Apply tier discount
-        tierDiscountAmount = (subtotal * tierDiscountPercent) / 100;
-        tierDiscountAmount = Math.min(tierDiscountAmount, subtotal);
-        
-        let afterDiscount = subtotal - tierDiscountAmount;
-        
-        // Apply coupon discount (after tier discount)
-        let totalDiscount = tierDiscountAmount;
-        if (appliedCoupon && couponDiscount > 0) {
-            totalDiscount += couponDiscount;
-            afterDiscount = subtotal - totalDiscount;
-        }
-        
-        deliveryCharge = afterDiscount >= freeShippingThreshold ? 0 : 60;
-        total = afterDiscount + deliveryCharge;
-    }
-
-    function updateTotalsDisplay() {
-        const subtotalEl = document.getElementById('summarySubtotal');
-        const discountEl = document.getElementById('summaryDiscount');
-        const couponDiscountEl = document.getElementById('summaryCouponDiscount');
-        const deliveryEl = document.getElementById('summaryDelivery');
-        const totalEl = document.getElementById('summaryTotal');
-        
-        if (subtotalEl) subtotalEl.innerHTML = `৳${subtotal.toLocaleString()}`;
-        if (discountEl && tierDiscountPercent > 0) discountEl.innerHTML = `-৳${tierDiscountAmount.toLocaleString()}`;
-        if (couponDiscountEl && couponDiscount > 0) couponDiscountEl.innerHTML = `-৳${couponDiscount.toLocaleString()}`;
-        if (deliveryEl) deliveryEl.innerHTML = deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`;
-        if (totalEl) totalEl.innerHTML = `৳${total.toLocaleString()}`;
-    }
-
-    function updateQuantity(productId, change) {
-        const product = products.find(p => p.id === productId);
-        const itemIndex = cart.findIndex(i => i.id === productId);
-        
-        if (itemIndex === -1 || !product) return;
-        
-        let newQuantity = cart[itemIndex].quantity + change;
-        
-        if (newQuantity < 1) {
-            removeFromCart(productId);
-            return;
-        }
-        
-        if (newQuantity > product.stock) {
-            showToast(`Only ${product.stock} units available in stock`);
-            return;
-        }
-        
-        cart[itemIndex].quantity = newQuantity;
-        localStorage.setItem('attar_cart', JSON.stringify(cart));
-        updateNavCartCount();
-        
-        // Reset coupon when cart changes (since total changed)
-        if (appliedCoupon) {
-            appliedCoupon = null;
-            couponDiscount = 0;
-            document.getElementById('couponCode').value = '';
-            document.getElementById('couponMessage').innerHTML = '';
-        }
-        
-        calculateTotals();
-        renderCartItems();
-        updateTotalsDisplay();
-    }
-
-    function removeFromCart(productId) {
-        const product = products.find(p => p.id === productId);
-        cart = cart.filter(i => i.id !== productId);
-        localStorage.setItem('attar_cart', JSON.stringify(cart));
-        updateNavCartCount();
-        
-        // Reset coupon when cart changes
-        appliedCoupon = null;
-        couponDiscount = 0;
-        document.getElementById('couponCode').value = '';
-        document.getElementById('couponMessage').innerHTML = '';
-        
-        if (cart.length === 0) {
-            renderCart();
-        } else {
-            calculateTotals();
-            renderCartItems();
-            updateTotalsDisplay();
-        }
-        
-        showToast(`${product?.name || 'Item'} removed from cart`);
-    }
-
-    async function applyCoupon() {
-        const code = document.getElementById('couponCode').value.trim().toUpperCase();
-        const messageDiv = document.getElementById('couponMessage');
-        
-        if (!code) {
-            messageDiv.innerHTML = '<span class="error">Please enter a coupon code</span>';
-            return;
-        }
-        
-        const user = getCurrentUser();
-        if (!user) {
-            messageDiv.innerHTML = '<span class="error">Please login to apply coupon</span>';
-            return;
-        }
-        
-        messageDiv.innerHTML = '<span>Checking coupon...</span>';
-        
-        try {
-            const response = await fetch('api/coupons.php?action=apply', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    code: code,
-                    subtotal: subtotal,
-                    user_email: user.email
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                appliedCoupon = result.coupon;
-                couponDiscount = result.discount;
-                messageDiv.innerHTML = `<span class="success">✓ ${result.message} Discount: ৳${couponDiscount.toLocaleString()}</span>`;
-                calculateTotals();
-                updateTotalsDisplay();
-                renderCart(); // Re-render to show coupon in summary
+        // Load cart from localStorage
+        function loadCart() {
+            const savedCart = localStorage.getItem('attar_cart');
+            if (savedCart) {
+                cartItems = JSON.parse(savedCart);
+                console.log('Cart items:', cartItems);
             } else {
-                appliedCoupon = null;
-                couponDiscount = 0;
-                messageDiv.innerHTML = `<span class="error">✗ ${result.error}</span>`;
+                cartItems = [];
             }
-        } catch (error) {
-            console.error('Error applying coupon:', error);
-            messageDiv.innerHTML = '<span class="error">Failed to apply coupon. Please try again.</span>';
         }
-    }
 
-    function proceedToCheckout() {
-        if (!requireLogin('proceed to checkout')) {
-            return;
+        // Save cart to localStorage
+        function saveCart() {
+            localStorage.setItem('attar_cart', JSON.stringify(cartItems));
+            if (typeof updateNavCartCount === 'function') {
+                updateNavCartCount();
+            }
+        }
+
+        // Get full product details from cart item
+        function getProductDetails(cartItem) {
+            const productId = parseInt(cartItem.id);
+            return products.find(p => parseInt(p.id) === productId);
+        }
+
+        // Calculate subtotal
+        function calculateSubtotal() {
+            let subtotal = 0;
+            for (const item of cartItems) {
+                const product = getProductDetails(item);
+                if (product) {
+                    subtotal += product.price * item.quantity;
+                }
+            }
+            return subtotal;
+        }
+
+        // Calculate tier discount
+        function calculateTierDiscount(subtotal) {
+            return (subtotal * tierDiscountPercent) / 100;
+        }
+
+        // Update all totals
+        function updateTotals() {
+            const subtotal = calculateSubtotal();
+            
+            // Calculate tier discount
+            tierDiscountAmount = calculateTierDiscount(subtotal);
+            
+            // Calculate coupon discount (applied after tier discount)
+            let afterTierDiscount = subtotal - tierDiscountAmount;
+            couponDiscountAmount = 0;
+            
+            if (appliedCoupon) {
+                if (appliedCoupon.discount_type === 'percent') {
+                    couponDiscountAmount = (afterTierDiscount * appliedCoupon.discount_value) / 100;
+                    if (appliedCoupon.max_discount && couponDiscountAmount > appliedCoupon.max_discount) {
+                        couponDiscountAmount = appliedCoupon.max_discount;
+                    }
+                } else {
+                    couponDiscountAmount = appliedCoupon.discount_value;
+                    if (couponDiscountAmount > afterTierDiscount) {
+                        couponDiscountAmount = afterTierDiscount;
+                    }
+                }
+            }
+            
+            // Calculate final total
+            const afterAllDiscounts = subtotal - tierDiscountAmount - couponDiscountAmount;
+            const deliveryCharge = (afterAllDiscounts >= freeShippingThreshold || subtotal === 0) ? 0 : 60;
+            const total = afterAllDiscounts + deliveryCharge;
+            
+            // Update display
+            document.getElementById('subtotal').innerHTML = `৳${subtotal.toLocaleString()}`;
+            document.getElementById('deliveryCharge').innerHTML = deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`;
+            document.getElementById('total').innerHTML = `৳${total.toLocaleString()}`;
+            
+            // Show/hide tier discount row
+            if (tierDiscountAmount > 0) {
+                document.getElementById('tierDiscountRow').style.display = 'flex';
+                document.getElementById('tierDiscountPercent').innerText = tierDiscountPercent;
+                document.getElementById('tierDiscountAmount').innerHTML = `-৳${tierDiscountAmount.toLocaleString()}`;
+            } else {
+                document.getElementById('tierDiscountRow').style.display = 'none';
+            }
+            
+            // Show/hide coupon discount row
+            if (couponDiscountAmount > 0 && appliedCoupon) {
+                document.getElementById('couponDiscountRow').style.display = 'flex';
+                document.getElementById('couponDiscountAmount').innerHTML = `-৳${couponDiscountAmount.toLocaleString()}`;
+            } else {
+                document.getElementById('couponDiscountRow').style.display = 'none';
+            }
+            
+            // Disable checkout if cart is empty
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                checkoutBtn.disabled = cartItems.length === 0;
+            }
+        }
+
+        // Render cart items
+        async function renderCart() {
+            // Make sure products are loaded
+            if (products.length === 0) {
+                await loadProducts();
+            }
+            
+            const cartContainer = document.getElementById('cartItems');
+            
+            if (!cartItems || cartItems.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                        <h3>Your cart is empty</h3>
+                        <p>Looks like you haven't added any items yet.</p>
+                        <a href="shop.html" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Start Shopping</a>
+                    </div>
+                `;
+                updateTotals();
+                return;
+            }
+            
+            let html = '';
+            
+            for (const item of cartItems) {
+                const product = getProductDetails(item);
+                if (!product) {
+                    console.warn('Product not found for ID:', item.id);
+                    continue;
+                }
+                
+                const itemTotal = product.price * item.quantity;
+                
+                let imageUrl = product.image;
+                if (!imageUrl || imageUrl === '') {
+                    imageUrl = 'https://via.placeholder.com/80x80?text=' + encodeURIComponent(product.name);
+                }
+                
+                html += `
+                    <div class="cart-item" data-id="${product.id}">
+                        <img class="cart-item-img" src="${imageUrl}" onerror="this.src='https://via.placeholder.com/80x80?text=Attar'">
+                        <div class="cart-item-info">
+                            <h4>${escapeHtml(product.name)}</h4>
+                            <div style="font-size: 0.8rem; color: #666;">${escapeHtml(product.brand || '')}</div>
+                            <div class="cart-item-price">৳${parseFloat(product.price).toLocaleString()}</div>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <button onclick="updateQuantity(${product.id}, ${item.quantity - 1})">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="updateQuantity(${product.id}, ${item.quantity + 1})" ${item.quantity >= product.stock ? 'disabled' : ''}>+</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div class="cart-item-total">৳${itemTotal.toLocaleString()}</div>
+                            <button class="cart-item-remove" onclick="removeItem(${product.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            cartContainer.innerHTML = html;
+            updateTotals();
         }
         
-        if (!cart || cart.length === 0) {
-            showToast('Your cart is empty!');
-            return;
+        // Update quantities
+        function updateQuantity(productId, newQuantity) {
+            const product = getProductDetails({ id: productId });
+            if (!product) return;
+            
+            if (newQuantity <= 0) {
+                removeItem(productId);
+                return;
+            }
+            
+            if (newQuantity > product.stock) {
+                showToast(`Only ${product.stock} items available in stock!`);
+                return;
+            }
+            
+            const itemIndex = cartItems.findIndex(i => parseInt(i.id) === productId);
+            if (itemIndex !== -1) {
+                cartItems[itemIndex].quantity = newQuantity;
+                saveCart();
+                renderCart();
+            }
         }
         
-        // Store applied coupon in session for checkout
-        if (appliedCoupon) {
-            sessionStorage.setItem('appliedCoupon', JSON.stringify({
-                code: appliedCoupon.code,
-                discount: couponDiscount
-            }));
+        // Remove item from cart
+        function removeItem(productId) {
+            cartItems = cartItems.filter(i => parseInt(i.id) !== productId);
+            saveCart();
+            renderCart();
+            showToast('Item removed from cart');
         }
         
-        window.location.href = 'payment.html';
-    }
-
-    window.updateQuantity = updateQuantity;
-    window.removeFromCart = removeFromCart;
-    window.proceedToCheckout = proceedToCheckout;
-    window.applyCoupon = applyCoupon;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        loadCartData();
-    });
-</script>
+        // Apply coupon
+        async function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            const messageDiv = document.getElementById('couponMessage');
+            
+            if (!code) {
+                showToast('Please enter a coupon code');
+                return;
+            }
+            
+            const subtotal = calculateSubtotal();
+            const currentUser = getCurrentUser();
+            
+            if (!currentUser) {
+                messageDiv.innerHTML = `<div class="discount-applied" style="color: var(--danger);">✗ Please login to apply coupon</div>`;
+                return;
+            }
+            
+            messageDiv.innerHTML = `<div class="discount-applied">Checking coupon...</div>`;
+            
+            try {
+                const response = await fetch('api/coupons.php?action=apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        code: code, 
+                        subtotal: subtotal,
+                        user_email: currentUser.email 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    appliedCoupon = data.coupon;
+                    messageDiv.innerHTML = `
+                        <div class="discount-applied" style="color: var(--success);">
+                            ✓ ${data.message} You saved ৳${data.discount}
+                        </div>
+                    `;
+                    updateTotals();
+                    showToast('Coupon applied successfully!');
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="discount-applied" style="color: var(--danger);">
+                            ✗ ${data.error}
+                        </div>
+                    `;
+                    appliedCoupon = null;
+                    updateTotals();
+                }
+            } catch (error) {
+                console.error('Error applying coupon:', error);
+                messageDiv.innerHTML = `<div class="discount-applied" style="color: var(--danger);">✗ Error applying coupon</div>`;
+            }
+        }
+        
+        // Proceed to checkout
+        function checkout() {
+            if (!requireLogin('proceed to checkout')) return;
+            
+            if (cartItems.length === 0) {
+                showToast('Your cart is empty');
+                return;
+            }
+            
+            // Save checkout data with tier info
+            const checkoutData = {
+                items: cartItems,
+                subtotal: calculateSubtotal(),
+                tier_discount_percent: tierDiscountPercent,
+                tier_discount_amount: tierDiscountAmount,
+                coupon: appliedCoupon,
+                coupon_discount: couponDiscountAmount,
+                user_tier: userTier,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('checkout_data', JSON.stringify(checkoutData));
+            
+            // Store applied coupon in sessionStorage for payment page
+            if (appliedCoupon) {
+                sessionStorage.setItem('appliedCoupon', JSON.stringify({
+                    code: appliedCoupon.code,
+                    discount: couponDiscountAmount
+                }));
+            } else {
+                sessionStorage.removeItem('appliedCoupon');
+            }
+            
+            // Redirect to payment page
+            window.location.href = 'payment.html';
+        }
+        
+        // Initialize page
+        async function initCart() {
+            currentUser = getCurrentUser();
+            loadCart();
+            await loadProducts();
+            await loadUserTier();
+            await renderCart();
+        }
+        
+        // Make functions global
+        window.updateQuantity = updateQuantity;
+        window.removeItem = removeItem;
+        window.applyCoupon = applyCoupon;
+        window.checkout = checkout;
+        
+        // Start
+        document.addEventListener('DOMContentLoaded', initCart);
+    </script>
 </body>
+
 </html>
