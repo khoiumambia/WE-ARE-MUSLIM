@@ -46,19 +46,52 @@
             border-radius: 12px;
         }
 
-        .price-slider {
-            margin: 1rem 0;
-        }
-
-        .price-slider input {
-            width: 100%;
-        }
-
-        .price-values {
+        .price-inputs {
             display: flex;
-            justify-content: space-between;
+            gap: 0.5rem;
+            align-items: center;
             margin-top: 0.5rem;
-            font-size: 0.9rem;
+        }
+
+        .price-inputs input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .price-inputs span {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .price-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.7rem;
+        }
+
+        .price-preset {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+
+        .price-preset:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .price-preset.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
         .product-grid {
@@ -230,15 +263,21 @@
                 </select>
             </div>
 
+            <!-- Price Range with Inputs and Presets -->
             <div class="filter-group">
-                <label>💰 Max Price (৳)</label>
-                <div class="price-slider">
-                    <input type="range" id="priceSlider" min="0" max="5000" value="5000">
-                    <div class="price-values">
-                        <span>৳0</span>
-                        <span id="priceValue">৳5000</span>
-                        <span>৳5000+</span>
-                    </div>
+                <label>💰 Price Range (৳)</label>
+                <div class="price-inputs">
+                    <input type="number" id="minPrice" placeholder="Min" value="0" min="0">
+                    <span>—</span>
+                    <input type="number" id="maxPrice" placeholder="Max" value="5000" min="0">
+                </div>
+                <div class="price-presets">
+                    <button class="price-preset" onclick="setPriceRange(0, 500)">৳0-500</button>
+                    <button class="price-preset" onclick="setPriceRange(500, 1000)">৳500-1000</button>
+                    <button class="price-preset" onclick="setPriceRange(1000, 2000)">৳1000-2000</button>
+                    <button class="price-preset" onclick="setPriceRange(2000, 3000)">৳2000-3000</button>
+                    <button class="price-preset" onclick="setPriceRange(3000, 5000)">৳3000-5000</button>
+                    <button class="price-preset" onclick="setPriceRange(5000, 99999)">৳5000+</button>
                 </div>
             </div>
 
@@ -307,402 +346,368 @@
 
     <script src="js/navigation.js"></script>
     <script src="js/utils.js"></script>
-<script>
-    let products = [];
-    let cart = [];
-    let wishlist = [];
-    let currentStockProduct = null;
+    <script>
+        let products = [];
+        let cart = [];
+        let wishlist = [];
+        let currentStockProduct = null;
 
-    // Helper function to escape HTML
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
+        // Helper function to escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
 
-    // Load products from MySQL database via PHP API
-    async function loadShopData() {
-        try {
-            const grid = document.getElementById('productGrid');
-            if (grid) {
-                grid.innerHTML = '<div class="loading">Loading products from database...</div>';
-            }
+        // Set price range from preset buttons
+        function setPriceRange(min, max) {
+            document.getElementById('minPrice').value = min;
+            document.getElementById('maxPrice').value = max;
             
-            console.log('Fetching products from API...');
-            const response = await fetch('api/get-products.php');
-            const data = await response.json();
+            // Highlight active preset
+            document.querySelectorAll('.price-preset').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
             
-            console.log('API Response:', data);
-            
-            if (data.success) {
-                products = data.products;
-                console.log(`Loaded ${products.length} products from database`);
-            } else {
-                console.error('API error:', data.error);
+            renderProducts();
+        }
+
+        // Load products from MySQL database via PHP API
+        async function loadShopData() {
+            try {
+                const grid = document.getElementById('productGrid');
+                if (grid) {
+                    grid.innerHTML = '<div class="loading">Loading products from database...</div>';
+                }
+                
+                console.log('Fetching products from API...');
+                const response = await fetch('api/get-products.php');
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.success) {
+                    products = data.products;
+                    console.log(`Loaded ${products.length} products from database`);
+                } else {
+                    console.error('API error:', data.error);
+                    products = [];
+                    showToast('Error loading products: ' + (data.error || 'Unknown error'));
+                }
+                
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+                    wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+                } else {
+                    cart = [];
+                    wishlist = [];
+                }
+                
+                updateFilters();
+                renderProducts();
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showToast('Failed to load products. Check console for details.');
                 products = [];
-                showToast('Error loading products: ' + (data.error || 'Unknown error'));
+                updateFilters();
+                renderProducts();
             }
-            
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-                wishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-            } else {
-                cart = [];
-                wishlist = [];
+        }
+
+        function updateFilters() {
+            const brands = [...new Set(products.map(p => p.brand).filter(b => b))];
+            const fragrances = [...new Set(products.map(p => p.fragrance).filter(f => f))];
+
+            const brandSelect = document.getElementById('brandFilter');
+            if (brandSelect) {
+                brandSelect.innerHTML = '<option value="">All Brands</option>' +
+                    brands.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
             }
-            
-            updateFilters();
-            renderProducts();
-            
-        } catch (error) {
-            console.error('Error loading products:', error);
-            showToast('Failed to load products. Check console for details.');
-            products = [];
-            updateFilters();
-            renderProducts();
-        }
-    }
 
-    function updateFilters() {
-        const brands = [...new Set(products.map(p => p.brand).filter(b => b))];
-        const fragrances = [...new Set(products.map(p => p.fragrance).filter(f => f))];
-
-        const brandSelect = document.getElementById('brandFilter');
-        if (brandSelect) {
-            brandSelect.innerHTML = '<option value="">All Brands</option>' +
-                brands.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
-        }
-
-        const fragranceSelect = document.getElementById('fragranceFilter');
-        if (fragranceSelect) {
-            fragranceSelect.innerHTML = '<option value="">All Fragrances</option>' +
-                fragrances.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
-        }
-    }
-
-    function renderProducts() {
-        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        const brand = document.getElementById('brandFilter')?.value || '';
-        const fragrance = document.getElementById('fragranceFilter')?.value || '';
-        const stockStatus = document.getElementById('stockFilter')?.value || 'all';
-        const ratingFilter = document.getElementById('ratingFilter')?.value || 'all';
-        const sortBy = document.getElementById('sortFilter')?.value || 'default';
-        const maxPrice = parseInt(document.getElementById('priceSlider')?.value || 5000);
-
-        let filtered = products.filter(p => {
-            if (searchTerm && !p.name.toLowerCase().includes(searchTerm) && !(p.brand && p.brand.toLowerCase().includes(searchTerm))) return false;
-            if (brand && p.brand !== brand) return false;
-            if (fragrance && p.fragrance !== fragrance) return false;
-            if (p.price > maxPrice) return false;
-            if (stockStatus === 'in' && p.stock === 0) return false;
-            if (stockStatus === 'low' && (p.stock === 0 || p.stock > 10)) return false;
-            if (stockStatus === 'out' && p.stock > 0) return false;
-            if (ratingFilter !== 'all' && p.ratings < parseInt(ratingFilter)) return false;
-            return true;
-        });
-
-        if (sortBy === 'price_asc') filtered.sort((a, b) => a.price - b.price);
-        else if (sortBy === 'price_desc') filtered.sort((a, b) => b.price - a.price);
-        else if (sortBy === 'rating') filtered.sort((a, b) => b.ratings - a.ratings);
-
-        const productCountSpan = document.getElementById('productCount');
-        if (productCountSpan) {
-            productCountSpan.innerHTML = `Showing ${filtered.length} of ${products.length} products`;
-        }
-
-        const grid = document.getElementById('productGrid');
-        if (!grid) return;
-
-        if (filtered.length === 0) {
-            grid.innerHTML = '<div style="text-align: center; padding: 3rem;">No products found 😢</div>';
-            return;
-        }
-
-        const isLoggedIn = getCurrentUser() !== null;
-
-        grid.innerHTML = filtered.map(p => {
-            let imageUrl = p.image;
-            if (!imageUrl || imageUrl === '') {
-                imageUrl = 'https://via.placeholder.com/300x250?text=' + encodeURIComponent(p.name);
+            const fragranceSelect = document.getElementById('fragranceFilter');
+            if (fragranceSelect) {
+                fragranceSelect.innerHTML = '<option value="">All Fragrances</option>' +
+                    fragrances.map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join('');
             }
+        }
+
+        function renderProducts() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const brand = document.getElementById('brandFilter')?.value || '';
+            const fragrance = document.getElementById('fragranceFilter')?.value || '';
+            const stockStatus = document.getElementById('stockFilter')?.value || 'all';
+            const ratingFilter = document.getElementById('ratingFilter')?.value || 'all';
+            const sortBy = document.getElementById('sortFilter')?.value || 'default';
             
-            return `
-                <div class="product-card">
-                    ${p.stock === 0 ? '<div class="product-badge sold-out">Sold Out</div>' : ''}
-                    <div class="product-actions">
-                        <button onclick="event.stopPropagation(); addToWishlist(${p.id})"><i class="far fa-heart"></i></button>
-                        <button onclick="event.stopPropagation(); addToCompare(${p.id})"><i class="fas fa-chart-line"></i></button>
-                    </div>
-                    <img class="product-img" src="${imageUrl}" onclick="viewProduct(${p.id})" onerror="this.src='https://via.placeholder.com/300x250?text=Attar'">
-                    <div class="product-info" onclick="viewProduct(${p.id})">
-                        <div class="product-title">${escapeHtml(p.name)}</div>
-                        <div style="font-size: 0.8rem; color: #666;">${escapeHtml(p.brand || '')} | ${escapeHtml(p.fragrance || '')}</div>
-                        <div class="product-price">৳${parseFloat(p.price).toLocaleString()}</div>
-                        <div class="stock-status ${p.stock > 10 ? 'in-stock' : (p.stock > 0 ? 'low-stock' : 'out-of-stock')}">
-                            ${p.stock > 10 ? '✓ In Stock' : (p.stock > 0 ? `⚠ Only ${p.stock} left` : '✗ Out of Stock')}
+            // Get price range from inputs
+            const minPrice = parseFloat(document.getElementById('minPrice')?.value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice')?.value) || Infinity;
+
+            let filtered = products.filter(p => {
+                if (searchTerm && !p.name.toLowerCase().includes(searchTerm) && !(p.brand && p.brand.toLowerCase().includes(searchTerm))) return false;
+                if (brand && p.brand !== brand) return false;
+                if (fragrance && p.fragrance !== fragrance) return false;
+                // Price range filter
+                if (p.price < minPrice || p.price > maxPrice) return false;
+                if (stockStatus === 'in' && p.stock === 0) return false;
+                if (stockStatus === 'low' && (p.stock === 0 || p.stock > 10)) return false;
+                if (stockStatus === 'out' && p.stock > 0) return false;
+                if (ratingFilter !== 'all' && p.ratings < parseInt(ratingFilter)) return false;
+                return true;
+            });
+
+            if (sortBy === 'price_asc') filtered.sort((a, b) => a.price - b.price);
+            else if (sortBy === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+            else if (sortBy === 'rating') filtered.sort((a, b) => b.ratings - a.ratings);
+
+            const productCountSpan = document.getElementById('productCount');
+            if (productCountSpan) {
+                productCountSpan.innerHTML = `Showing ${filtered.length} of ${products.length} products`;
+            }
+
+            const grid = document.getElementById('productGrid');
+            if (!grid) return;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 3rem;">No products found 😢</div>';
+                return;
+            }
+
+            const isLoggedIn = getCurrentUser() !== null;
+
+            grid.innerHTML = filtered.map(p => {
+                let imageUrl = p.image;
+                if (!imageUrl || imageUrl === '') {
+                    imageUrl = 'https://via.placeholder.com/300x250?text=' + encodeURIComponent(p.name);
+                }
+                
+                return `
+                    <div class="product-card">
+                        ${p.stock === 0 ? '<div class="product-badge sold-out">Sold Out</div>' : ''}
+                        <div class="product-actions">
+                            <button onclick="event.stopPropagation(); addToWishlist(${p.id})"><i class="far fa-heart"></i></button>
+                            <button onclick="event.stopPropagation(); addToCompare(${p.id})"><i class="fas fa-chart-line"></i></button>
                         </div>
-                        <div style="font-size: 0.8rem;">⭐ ${p.ratings || 0} (${p.reviews || 0} reviews)</div>
-                        ${p.stock > 0 ?
-                            `<button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); addToCart(${p.id})">
-                                <i class="fas fa-shopping-cart"></i> ${isLoggedIn ? 'Add to Cart' : 'Login to Add to Cart'}
-                            </button>` :
-                            `<button class="btn" style="width:100%; margin-top: 10px; background: #6b7280; color: white;" onclick="event.stopPropagation(); showStockAlert(${p.id})">
-                                <i class="fas fa-bell"></i> Notify Me
-                            </button>`
-                        }
+                        <img class="product-img" src="${imageUrl}" onclick="viewProduct(${p.id})" onerror="this.src='https://via.placeholder.com/300x250?text=Attar'">
+                        <div class="product-info" onclick="viewProduct(${p.id})">
+                            <div class="product-title">${escapeHtml(p.name)}</div>
+                            <div style="font-size: 0.8rem; color: #666;">${escapeHtml(p.brand || '')} | ${escapeHtml(p.fragrance || '')}</div>
+                            <div class="product-price">৳${parseFloat(p.price).toLocaleString()}</div>
+                            <div class="stock-status ${p.stock > 10 ? 'in-stock' : (p.stock > 0 ? 'low-stock' : 'out-of-stock')}">
+                                ${p.stock > 10 ? '✓ In Stock' : (p.stock > 0 ? `⚠ Only ${p.stock} left` : '✗ Out of Stock')}
+                            </div>
+                            <div style="font-size: 0.8rem;">⭐ ${p.ratings || 0} (${p.reviews || 0} reviews)</div>
+                            ${p.stock > 0 ?
+                                `<button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="event.stopPropagation(); addToCart(${p.id})">
+                                    <i class="fas fa-shopping-cart"></i> ${isLoggedIn ? 'Add to Cart' : 'Login to Add to Cart'}
+                                </button>` :
+                                `<button class="btn" style="width:100%; margin-top: 10px; background: #6b7280; color: white;" onclick="event.stopPropagation(); showStockAlert(${p.id})">
+                                    <i class="fas fa-bell"></i> Notify Me
+                                </button>`
+                            }
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-// Replace the addToCart function
-function addToCart(productId) {
-    if (!requireLogin('add items to cart')) return;
-    
-    // Convert productId to number to match database ID
-    const numericId = parseInt(productId);
-    const product = products.find(p => parseInt(p.id) === numericId);
-    
-    console.log('Adding to cart - Product ID:', numericId);
-    console.log('Available products:', products);
-    console.log('Found product:', product);
-    
-    if (!product) {
-        showToast('Product not found. Please refresh the page.');
-        return;
-    }
-    
-    if (product.stock === 0) { 
-        showStockAlert(numericId); 
-        return; 
-    }
-    
-    let currentCart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-    let item = currentCart.find(i => parseInt(i.id) === numericId);
-    
-    if (item) {
-        if (item.quantity < product.stock) {
-            item.quantity++;
-        } else {
-            showToast('Not enough stock available!');
-            return;
+                `;
+            }).join('');
         }
-    } else {
-        currentCart.push({ 
-            id: numericId, 
-            quantity: 1 
-        });
-    }
-    
-    localStorage.setItem('attar_cart', JSON.stringify(currentCart));
-    
-    if (typeof updateNavCartCount === 'function') {
-        updateNavCartCount();
-    }
-    
-    showToast(`${product.name} added to cart!`);
-}
 
-// Replace addToWishlist function
-function addToWishlist(productId) {
-    if (!requireLogin('add items to wishlist')) return;
-    
-    const numericId = parseInt(productId);
-    const product = products.find(p => parseInt(p.id) === numericId);
-    
-    if (!product) {
-        showToast('Product not found');
-        return;
-    }
-    
-    let currentWishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-    if (!currentWishlist.includes(numericId)) {
-        currentWishlist.push(numericId);
-        localStorage.setItem('attar_wishlist', JSON.stringify(currentWishlist));
-        if (typeof updateNavWishlistCount === 'function') {
-            updateNavWishlistCount();
-        }
-        showToast(`${product.name} added to wishlist! ❤️`);
-    } else {
-        showToast('Already in wishlist');
-    }
-}
-
-// Replace addToCompare function
-function addToCompare(productId) {
-    if (!requireLogin('compare products')) return;
-    
-    const numericId = parseInt(productId);
-    let compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
-    
-    if (compareList.includes(numericId)) {
-        showToast('Already in compare list');
-        return;
-    }
-    
-    if (compareList.length >= 4) {
-        showToast('Can compare up to 4 products only');
-        return;
-    }
-    
-    compareList.push(numericId);
-    localStorage.setItem('attar_compare', JSON.stringify(compareList));
-    showToast('Added to compare!');
-}
-
-// Replace showStockAlert function
-function showStockAlert(productId) {
-    const numericId = parseInt(productId);
-    currentStockProduct = products.find(p => parseInt(p.id) === numericId);
-    if (!currentStockProduct) {
-        showToast('Product not found');
-        return;
-    }
-    const modal = document.getElementById('stockModal');
-    const productNameSpan = document.getElementById('stockProductName');
-    if (productNameSpan) productNameSpan.innerText = currentStockProduct.name;
-    if (modal) modal.classList.add('open');
-}
-    function addToWishlist(productId) {
-        if (!requireLogin('add items to wishlist')) return;
-        const product = products.find(p => p.id === productId);
-        let currentWishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
-        if (!currentWishlist.includes(productId)) {
-            currentWishlist.push(productId);
-            localStorage.setItem('attar_wishlist', JSON.stringify(currentWishlist));
-            if (typeof updateNavWishlistCount === 'function') {
-                updateNavWishlistCount();
+        function addToCart(productId) {
+            if (!requireLogin('add items to cart')) return;
+            
+            const numericId = parseInt(productId);
+            const product = products.find(p => parseInt(p.id) === numericId);
+            
+            if (!product) {
+                showToast('Product not found. Please refresh the page.');
+                return;
             }
-            showToast(`${product.name} added to wishlist! ❤️`);
-        } else {
-            showToast('Already in wishlist');
+            
+            if (product.stock === 0) { 
+                showStockAlert(numericId); 
+                return; 
+            }
+            
+            let currentCart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+            let item = currentCart.find(i => parseInt(i.id) === numericId);
+            
+            if (item) {
+                if (item.quantity < product.stock) {
+                    item.quantity++;
+                } else {
+                    showToast('Not enough stock available!');
+                    return;
+                }
+            } else {
+                currentCart.push({ 
+                    id: numericId, 
+                    quantity: 1 
+                });
+            }
+            
+            localStorage.setItem('attar_cart', JSON.stringify(currentCart));
+            
+            if (typeof updateNavCartCount === 'function') {
+                updateNavCartCount();
+            }
+            
+            showToast(`${product.name} added to cart!`);
         }
-    }
 
-    function addToCompare(productId) {
-        if (!requireLogin('compare products')) return;
-        
-        let compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
-        
-        if (compareList.includes(productId)) {
-            showToast('Already in compare list');
-            return;
+        function addToWishlist(productId) {
+            if (!requireLogin('add items to wishlist')) return;
+            
+            const numericId = parseInt(productId);
+            const product = products.find(p => parseInt(p.id) === numericId);
+            
+            if (!product) {
+                showToast('Product not found');
+                return;
+            }
+            
+            let currentWishlist = JSON.parse(localStorage.getItem('attar_wishlist')) || [];
+            if (!currentWishlist.includes(numericId)) {
+                currentWishlist.push(numericId);
+                localStorage.setItem('attar_wishlist', JSON.stringify(currentWishlist));
+                if (typeof updateNavWishlistCount === 'function') {
+                    updateNavWishlistCount();
+                }
+                showToast(`${product.name} added to wishlist! ❤️`);
+            } else {
+                showToast('Already in wishlist');
+            }
         }
-        
-        if (compareList.length >= 4) {
-            showToast('Can compare up to 4 products only');
-            return;
+
+        function addToCompare(productId) {
+            if (!requireLogin('compare products')) return;
+            
+            const numericId = parseInt(productId);
+            let compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
+            
+            if (compareList.includes(numericId)) {
+                showToast('Already in compare list');
+                return;
+            }
+            
+            if (compareList.length >= 4) {
+                showToast('Can compare up to 4 products only');
+                return;
+            }
+            
+            compareList.push(numericId);
+            localStorage.setItem('attar_compare', JSON.stringify(compareList));
+            showToast('Added to compare!');
         }
-        
-        compareList.push(productId);
-        localStorage.setItem('attar_compare', JSON.stringify(compareList));
-        showToast('Added to compare!');
-    }
 
-    function goToCompare() {
-        const compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
-        if (compareList.length === 0) {
-            showToast('No products in compare list. Add some products first!');
-            return;
+        function goToCompare() {
+            const compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
+            if (compareList.length === 0) {
+                showToast('No products in compare list. Add some products first!');
+                return;
+            }
+            window.location.href = 'compare.html';
         }
-        window.location.href = 'compare.html';
-    }
 
-    function viewProduct(productId) {
-        localStorage.setItem('viewProductId', productId);
-        window.location.href = 'products.html';
-    }
-
-    function showStockAlert(productId) {
-        currentStockProduct = products.find(p => p.id === productId);
-        const modal = document.getElementById('stockModal');
-        const productNameSpan = document.getElementById('stockProductName');
-        if (productNameSpan) productNameSpan.innerText = currentStockProduct.name;
-        if (modal) modal.classList.add('open');
-    }
-
-    function closeStockModal() {
-        const modal = document.getElementById('stockModal');
-        if (modal) modal.classList.remove('open');
-        const emailInput = document.getElementById('stockEmail');
-        if (emailInput) emailInput.value = '';
-    }
-
-    function saveStockAlert() {
-        const email = document.getElementById('stockEmail').value;
-        if (!email || !email.includes('@')) {
-            showToast('Please enter a valid email address');
-            return;
+        function viewProduct(productId) {
+            localStorage.setItem('viewProductId', productId);
+            window.location.href = 'products.html';
         }
-        let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
-        waitlist.push({
-            productId: currentStockProduct.id,
-            productName: currentStockProduct.name,
-            email: email,
-            date: new Date().toISOString(),
-            notified: false
+
+        function showStockAlert(productId) {
+            const numericId = parseInt(productId);
+            currentStockProduct = products.find(p => parseInt(p.id) === numericId);
+            if (!currentStockProduct) {
+                showToast('Product not found');
+                return;
+            }
+            const modal = document.getElementById('stockModal');
+            const productNameSpan = document.getElementById('stockProductName');
+            if (productNameSpan) productNameSpan.innerText = currentStockProduct.name;
+            if (modal) modal.classList.add('open');
+        }
+
+        function closeStockModal() {
+            const modal = document.getElementById('stockModal');
+            if (modal) modal.classList.remove('open');
+            const emailInput = document.getElementById('stockEmail');
+            if (emailInput) emailInput.value = '';
+        }
+
+        function saveStockAlert() {
+            const email = document.getElementById('stockEmail').value;
+            if (!email || !email.includes('@')) {
+                showToast('Please enter a valid email address');
+                return;
+            }
+            let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
+            waitlist.push({
+                productId: currentStockProduct.id,
+                productName: currentStockProduct.name,
+                email: email,
+                date: new Date().toISOString(),
+                notified: false
+            });
+            localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
+            showToast(`We'll notify you when ${currentStockProduct.name} is back in stock!`);
+            closeStockModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadShopData();
+
+            document.getElementById('applyFilters')?.addEventListener('click', () => {
+                renderProducts();
+            });
+
+            document.getElementById('resetFilters')?.addEventListener('click', () => {
+                const brandFilter = document.getElementById('brandFilter');
+                const fragranceFilter = document.getElementById('fragranceFilter');
+                const stockFilter = document.getElementById('stockFilter');
+                const ratingFilter = document.getElementById('ratingFilter');
+                const sortFilter = document.getElementById('sortFilter');
+                const searchInput = document.getElementById('searchInput');
+                const minPrice = document.getElementById('minPrice');
+                const maxPrice = document.getElementById('maxPrice');
+
+                if (brandFilter) brandFilter.value = '';
+                if (fragranceFilter) fragranceFilter.value = '';
+                if (stockFilter) stockFilter.value = 'all';
+                if (ratingFilter) ratingFilter.value = 'all';
+                if (sortFilter) sortFilter.value = 'default';
+                if (searchInput) searchInput.value = '';
+                if (minPrice) minPrice.value = '0';
+                if (maxPrice) maxPrice.value = '5000';
+
+                // Remove active class from presets
+                document.querySelectorAll('.price-preset').forEach(btn => btn.classList.remove('active'));
+
+                renderProducts();
+            });
+
+            document.getElementById('searchInput')?.addEventListener('keyup', () => {
+                renderProducts();
+            });
+
+            // Add event listeners for price inputs
+            document.getElementById('minPrice')?.addEventListener('input', renderProducts);
+            document.getElementById('maxPrice')?.addEventListener('input', renderProducts);
         });
-        localStorage.setItem('stock_waitlist', JSON.stringify(waitlist));
-        showToast(`We'll notify you when ${currentStockProduct.name} is back in stock!`);
-        closeStockModal();
-    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        loadShopData();
-
-        document.getElementById('applyFilters')?.addEventListener('click', () => {
-            renderProducts();
-        });
-
-        document.getElementById('resetFilters')?.addEventListener('click', () => {
-            const brandFilter = document.getElementById('brandFilter');
-            const fragranceFilter = document.getElementById('fragranceFilter');
-            const stockFilter = document.getElementById('stockFilter');
-            const ratingFilter = document.getElementById('ratingFilter');
-            const sortFilter = document.getElementById('sortFilter');
-            const priceSlider = document.getElementById('priceSlider');
-            const searchInput = document.getElementById('searchInput');
-
-            if (brandFilter) brandFilter.value = '';
-            if (fragranceFilter) fragranceFilter.value = '';
-            if (stockFilter) stockFilter.value = 'all';
-            if (ratingFilter) ratingFilter.value = 'all';
-            if (sortFilter) sortFilter.value = 'default';
-            if (priceSlider) priceSlider.value = '5000';
-            if (searchInput) searchInput.value = '';
-
-            const priceValue = document.getElementById('priceValue');
-            if (priceValue) priceValue.innerText = '৳5000';
-
-            renderProducts();
-        });
-
-        document.getElementById('searchInput')?.addEventListener('keyup', () => {
-            renderProducts();
-        });
-
-        document.getElementById('priceSlider')?.addEventListener('input', (e) => {
-            const priceValue = document.getElementById('priceValue');
-            if (priceValue) priceValue.innerText = '৳' + e.target.value;
-            renderProducts();
-        });
-    });
-
-    // Make functions globally available
-    window.addToCart = addToCart;
-    window.addToWishlist = addToWishlist;
-    window.addToCompare = addToCompare;
-    window.goToCompare = goToCompare;
-    window.viewProduct = viewProduct;
-    window.showStockAlert = showStockAlert;
-    window.closeStockModal = closeStockModal;
-    window.saveStockAlert = saveStockAlert;
-</script></body>
+        // Make functions globally available
+        window.addToCart = addToCart;
+        window.addToWishlist = addToWishlist;
+        window.addToCompare = addToCompare;
+        window.goToCompare = goToCompare;
+        window.viewProduct = viewProduct;
+        window.showStockAlert = showStockAlert;
+        window.closeStockModal = closeStockModal;
+        window.saveStockAlert = saveStockAlert;
+        window.setPriceRange = setPriceRange;
+    </script>
+</body>
 
 </html>
