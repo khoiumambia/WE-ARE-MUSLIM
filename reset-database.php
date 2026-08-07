@@ -102,13 +102,6 @@ function generateReviewsForProduct($pdo, $productId, $productName, $count = 50) 
         'Zainab Farooq', 'Zainab Haque', 'Zainab Siddiqui'
     ];
 
-    $firstNames = ['Mohammed', 'Ahmed', 'Fatima', 'Ali', 'Aisha', 'Omar', 'Zainab', 'Hassan', 'Khadija', 'Yusuf', 
-                   'Mariam', 'Ibrahim', 'Sara', 'Bilal', 'Nadia', 'Hamza', 'Leila', 'Rashid', 'Sumaya', 'Tariq',
-                   'Layla', 'Saif', 'Amira', 'Malik', 'Noor', 'Rayyan', 'Hana', 'Idris', 'Salma', 'Karim'];
-
-    $lastNames = ['Rahman', 'Ahmed', 'Hassan', 'Ali', 'Hussain', 'Islam', 'Khan', 'Chowdhury', 'Miah', 'Uddin',
-                  'Sarker', 'Haque', 'Begum', 'Hossain', 'Khatun', 'Patel', 'Mahmood', 'Siddiqui', 'Farooq'];
-
     $positiveReviews = [
         "Absolutely love this attar! The fragrance is long-lasting and gets me compliments everywhere I go.",
         "Best purchase I've made this year. The scent is unique, elegant, and very traditional.",
@@ -740,7 +733,22 @@ try {
     }
     
     // ============================================
-    // 12. RESET BLOGS (id 1-2)
+    // 12. UPDATE PRODUCT RATINGS AFTER REVIEWS GENERATED
+    // ============================================
+    try {
+        $pdo->exec("
+            UPDATE products p
+            SET 
+                p.ratings = (SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.product_id = p.id),
+                p.reviews = (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id)
+        ");
+        $results['ratings_updated'] = "✅ Product ratings updated after review generation";
+    } catch (PDOException $e) {
+        $errors['ratings_update'] = "⚠️ Error updating ratings: " . $e->getMessage();
+    }
+    
+    // ============================================
+    // 13. RESET BLOGS (id 1-2)
     // ============================================
     try {
         $stmt = $pdo->prepare("DELETE FROM blogs WHERE id > 2");
@@ -787,7 +795,7 @@ try {
     $results['blogs'] = count($sampleBlogs) . " blogs preserved (id 1-2)";
     
     // ============================================
-    // 13. RESET CAROUSEL SLIDES (id 1-3)
+    // 14. RESET CAROUSEL SLIDES (id 1-3)
     // ============================================
     try {
         $stmt = $pdo->prepare("DELETE FROM carousel_slides WHERE id > 3");
@@ -821,7 +829,7 @@ try {
     $results['carousel_slides'] = count($carouselSlides) . " carousel slides preserved";
     
     // ============================================
-    // 14. RESET FEATURES (id 1-6)
+    // 15. RESET FEATURES (id 1-6)
     // ============================================
     try {
         $stmt = $pdo->prepare("DELETE FROM features WHERE id > 6");
@@ -858,7 +866,7 @@ try {
     $results['features'] = count($features) . " features preserved";
     
     // ============================================
-    // 15. RESET HOMEPAGE CONTENT (id 1-14)
+    // 16. RESET HOMEPAGE CONTENT (id 1-14)
     // ============================================
     try {
         $stmt = $pdo->prepare("DELETE FROM homepage_content WHERE id > 14");
@@ -903,7 +911,63 @@ try {
     $results['homepage_content'] = count($homepageContent) . " homepage sections preserved";
     
     // ============================================
-    // 16. RESET AUTO_INCREMENT VALUES
+    // 17. CREATE TRIGGERS FOR AUTO UPDATING RATINGS
+    // ============================================
+    try {
+        // Drop existing triggers
+        $pdo->exec("DROP TRIGGER IF EXISTS update_product_ratings_on_review_insert");
+        $pdo->exec("DROP TRIGGER IF EXISTS update_product_ratings_on_review_update");
+        $pdo->exec("DROP TRIGGER IF EXISTS update_product_ratings_on_review_delete");
+        
+        // Create trigger for INSERT
+        $pdo->exec("
+            CREATE TRIGGER update_product_ratings_on_review_insert
+            AFTER INSERT ON reviews
+            FOR EACH ROW
+            BEGIN
+                UPDATE products p
+                SET 
+                    p.ratings = (SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.product_id = p.id),
+                    p.reviews = (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id)
+                WHERE p.id = NEW.product_id;
+            END
+        ");
+        
+        // Create trigger for UPDATE
+        $pdo->exec("
+            CREATE TRIGGER update_product_ratings_on_review_update
+            AFTER UPDATE ON reviews
+            FOR EACH ROW
+            BEGIN
+                UPDATE products p
+                SET 
+                    p.ratings = (SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.product_id = p.id),
+                    p.reviews = (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id)
+                WHERE p.id = NEW.product_id;
+            END
+        ");
+        
+        // Create trigger for DELETE
+        $pdo->exec("
+            CREATE TRIGGER update_product_ratings_on_review_delete
+            AFTER DELETE ON reviews
+            FOR EACH ROW
+            BEGIN
+                UPDATE products p
+                SET 
+                    p.ratings = (SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.product_id = p.id),
+                    p.reviews = (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id)
+                WHERE p.id = OLD.product_id;
+            END
+        ");
+        
+        $results['triggers_created'] = "✅ Product rating triggers created successfully";
+    } catch (PDOException $e) {
+        $errors['triggers'] = "⚠️ Error creating triggers: " . $e->getMessage();
+    }
+    
+    // ============================================
+    // 18. RESET AUTO_INCREMENT VALUES
     // ============================================
     try {
         $pdo->exec("ALTER TABLE products AUTO_INCREMENT = 9");

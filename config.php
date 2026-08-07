@@ -1,7 +1,7 @@
 <?php
 // Database configuration for XAMPP
 $host = 'localhost';
-$dbname = 'we-are-muslim';
+$dbname = 'muslim';  // ← Changed from 'we-are-muslim'
 $username = 'root';
 $password = '';
 
