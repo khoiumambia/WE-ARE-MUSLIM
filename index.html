@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WE ARE MUSLIM | Premium Attars & Fragrances</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B5E3C">
+</head>
+
+<body>
+
+    <div id="navigation-placeholder"></div>
+
+    <!-- Hero Carousel - Dynamically populated from database -->
+    <div class="hero-carousel" id="heroCarousel">
+        <!-- Slides will be added by JavaScript -->
+        <button class="carousel-btn prev" onclick="window.changeSlide(-1)">❮</button>
+        <button class="carousel-btn next" onclick="window.changeSlide(1)">❯</button>
+    </div>
+
+    <!-- Flash Sale Banner -->
+    <div class="flash-sale">
+        <i class="fas fa-bolt"></i> FLASH SALE! <span id="saleDiscount">25% OFF</span> on all Oudh Collections!
+        <div class="countdown" id="countdown"></div>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search for attars by name, brand, or fragrance...">
+            <button class="btn btn-primary" onclick="searchProducts()">Search</button>
+            <button class="btn" onclick="toggleVoiceSearch()" style="background: var(--primary-light);"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div id="voiceSearchStatus" style="text-align: center; margin-top: 0.5rem; font-size: 0.8rem;"></div>
+    </div>
+
+    <!-- Features Grid - Dynamically populated from database -->
+    <div class="section">
+        <div class="features-grid" id="featuresGrid">
+            <div class="loading">Loading features...</div>
+        </div>
+    </div>
+
+    <!-- Featured Products -->
+    <section class="section">
+        <h2 class="section-title" id="featuredSectionTitle" data-aos="fade-up">⭐ Featured Attars</h2>
+        <div class="product-grid" id="featuredProducts">
+            <div class="loading">Loading exquisite fragrances...</div>
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="shop.html" class="btn btn-primary" id="featuredButton">View All →</a>
+        </div>
+    </section>
+
+    <!-- Best Sellers -->
+    <section class="section">
+        <h2 class="section-title" id="bestsellerSectionTitle" data-aos="fade-up">🔥 Best Sellers</h2>
+        <div class="product-grid" id="bestSellers">
+            <div class="loading">Loading best sellers...</div>
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="shop.html" class="btn btn-primary" id="bestsellerButton">Shop Bestsellers →</a>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section class="section">
+        <h2 class="section-title" data-aos="fade-up">📝 Latest from Our Blog</h2>
+        <div class="product-grid" id="blogPosts">
+            <div class="loading">Loading articles...</div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <div class="section">
+        <div class="newsletter" data-aos="fade-up">
+            <h2 id="newsletterTitle">📧 Subscribe & Get 15% OFF</h2>
+            <p id="newsletterText">Plus exclusive offers, early access to sales, and perfume guides!</p>
+            <div class="newsletter-form">
+                <input type="email" id="newsletterEmail" placeholder="Enter your email">
+                <button class="btn btn-primary" onclick="subscribeNewsletter()">Subscribe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <h3 id="footerTitle">#WE ARE MUSLIM</h3>
+                <p id="footerText">Premium attars crafted with tradition and passion since 2020.</p>
+                <div class="social-icons">
+                    <i class="fab fa-facebook"></i>
+                    <i class="fab fa-instagram"></i>
+                    <i class="fab fa-whatsapp"></i>
+                    <i class="fab fa-youtube"></i>
+                </div>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <a href="shop.html">Shop</a>
+                <a href="about.html">About Us</a>
+                <a href="blog.html">Blog</a>
+            </div>
+            <div>
+                <h4>Customer Service</h4>
+                <a href="order-tracking.html">Track Order</a>
+                <a href="#">Returns & Refunds</a>
+                <a href="#">Shipping Policy</a>
+                <a href="#">FAQ</a>
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <div>
+                <h4>Contact Info</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Dhaka, Bangladesh</p>
+                <p><i class="fas fa-phone"></i> +880 1234 567890</p>
+                <p><i class="fas fa-envelope"></i> info@wearemuslim.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p id="copyright">&copy; 2024 #WE ARE MUSLIM. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Live Chat Widget -->
+    <div class="chat-widget">
+        <div class="chat-toggle" onclick="toggleChat()">
+            <i class="fas fa-comment-dots"></i>
+        </div>
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <strong><i class="fas fa-headset"></i> Customer Support</strong>
+                <button onclick="toggleChat()">&times;</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">👋 Assalamu Alaikum! How can I help you today?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Type your message...">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/index.js"></script>
+</body>
+
+</html>

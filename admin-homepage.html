@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Homepage - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .section-card { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+        .section-card h2 { font-family: 'Cormorant Garamond', serif; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .image-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 0.5rem; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; margin: 0.2rem; }
+        .carousel-item, .feature-item { background: var(--background); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+        .tab-btn { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-light); }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .drag-drop-area { border: 2px dashed #ccc; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin-top: 10px; transition: all 0.3s ease; }
+        .drag-drop-area.drag-over { border-color: var(--primary); background: rgba(139,94,60,0.05); }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="admin-container">
+        <h1 style="font-family: 'Cormorant Garamond';">🏠 Manage Homepage</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('content')">📝 Content</button>
+            <button class="tab-btn" onclick="switchTab('carousel')">🎠 Carousel</button>
+            <button class="tab-btn" onclick="switchTab('features')">✨ Features</button>
+            <button class="tab-btn" onclick="switchTab('sale')">🏷️ Flash Sale</button>
+        </div>
+        
+        <!-- Content Tab -->
+        <div id="contentTab" class="tab-content active">
+            <div class="section-card">
+                <h2>Hero Section</h2>
+                <div class="form-group"><label>Hero Title</label><input type="text" id="hero_title" placeholder="Main headline"></div>
+                <div class="form-group"><label>Hero Subtitle</label><textarea id="hero_subtitle" rows="2"></textarea></div>
+                <div class="form-group"><label>Hero Button Text</label><input type="text" id="hero_button" placeholder="Shop Now →"></div>
+                <div class="form-group"><label>Hero Button Link</label><input type="text" id="hero_button_link" placeholder="shop.html"></div>
+                <button class="btn btn-primary" onclick="saveContent('hero_title', 'hero_title', 'hero_subtitle', 'hero_button', 'hero_button_link')">Save Hero Section</button>
+            </div>
+            
+            <div class="section-card">
+                <h2>Featured Products Section</h2>
+                <div class="form-group"><label>Title</label><input type="text" id="featured_title"></div>
+                <div class="form-group"><label>Subtitle</label><input type="text" id="featured_subtitle"></div>
+                <div class="form-group"><label>Button Text</label><input type="text" id="featured_button_text"></div>
+                <div class="form-group"><label>Button Link</label><input type="text" id="featured_button_link"></div>
+                <button class="btn btn-primary" onclick="saveContent('featured_title', 'featured_title', 'featured_subtitle', 'featured_button_text', 'featured_button_link')">Save Featured Section</button>
+            </div>
+            
+            <div class="section-card">
+                <h2>Best Sellers Section</h2>
+                <div class="form-group"><label>Title</label><input type="text" id="bestseller_title"></div>
+                <div class="form-group"><label>Subtitle</label><input type="text" id="bestseller_subtitle"></div>
+                <div class="form-group"><label>Button Text</label><input type="text" id="bestseller_button_text"></div>
+                <div class="form-group"><label>Button Link</label><input type="text" id="bestseller_button_link"></div>
+                <button class="btn btn-primary" onclick="saveContent('bestseller_title', 'bestseller_title', 'bestseller_subtitle', 'bestseller_button_text', 'bestseller_button_link')">Save Best Sellers Section</button>
+            </div>
+            
+            <div class="section-card">
+                <h2>Newsletter Section</h2>
+                <div class="form-group"><label>Title</label><input type="text" id="newsletter_title"></div>
+                <div class="form-group"><label>Description</label><textarea id="newsletter_content" rows="2"></textarea></div>
+                <div class="form-group"><label>Button Text</label><input type="text" id="newsletter_button_text"></div>
+                <div class="form-group"><label>Button Link</label><input type="text" id="newsletter_button_link"></div>
+                <button class="btn btn-primary" onclick="saveContent('newsletter_title', 'newsletter_title', null, 'newsletter_button_text', 'newsletter_button_link', 'newsletter_content')">Save Newsletter Section</button>
+            </div>
+            
+            <div class="section-card">
+                <h2>Footer</h2>
+                <div class="form-group"><label>Footer Title</label><input type="text" id="footer_text"></div>
+                <div class="form-group"><label>Footer Subtitle</label><input type="text" id="footer_subtitle"></div>
+                <div class="form-group"><label>Copyright Text</label><input type="text" id="footer_copyright"></div>
+                <button class="btn btn-primary" onclick="saveContent('footer_text', 'footer_text', 'footer_subtitle', null, null, null, 'footer_copyright')">Save Footer</button>
+            </div>
+        </div>
+        
+        <!-- Carousel Tab -->
+        <div id="carouselTab" class="tab-content">
+            <div class="section-card">
+                <h2>Carousel Slides <button class="btn btn-sm btn-primary" onclick="showCarouselModal()">+ Add Slide</button></h2>
+                <div id="carouselList"></div>
+            </div>
+        </div>
+        
+        <!-- Features Tab -->
+        <div id="featuresTab" class="tab-content">
+            <div class="section-card">
+                <h2>Features <button class="btn btn-sm btn-primary" onclick="showFeatureModal()">+ Add Feature</button></h2>
+                <div id="featuresList"></div>
+            </div>
+        </div>
+        
+        <!-- Flash Sale Tab -->
+        <div id="saleTab" class="tab-content">
+            <div class="section-card">
+                <h2>🏷️ Flash Sale Settings</h2>
+                <div class="form-group">
+                    <label>Sale Title (shown in banner)</label>
+                    <input type="text" id="sale_title" placeholder="e.g., FLASH SALE! 25% OFF on all Oudh Collections!">
+                </div>
+                <div class="form-group">
+                    <label>Discount Text</label>
+                    <input type="text" id="sale_discount" placeholder="e.g., 25% OFF">
+                </div>
+                <div class="form-group">
+                    <label>Sale End Date & Time</label>
+                    <input type="datetime-local" id="sale_end_date">
+                </div>
+                <div class="form-group">
+                    <label>Enable Sale</label>
+                    <select id="sale_enabled">
+                        <option value="1">✅ Enabled</option>
+                        <option value="0">❌ Disabled</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveSaleSettings()">Save Sale Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Carousel Modal -->
+    <div id="carouselModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 id="carouselModalTitle">Add Carousel Slide</h3>
+                <button onclick="closeCarouselModal()" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+            </div>
+            <input type="hidden" id="carouselId">
+            <div class="form-group"><label>Title *</label><input type="text" id="carouselTitle"></div>
+            <div class="form-group"><label>Subtitle</label><textarea id="carouselSubtitle" rows="2"></textarea></div>
+            <div class="form-group"><label>Image URL</label><input type="text" id="carouselImage" placeholder="https://... or uploads/..."></div>
+            <div class="form-group"><label>Button Text</label><input type="text" id="carouselButtonText"></div>
+            <div class="form-group"><label>Button Link</label><input type="text" id="carouselButtonLink"></div>
+            <div class="form-group"><label>Order</label><input type="number" id="carouselOrder" value="0"></div>
+            <div class="drag-drop-area" id="carouselDropZone" onclick="document.getElementById('carouselImageFile').click()">
+                <i class="fas fa-cloud-upload-alt"></i> Click or drag image here
+            </div>
+            <input type="file" id="carouselImageFile" accept="image/*" style="display: none;">
+            <div id="carouselImagePreview" class="image-preview"></div>
+            <button class="btn btn-primary" onclick="saveCarousel()" style="margin-top: 1rem;">Save</button>
+        </div>
+    </div>
+    
+    <!-- Feature Modal -->
+    <div id="featureModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 id="featureModalTitle">Add Feature</h3>
+                <button onclick="closeFeatureModal()" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+            </div>
+            <input type="hidden" id="featureId">
+            <div class="form-group"><label>Icon (FontAwesome class)</label><input type="text" id="featureIcon" placeholder="fas fa-star"></div>
+            <div class="form-group"><label>Title *</label><input type="text" id="featureTitle"></div>
+            <div class="form-group"><label>Description</label><textarea id="featureDescription" rows="2"></textarea></div>
+            <div class="form-group"><label>Link</label><input type="text" id="featureLink"></div>
+            <button class="btn btn-primary" onclick="saveFeature()">Save</button>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let allCarousel = [];
+        let allFeatures = [];
+        let uploadedImages = new Set();
+
+        // Image upload for carousel
+        const carouselDropZone = document.getElementById('carouselDropZone');
+        const carouselImageFile = document.getElementById('carouselImageFile');
+        const carouselImagePreview = document.getElementById('carouselImagePreview');
+        const carouselImage = document.getElementById('carouselImage');
+
+        if (carouselDropZone) {
+            carouselDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                carouselDropZone.classList.add('drag-over');
+            });
+            carouselDropZone.addEventListener('dragleave', () => {
+                carouselDropZone.classList.remove('drag-over');
+            });
+            carouselDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                carouselDropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    uploadCarouselImage(file);
+                }
+            });
+        }
+
+        if (carouselImageFile) {
+            carouselImageFile.addEventListener('change', (e) => {
+                if (e.target.files[0]) uploadCarouselImage(e.target.files[0]);
+            });
+        }
+
+        async function uploadCarouselImage(file) {
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('Image too large! Max 2MB');
+                return;
+            }
+            showToast('Uploading...');
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const response = await fetch('api/upload-image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    carouselImage.value = result.image_url;
+                    carouselImagePreview.innerHTML = '<img src="' + result.image_url + '?t=' + Date.now() + '" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">';
+                    showToast('Image uploaded!');
+                } else {
+                    showToast('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Upload failed');
+            }
+        }
+
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) { window.location.href = 'login.html'; return false; }
+            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            return true;
+        }
+
+        async function loadHomepageData() {
+            try {
+                const response = await fetch('api/get-homepage.php');
+                const data = await response.json();
+                if (data.success) {
+                    // Populate content fields
+                    data.sections.forEach(section => {
+                        const titleEl = document.getElementById(section.section);
+                        if (titleEl) titleEl.value = section.title || '';
+                        const subtitleEl = document.getElementById(section.section + '_subtitle');
+                        if (subtitleEl) subtitleEl.value = section.subtitle || '';
+                        const contentEl = document.getElementById(section.section + '_content');
+                        if (contentEl) contentEl.value = section.content || '';
+                        const buttonTextEl = document.getElementById(section.section + '_button_text');
+                        if (buttonTextEl) buttonTextEl.value = section.button_text || '';
+                        const buttonLinkEl = document.getElementById(section.section + '_button_link');
+                        if (buttonLinkEl) buttonLinkEl.value = section.button_link || '';
+                        
+                        // Handle special cases
+                        if (section.section === 'footer_copyright') {
+                            const el = document.getElementById('footer_copyright');
+                            if (el) el.value = section.title || '';
+                        }
+                        if (section.section === 'sale_title') {
+                            const el = document.getElementById('sale_title');
+                            if (el) el.value = section.title || '';
+                        }
+                        if (section.section === 'sale_discount') {
+                            const el = document.getElementById('sale_discount');
+                            if (el) el.value = section.title || '';
+                        }
+                        if (section.section === 'sale_end_date') {
+                            const el = document.getElementById('sale_end_date');
+                            if (el && section.content) {
+                                el.value = section.content.replace(' ', 'T').slice(0, 16);
+                            }
+                        }
+                        if (section.section === 'sale_enabled') {
+                            const el = document.getElementById('sale_enabled');
+                            if (el) el.value = section.content || '1';
+                        }
+                    });
+                    
+                    // Populate carousel
+                    allCarousel = data.carousel || [];
+                    renderCarousel();
+                    
+                    // Populate features
+                    allFeatures = data.features || [];
+                    renderFeatures();
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function saveContent(section, titleId, subtitleId, buttonTextId, buttonLinkId, contentId, extraId) {
+            const data = {
+                section: section,
+                title: titleId ? document.getElementById(titleId)?.value : '',
+                subtitle: subtitleId ? document.getElementById(subtitleId)?.value : '',
+                content: contentId ? document.getElementById(contentId)?.value : '',
+                button_text: buttonTextId ? document.getElementById(buttonTextId)?.value : '',
+                button_link: buttonLinkId ? document.getElementById(buttonLinkId)?.value : ''
+            };
+            
+            fetch('api/update-homepage.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) showToast('Saved!');
+                else showToast('Error: ' + result.error);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function saveSaleSettings() {
+            const title = document.getElementById('sale_title').value;
+            const discount = document.getElementById('sale_discount').value;
+            const endDate = document.getElementById('sale_end_date').value;
+            const enabled = document.getElementById('sale_enabled').value;
+            
+            Promise.all([
+                fetch('api/update-homepage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section: 'sale_title', title: title })
+                }),
+                fetch('api/update-homepage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section: 'sale_discount', title: discount })
+                }),
+                fetch('api/update-homepage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section: 'sale_end_date', content: endDate.replace('T', ' ') + ':00' })
+                }),
+                fetch('api/update-homepage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section: 'sale_enabled', content: enabled })
+                })
+            ]).then(() => {
+                showToast('Sale settings saved!');
+            }).catch(() => {
+                showToast('Error saving sale settings');
+            });
+        }
+
+        function renderCarousel() {
+            const container = document.getElementById('carouselList');
+            if (!container) return;
+            if (allCarousel.length === 0) { container.innerHTML = '<p>No slides yet. Click "Add Slide" to create one.</p>'; return; }
+            container.innerHTML = allCarousel.map(slide => `
+                <div class="carousel-item">
+                    <div><strong>${escapeHtml(slide.title)}</strong><br><small>Order: ${slide.order_index}</small></div>
+                    <div><img src="${slide.image}" width="60" height="60" style="object-fit:cover; border-radius:8px;"></div>
+                    <div>
+                        <button class="btn btn-sm" onclick="editCarousel(${slide.id})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCarousel(${slide.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFeatures() {
+            const container = document.getElementById('featuresList');
+            if (!container) return;
+            if (allFeatures.length === 0) { container.innerHTML = '<p>No features yet. Click "Add Feature" to create one.</p>'; return; }
+            container.innerHTML = allFeatures.map(f => `
+                <div class="feature-item">
+                    <div><i class="${f.icon}"></i> <strong>${escapeHtml(f.title)}</strong><br><small>${escapeHtml(f.description || '')}</small></div>
+                    <div>
+                        <button class="btn btn-sm" onclick="editFeature(${f.id}, '${f.icon}', '${escapeHtml(f.title)}', '${escapeHtml(f.description || '')}', '${f.link || ''}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteFeature(${f.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showCarouselModal() { document.getElementById('carouselModalTitle').innerText = 'Add Carousel Slide'; document.getElementById('carouselId').value = ''; document.getElementById('carouselTitle').value = ''; document.getElementById('carouselSubtitle').value = ''; document.getElementById('carouselImage').value = ''; document.getElementById('carouselButtonText').value = ''; document.getElementById('carouselButtonLink').value = ''; document.getElementById('carouselOrder').value = '0'; carouselImagePreview.innerHTML = ''; document.getElementById('carouselModal').style.display = 'flex'; }
+        function closeCarouselModal() { document.getElementById('carouselModal').style.display = 'none'; }
+        
+        async function editCarousel(id) {
+            const slide = allCarousel.find(s => s.id === id);
+            if (!slide) return;
+            document.getElementById('carouselModalTitle').innerText = 'Edit Carousel Slide';
+            document.getElementById('carouselId').value = slide.id;
+            document.getElementById('carouselTitle').value = slide.title;
+            document.getElementById('carouselSubtitle').value = slide.subtitle || '';
+            document.getElementById('carouselImage').value = slide.image;
+            document.getElementById('carouselButtonText').value = slide.button_text || '';
+            document.getElementById('carouselButtonLink').value = slide.button_link || '';
+            document.getElementById('carouselOrder').value = slide.order_index;
+            carouselImagePreview.innerHTML = slide.image ? '<img src="' + slide.image + '?t=' + Date.now() + '" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">' : '';
+            document.getElementById('carouselModal').style.display = 'flex';
+        }
+        
+        function saveCarousel() {
+            const id = document.getElementById('carouselId').value;
+            const data = { 
+                action: id ? 'update' : 'add', 
+                id: id, 
+                title: document.getElementById('carouselTitle').value, 
+                subtitle: document.getElementById('carouselSubtitle').value, 
+                image: document.getElementById('carouselImage').value, 
+                button_text: document.getElementById('carouselButtonText').value, 
+                button_link: document.getElementById('carouselButtonLink').value, 
+                order_index: document.getElementById('carouselOrder').value 
+            };
+            fetch('api/update-carousel.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+            .then(response => response.json()).then(result => { if (result.success) { showToast('Saved!'); closeCarouselModal(); loadHomepageData(); } else showToast('Error: ' + result.error); }).catch(error => console.error('Error:', error));
+        }
+        
+        function deleteCarousel(id) { if (confirm('Delete this slide?')) { fetch('api/update-carousel.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: id }) }).then(response => response.json()).then(result => { if (result.success) { showToast('Deleted'); loadHomepageData(); } else showToast('Error: ' + result.error); }); } }
+        
+        function showFeatureModal() { document.getElementById('featureModalTitle').innerText = 'Add Feature'; document.getElementById('featureId').value = ''; document.getElementById('featureIcon').value = ''; document.getElementById('featureTitle').value = ''; document.getElementById('featureDescription').value = ''; document.getElementById('featureLink').value = ''; document.getElementById('featureModal').style.display = 'flex'; }
+        function closeFeatureModal() { document.getElementById('featureModal').style.display = 'none'; }
+        function editFeature(id, icon, title, description, link) { document.getElementById('featureModalTitle').innerText = 'Edit Feature'; document.getElementById('featureId').value = id; document.getElementById('featureIcon').value = icon; document.getElementById('featureTitle').value = title; document.getElementById('featureDescription').value = description; document.getElementById('featureLink').value = link; document.getElementById('featureModal').style.display = 'flex'; }
+        
+        function saveFeature() {
+            const id = document.getElementById('featureId').value;
+            const data = { action: id ? 'update' : 'add', id: id, icon: document.getElementById('featureIcon').value, title: document.getElementById('featureTitle').value, description: document.getElementById('featureDescription').value, link: document.getElementById('featureLink').value };
+            fetch('api/update-feature.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+            .then(response => response.json()).then(result => { if (result.success) { showToast('Saved!'); closeFeatureModal(); loadHomepageData(); } else showToast('Error: ' + result.error); }).catch(error => console.error('Error:', error));
+        }
+        
+        function deleteFeature(id) { if (confirm('Delete this feature?')) { fetch('api/update-feature.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', id: id }) }).then(response => response.json()).then(result => { if (result.success) { showToast('Deleted'); loadHomepageData(); } else showToast('Error: ' + result.error); }); } }
+        
+        function switchTab(tabName) {
+            ['content', 'carousel', 'features', 'sale'].forEach(t => { document.getElementById(t + 'Tab').classList.remove('active'); });
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+        }
+        
+        window.switchTab = switchTab;
+        window.saveContent = saveContent;
+        window.saveSaleSettings = saveSaleSettings;
+        window.showCarouselModal = showCarouselModal;
+        window.closeCarouselModal = closeCarouselModal;
+        window.editCarousel = editCarousel;
+        window.saveCarousel = saveCarousel;
+        window.deleteCarousel = deleteCarousel;
+        window.showFeatureModal = showFeatureModal;
+        window.closeFeatureModal = closeFeatureModal;
+        window.editFeature = editFeature;
+        window.saveFeature = saveFeature;
+        window.deleteFeature = deleteFeature;
+        
+        if (checkAdminAccess()) loadHomepageData();
+    </script>
+</body>
+</html>

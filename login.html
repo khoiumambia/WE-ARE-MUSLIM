@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Sign Up - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container {
+            max-width: 500px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 30px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .auth-tab {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: -2px;
+        }
+        .auth-form {
+            display: none;
+        }
+        .auth-form.active {
+            display: block;
+        }
+        .btn-block {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        .demo-accounts {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 16px;
+        }
+        .demo-accounts p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        .forgot-link {
+            text-align: right;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }
+        .forgot-link a {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+        .divider span {
+            padding: 0 1rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .email-login-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        .email-login-btn:hover {
+            background: #f8f9fa;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .email-login-btn i {
+            font-size: 1.2rem;
+            color: #DB4437;
+        }
+        .guest-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .guest-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .guest-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Password Toggle */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            width: 100%;
+            padding: 0.8rem;
+            padding-right: 3rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 1.1rem;
+            padding: 0.3rem;
+        }
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        /* Password Strength Indicator */
+        .password-strength {
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .password-strength.show {
+            display: block;
+        }
+        .password-strength-bar {
+            height: 4px;
+            border-radius: 4px;
+            margin-top: 0.3rem;
+            transition: all 0.3s ease;
+        }
+        .password-strength-text {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .strength-weak .password-strength-bar { background: #ef4444; width: 25%; }
+        .strength-weak .password-strength-text { color: #ef4444; }
+        .strength-medium .password-strength-bar { background: #f59e0b; width: 50%; }
+        .strength-medium .password-strength-text { color: #f59e0b; }
+        .strength-strong .password-strength-bar { background: #10b981; width: 75%; }
+        .strength-strong .password-strength-text { color: #10b981; }
+        .strength-very-strong .password-strength-bar { background: #059669; width: 100%; }
+        .strength-very-strong .password-strength-text { color: #059669; }
+
+        /* Email Modal */
+        .email-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .email-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        .email-modal-content input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .email-step {
+            display: none;
+        }
+        .email-step.active {
+            display: block;
+        }
+        
+        /* Reset Modal */
+        .reset-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .reset-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        .reset-modal-content input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .reset-step {
+            display: none;
+        }
+        .reset-step.active {
+            display: block;
+        }
+        .message-success {
+            color: var(--success);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .message-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .message-info {
+            color: var(--info);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
+        }
+
+        /* Loading Spinner on Buttons */
+        .btn-loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .btn-loading .btn-text {
+            visibility: hidden;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Social Login Buttons */
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .social-login-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .social-login-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .social-login-btn.google { color: #DB4437; }
+        .social-login-btn.facebook { color: #4267B2; }
+        .social-login-btn i { font-size: 1.2rem; }
+
+        /* Remember Me */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 1rem;
+        }
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .remember-me label {
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navigation-placeholder"></div>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <form onsubmit="event.preventDefault(); login();">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="forgot-link">
+                        <a onclick="showResetModal()">Forgot Password?</a>
+                    </div>
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                        <span class="btn-text">Login →</span>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="email-login-btn" onclick="showEmailLoginModal()">
+                    <i class="fas fa-envelope"></i>
+                    Continue with Email
+                </button>
+
+                <div class="demo-accounts">
+                    <p><strong>📋 Demo Accounts:</strong></p>
+                    <p>👑 Admin: admin@attar.com / admin123</p>
+                    <p>👤 Customer: user@test.com / user123</p>
+                    <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Click "Continue with Email" for quick login
+                    </p>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="auth-form">
+                <form onsubmit="event.preventDefault(); signup();">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="signupName" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="signupPassword" placeholder="At least 6 characters" required>
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('signupPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <!-- Password Strength -->
+                        <div id="passwordStrength" class="password-strength">
+                            <div class="password-strength-bar"></div>
+                            <span class="password-strength-text">Enter a password</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number (optional)</label>
+                        <input type="tel" id="signupPhone" placeholder="+880XXXXXXXXX">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="signupBtn">
+                        <span class="btn-text">Create Account →</span>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="email-login-btn" onclick="showEmailLoginModal()">
+                    <i class="fas fa-envelope"></i>
+                    Continue with Email
+                </button>
+            </div>
+
+            <div class="guest-link">
+                <a href="shop.html">Continue as Guest →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Login Modal -->
+    <div id="emailModal" class="email-modal">
+        <div class="email-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-envelope"></i> Continue with Email</h3>
+                <button onclick="closeEmailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div id="emailStep1" class="email-step active">
+                <p>Enter your email address to continue.</p>
+                <input type="email" id="emailLoginEmail" placeholder="Your email address">
+                <div id="emailMessage"></div>
+                <button class="btn btn-primary btn-block" onclick="checkEmailForLogin()">Continue</button>
+            </div>
+            
+            <div id="emailStep2" class="email-step">
+                <p id="newUserEmailDisplay"></p>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">This email is new! Please set a password to create your account.</p>
+                <div class="form-group">
+                    <label>Set Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newUserPassword" placeholder="Enter password (min 6 characters)">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newUserPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newUserConfirmPassword" placeholder="Confirm password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newUserConfirmPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="newUserMessage"></div>
+                <button class="btn btn-primary btn-block" onclick="createNewUserWithPassword()">Create Account →</button>
+                <button class="btn btn-block" onclick="goBackToEmailStep1()" style="margin-top: 0.5rem; background: #6c757d;">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="resetModal" class="reset-modal">
+        <div class="reset-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-key"></i> Reset Password</h3>
+                <button onclick="closeResetModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div id="resetStep1" class="reset-step active">
+                <p>Enter your email address to reset your password.</p>
+                <input type="email" id="resetEmail" placeholder="Your email address">
+                <div id="resetMessage1"></div>
+                <button class="btn btn-primary btn-block" onclick="checkEmail()">Continue</button>
+            </div>
+            
+            <div id="resetStep2" class="reset-step">
+                <p id="resetEmailDisplay"></p>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="resetMessage2"></div>
+                <button class="btn btn-primary btn-block" onclick="resetPassword()">Reset Password</button>
+                <button class="btn btn-block" onclick="goBackToResetStep1()" style="margin-top: 0.5rem; background: #6c757d;">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let tempEmail = '';
+        
+        // ==================== PASSWORD TOGGLE ====================
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                input.type = 'password';
+                button.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        }
+
+        // ==================== PASSWORD STRENGTH ====================
+        document.getElementById('signupPassword')?.addEventListener('input', function() {
+            const password = this.value;
+            const strengthDiv = document.getElementById('passwordStrength');
+            const bar = strengthDiv.querySelector('.password-strength-bar');
+            const text = strengthDiv.querySelector('.password-strength-text');
+            
+            if (password.length === 0) {
+                strengthDiv.classList.remove('show');
+                return;
+            }
+            
+            strengthDiv.classList.add('show');
+            
+            let strength = 'weak';
+            let score = 0;
+            
+            // Length check
+            if (password.length >= 8) score++;
+            if (password.length >= 12) score++;
+            
+            // Complexity checks
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+            if (/\d/.test(password)) score++;
+            if (/[^a-zA-Z0-9]/.test(password)) score++;
+            
+            if (score <= 1) strength = 'weak';
+            else if (score <= 2) strength = 'weak';
+            else if (score <= 3) strength = 'medium';
+            else if (score <= 4) strength = 'strong';
+            else strength = 'very-strong';
+            
+            const messages = {
+                'weak': 'Weak - Add more characters and special symbols',
+                'medium': 'Medium - Add uppercase and special characters',
+                'strong': 'Strong - Good password!',
+                'very-strong': 'Very Strong - Excellent password!'
+            };
+            
+            strengthDiv.className = 'password-strength show strength-' + strength;
+            text.textContent = messages[strength] || 'Enter a password';
+        });
+
+        // ==================== EMAIL LOGIN MODAL ====================
+        function showEmailLoginModal() {
+            document.getElementById('emailModal').style.display = 'flex';
+            document.getElementById('emailStep1').classList.add('active');
+            document.getElementById('emailStep2').classList.remove('active');
+            document.getElementById('emailLoginEmail').value = '';
+            document.getElementById('newUserPassword').value = '';
+            document.getElementById('newUserConfirmPassword').value = '';
+            document.getElementById('emailMessage').innerHTML = '';
+            document.getElementById('newUserMessage').innerHTML = '';
+            tempEmail = '';
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        async function checkEmailForLogin() {
+            const email = document.getElementById('emailLoginEmail').value.trim();
+            const messageDiv = document.getElementById('emailMessage');
+            
+            if (!email) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter your email address</span>';
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter a valid email address</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Checking...</span>';
+            
+            try {
+                const response = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, action: 'check' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.exists) {
+                    messageDiv.innerHTML = '<span class="message-success">✅ Existing user! Logging in...</span>';
+                    
+                    const loginResponse = await fetch('api/quick-login.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, action: 'login' })
+                    });
+                    
+                    const loginResult = await loginResponse.json();
+                    
+                    if (loginResult.success) {
+                        localStorage.setItem('currentUser', JSON.stringify(loginResult.user));
+                        showToast(`Welcome back ${loginResult.user.name}!`);
+                        closeEmailModal();
+                        setTimeout(() => {
+                            if (loginResult.user.role === 'admin') {
+                                window.location.href = 'admin-dashboard.html';
+                            } else {
+                                window.location.href = 'index.html';
+                            }
+                        }, 1000);
+                    } else {
+                        messageDiv.innerHTML = '<span class="message-error">Login failed. Please try again.</span>';
+                    }
+                } else {
+                    tempEmail = email;
+                    document.getElementById('newUserEmailDisplay').innerHTML = `<strong>Email: ${email}</strong>`;
+                    document.getElementById('emailStep1').classList.remove('active');
+                    document.getElementById('emailStep2').classList.add('active');
+                    document.getElementById('emailMessage').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error checking email:', error);
+                messageDiv.innerHTML = '<span class="message-error">Error connecting to server. Please try again.</span>';
+            }
+        }
+
+        async function createNewUserWithPassword() {
+            const password = document.getElementById('newUserPassword').value;
+            const confirmPassword = document.getElementById('newUserConfirmPassword').value;
+            const messageDiv = document.getElementById('newUserMessage');
+            
+            if (!password || password.length < 6) {
+                messageDiv.innerHTML = '<span class="message-error">Password must be at least 6 characters</span>';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<span class="message-error">Passwords do not match</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Creating account...</span>';
+            
+            try {
+                const response = await fetch('api/quick-login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: tempEmail, 
+                        password: password, 
+                        action: 'create_with_password' 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    showToast(`Welcome ${result.user.name}! Account created with password.`);
+                    closeEmailModal();
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">' + (result.error || 'Failed to create account') + '</span>';
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                messageDiv.innerHTML = '<span class="message-error">Error creating account. Please try again.</span>';
+            }
+        }
+
+        function goBackToEmailStep1() {
+            document.getElementById('emailStep1').classList.add('active');
+            document.getElementById('emailStep2').classList.remove('active');
+            document.getElementById('emailMessage').innerHTML = '';
+            document.getElementById('newUserMessage').innerHTML = '';
+            tempEmail = '';
+        }
+
+        // ==================== PASSWORD LOGIN ====================
+        async function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            if (!email || !password) {
+                showToast('Please fill in all fields');
+                return;
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('btn-loading');
+
+            try {
+                const response = await fetch('api/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Save remember me preference
+                    if (rememberMe) {
+                        localStorage.setItem('remembered_email', email);
+                    } else {
+                        localStorage.removeItem('remembered_email');
+                    }
+                    
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    showToast(`Welcome back, ${result.user.name}!`);
+                    btn.classList.remove('btn-loading');
+                    
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else {
+                    btn.classList.remove('btn-loading');
+                    showToast(result.error || 'Invalid email or password');
+                }
+            } catch (error) {
+                btn.classList.remove('btn-loading');
+                console.error('Login error:', error);
+                showToast('Login failed. Please try again.');
+            }
+        }
+
+        // ==================== SIGNUP ====================
+        async function signup() {
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const phone = document.getElementById('signupPhone').value.trim();
+
+            if (!name || !email || !password) {
+                showToast('Please fill all required fields');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showToast('Please enter a valid email address');
+                return;
+            }
+
+            const btn = document.getElementById('signupBtn');
+            btn.classList.add('btn-loading');
+
+            try {
+                const response = await fetch('api/register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, phone })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message);
+                    btn.classList.remove('btn-loading');
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('loginEmail').value = email;
+                    }, 1500);
+                } else {
+                    btn.classList.remove('btn-loading');
+                    showToast(result.error || 'Signup failed');
+                }
+            } catch (error) {
+                btn.classList.remove('btn-loading');
+                console.error('Signup error:', error);
+                showToast('Signup failed. Please try again.');
+            }
+        }
+
+        // ==================== PASSWORD RESET ====================
+        let resetEmail = '';
+        
+        function showResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('resetStep1').classList.add('active');
+            document.getElementById('resetStep2').classList.remove('active');
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('resetMessage1').innerHTML = '';
+            document.getElementById('resetMessage2').innerHTML = '';
+            resetEmail = '';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        async function checkEmail() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const messageDiv = document.getElementById('resetMessage1');
+            
+            if (!email) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter your email address</span>';
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                messageDiv.innerHTML = '<span class="message-error">Please enter a valid email address</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Checking...</span>';
+            
+            try {
+                const response = await fetch('api/forgot-password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, step: 'check' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.exists) {
+                    resetEmail = email;
+                    document.getElementById('resetEmailDisplay').innerHTML = `<strong>Resetting password for: ${email}</strong>`;
+                    document.getElementById('resetStep1').classList.remove('active');
+                    document.getElementById('resetStep2').classList.add('active');
+                    document.getElementById('resetMessage1').innerHTML = '';
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">❌ Email not found. Please check and try again.</span>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<span class="message-error">❌ Error checking email. Please try again.</span>';
+            }
+        }
+        
+        async function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('resetMessage2');
+            
+            if (!newPassword || newPassword.length < 6) {
+                messageDiv.innerHTML = '<span class="message-error">Password must be at least 6 characters</span>';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                messageDiv.innerHTML = '<span class="message-error">Passwords do not match</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message-info"><i class="fas fa-spinner fa-spin"></i> Resetting password...</span>';
+            
+            try {
+                const response = await fetch('api/forgot-password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: resetEmail, 
+                        new_password: newPassword,
+                        step: 'reset' 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.innerHTML = '<span class="message-success">✅ Password reset successfully! You can now login.</span>';
+                    setTimeout(() => {
+                        closeResetModal();
+                        showToast('Password reset successful! Please login with your new password.');
+                    }, 2000);
+                } else {
+                    messageDiv.innerHTML = '<span class="message-error">❌ ' + (result.error || 'Failed to reset password') + '</span>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<span class="message-error">❌ Error resetting password. Please try again.</span>';
+            }
+        }
+        
+        function goBackToResetStep1() {
+            document.getElementById('resetStep1').classList.add('active');
+            document.getElementById('resetStep2').classList.remove('active');
+            document.getElementById('resetMessage1').innerHTML = '';
+            document.getElementById('resetMessage2').innerHTML = '';
+        }
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+            
+            if (tab === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                loginForm.classList.remove('active');
+                signupForm.classList.add('active');
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+            }
+        }
+
+        // Load remembered email
+        document.addEventListener('DOMContentLoaded', function() {
+            const rememberedEmail = localStorage.getItem('remembered_email');
+            if (rememberedEmail) {
+                document.getElementById('loginEmail').value = rememberedEmail;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
+        // Check if already logged in
+        const currentUser = getCurrentUser();
+        if (currentUser && !window.location.pathname.includes('login.html')) {
+            window.location.href = 'index.html';
+        }
+
+        window.switchTab = switchTab;
+        window.login = login;
+        window.signup = signup;
+        window.showEmailLoginModal = showEmailLoginModal;
+        window.closeEmailModal = closeEmailModal;
+        window.checkEmailForLogin = checkEmailForLogin;
+        window.createNewUserWithPassword = createNewUserWithPassword;
+        window.goBackToEmailStep1 = goBackToEmailStep1;
+        window.showResetModal = showResetModal;
+        window.closeResetModal = closeResetModal;
+        window.checkEmail = checkEmail;
+        window.resetPassword = resetPassword;
+        window.goBackToResetStep1 = goBackToResetStep1;
+        window.togglePasswordVisibility = togglePasswordVisibility;
+    </script>
+</body>
+
+</html>

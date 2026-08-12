@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .dashboard-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .welcome-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 2rem; border-radius: 30px; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 20px; text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .stat-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .card { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); }
+        .card h2 { font-family: 'Cormorant Garamond', serif; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .recent-orders-table, .users-table { width: 100%; overflow-x: auto; }
+        .recent-orders-table table, .users-table table { width: 100%; border-collapse: collapse; }
+        .recent-orders-table th, .recent-orders-table td, .users-table th, .users-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+        .recent-orders-table th, .users-table th { background: var(--background); font-weight: 600; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .status-badge { padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .status-processing { background: #ffc107; color: #333; }
+        .status-shipped { background: #17a2b8; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .quick-actions .btn { text-align: center; padding: 0.8rem; }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+        .tab-btn { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s ease; }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .search-bar { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-bar input { flex: 1; padding: 0.7rem; border: 1px solid var(--border); border-radius: 50px; min-width: 200px; }
+        .search-bar select { padding: 0.7rem; border: 1px solid var(--border); border-radius: 12px; background: white; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .role-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; font-weight: 600; display: inline-block; }
+        .role-admin { background: #9c27b0; color: white; }
+        .role-user { background: #28a745; color: white; }
+        .payment-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; font-weight: 600; margin-left: 0.5rem; display: inline-block; }
+        .payment-confirmed { background: #28a745; color: white; }
+        .payment-pending { background: #ffc107; color: #333; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 500px; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .revenue-note { font-size: 0.7rem; color: #666; margin-top: 0.3rem; }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+        .loading { text-align: center; padding: 3rem; color: #666; }
+        .btn { display: inline-block; padding: 0.6rem 1.2rem; border-radius: 50px; text-decoration: none; font-weight: 500; transition: all 0.3s ease; cursor: pointer; border: none; }
+        .btn-primary { background: #8B5E3C; color: white; }
+        .btn-primary:hover { background: #6d4c2f; transform: translateY(-2px); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .chart-controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+        .chart-period { display: flex; gap: 0.5rem; }
+        .period-btn { padding: 0.3rem 1rem; border: 1px solid var(--border); background: white; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; }
+        .period-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .date-range { display: flex; gap: 0.5rem; align-items: center; }
+        .date-range input { padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="dashboard-container" id="dashboardContainer">
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading dashboard...</div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Details</h3>
+                <button onclick="closeUserModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="userModalContent"></div>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // API Base URL
+        const API_BASE = '/muslim/api/';
+        
+        let currentUser = null;
+        let salesChart = null;
+        let allOrders = [];
+        let allUsers = [];
+        let allProducts = [];
+        let userSearchTerm = '';
+        let userRoleFilter = 'all';
+        
+        // Chart state
+        let currentChartType = 'daily'; // daily, weekly, monthly, custom
+        let customStartDate = null;
+        let customEndDate = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function initDashboard() {
+            currentUser = getCurrentUser();
+            if (!currentUser) { 
+                window.location.href = 'login.html'; 
+                return; 
+            }
+            if (currentUser.role !== 'admin') { 
+                window.location.href = 'index.html'; 
+                return; 
+            }
+            await loadData();
+        }
+
+        async function loadData() {
+            await Promise.all([
+                fetchOrders(),
+                fetchUsers(),
+                fetchProducts()
+            ]);
+            renderAdminDashboard();
+        }
+
+        // ============================================
+        // FETCH FROM API
+        // ============================================
+        async function fetchOrders() {
+            try {
+                const response = await fetch(`${API_BASE}get-orders.php`);
+                const data = await response.json();
+                if (data.success) {
+                    allOrders = data.orders || [];
+                } else {
+                    console.error('Error fetching orders:', data.message);
+                    allOrders = [];
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                allOrders = [];
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                const response = await fetch(`${API_BASE}get-users.php`);
+                const data = await response.json();
+                if (data.success && data.users) {
+                    allUsers = data.users;
+                } else {
+                    const stored = localStorage.getItem('attar_users');
+                    if (stored) {
+                        allUsers = JSON.parse(stored);
+                    } else {
+                        allUsers = [];
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                const stored = localStorage.getItem('attar_users');
+                if (stored) {
+                    allUsers = JSON.parse(stored);
+                } else {
+                    allUsers = [];
+                }
+            }
+        }
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${API_BASE}get-products.php`);
+                const data = await response.json();
+                if (data.success) {
+                    allProducts = data.products || [];
+                } else {
+                    allProducts = [];
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                allProducts = [];
+            }
+        }
+
+        // ============================================
+        // SALES DATA PROCESSING
+        // ============================================
+        function getDailySalesData(days = 30) {
+            const paidOrders = allOrders.filter(o => o.payment_confirmed == 1);
+            const dailySales = {};
+            
+            // Initialize last 'days' days
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                dailySales[dateStr] = 0;
+            }
+            
+            paidOrders.forEach(order => {
+                const date = new Date(order.created_at).toISOString().split('T')[0];
+                if (dailySales[date] !== undefined) {
+                    dailySales[date] += parseFloat(order.total) || 0;
+                }
+            });
+            
+            return {
+                labels: Object.keys(dailySales),
+                data: Object.values(dailySales)
+            };
+        }
+
+        function getWeeklySalesData(weeks = 12) {
+            const paidOrders = allOrders.filter(o => o.payment_confirmed == 1);
+            const weeklySales = {};
+            
+            for (let i = weeks - 1; i >= 0; i--) {
+                const weekStart = new Date();
+                weekStart.setDate(weekStart.getDate() - (i * 7));
+                const weekKey = `${weekStart.getFullYear()}-W${Math.ceil((weekStart.getDate() + 6 - weekStart.getDay()) / 7)}`;
+                weeklySales[weekKey] = 0;
+            }
+            
+            paidOrders.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                const weekKey = `${orderDate.getFullYear()}-W${Math.ceil((orderDate.getDate() + 6 - orderDate.getDay()) / 7)}`;
+                if (weeklySales[weekKey] !== undefined) {
+                    weeklySales[weekKey] += parseFloat(order.total) || 0;
+                }
+            });
+            
+            return {
+                labels: Object.keys(weeklySales),
+                data: Object.values(weeklySales)
+            };
+        }
+
+        function getMonthlySalesData(months = 12) {
+            const paidOrders = allOrders.filter(o => o.payment_confirmed == 1);
+            const monthlySales = {};
+            
+            for (let i = months - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const monthStr = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+                monthlySales[monthStr] = 0;
+            }
+            
+            paidOrders.forEach(order => {
+                const date = new Date(order.created_at);
+                const monthStr = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+                if (monthlySales[monthStr] !== undefined) {
+                    monthlySales[monthStr] += parseFloat(order.total) || 0;
+                }
+            });
+            
+            return {
+                labels: Object.keys(monthlySales),
+                data: Object.values(monthlySales)
+            };
+        }
+
+        function getCustomRangeSalesData(startDate, endDate) {
+            const paidOrders = allOrders.filter(o => o.payment_confirmed == 1);
+            const dailySales = {};
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const currentDate = new Date(start);
+            
+            while (currentDate <= end) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                dailySales[dateStr] = 0;
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            paidOrders.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                if (orderDate >= start && orderDate <= end) {
+                    const dateStr = orderDate.toISOString().split('T')[0];
+                    if (dailySales[dateStr] !== undefined) {
+                        dailySales[dateStr] += parseFloat(order.total) || 0;
+                    }
+                }
+            });
+            
+            // Format labels for display
+            const labels = Object.keys(dailySales).map(d => {
+                const date = new Date(d);
+                return date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            });
+            
+            return {
+                labels: labels,
+                data: Object.values(dailySales),
+                fullLabels: Object.keys(dailySales)
+            };
+        }
+
+        function updateChart() {
+            let chartData;
+            let chartTitle = 'Sales Analytics';
+            
+            switch(currentChartType) {
+                case 'daily':
+                    chartData = getDailySalesData(30);
+                    chartTitle = '📊 Daily Sales (Last 30 Days)';
+                    break;
+                case 'weekly':
+                    chartData = getWeeklySalesData(12);
+                    chartTitle = '📊 Weekly Sales (Last 12 Weeks)';
+                    break;
+                case 'monthly':
+                    chartData = getMonthlySalesData(12);
+                    chartTitle = '📊 Monthly Sales (Last 12 Months)';
+                    break;
+                case 'custom':
+                    if (customStartDate && customEndDate) {
+                        chartData = getCustomRangeSalesData(customStartDate, customEndDate);
+                        chartTitle = `📊 Daily Sales (${formatDate(customStartDate)} - ${formatDate(customEndDate)})`;
+                    } else {
+                        chartData = getDailySalesData(30);
+                        chartTitle = '📊 Daily Sales (Last 30 Days)';
+                    }
+                    break;
+                default:
+                    chartData = getDailySalesData(30);
+                    chartTitle = '📊 Daily Sales (Last 30 Days)';
+            }
+            
+            const ctx = document.getElementById('salesChart');
+            if (ctx) {
+                if (salesChart) salesChart.destroy();
+                salesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { 
+                        labels: chartData.labels, 
+                        datasets: [{ 
+                            label: 'Revenue (Paid Orders)', 
+                            data: chartData.data, 
+                            borderColor: '#8B5E3C', 
+                            backgroundColor: 'rgba(139,94,60,0.1)', 
+                            tension: 0.4, 
+                            fill: true 
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true, 
+                        plugins: { 
+                            legend: { position: 'top' },
+                            tooltip: { 
+                                callbacks: { 
+                                    label: function(context) {
+                                        return 'Revenue: ৳' + context.raw.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return '৳' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Update chart title
+            const chartTitleEl = document.getElementById('chartTitle');
+            if (chartTitleEl) chartTitleEl.innerHTML = chartTitle;
+        }
+
+        // ============================================
+        // RENDER DASHBOARD
+        // ============================================
+        function renderAdminDashboard() {
+            const container = document.getElementById('dashboardContainer');
+            
+            const totalProducts = allProducts.length;
+            const totalOrders = allOrders.length;
+            const totalUsers = allUsers.length;
+            const paidOrders = allOrders.filter(o => o.payment_confirmed == 1);
+            const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const pendingOrders = allOrders.filter(o => o.status === 'Processing' || o.status === 'Pending').length;
+            const pendingPaymentAmount = allOrders.filter(o => o.payment_confirmed == 0 && o.status !== 'Cancelled').reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const lowStockProducts = allProducts.filter(p => p.stock > 0 && p.stock <= 10).length;
+            const outOfStockProducts = allProducts.filter(p => p.stock === 0).length;
+            
+            // Today's sales
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = allOrders.filter(o => {
+                const orderDate = new Date(o.created_at).toISOString().split('T')[0];
+                return o.payment_confirmed == 1 && orderDate === today;
+            }).reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            
+            const recentOrders = [...allOrders].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+            
+            let filteredUsers = [...allUsers];
+            if (userSearchTerm) {
+                filteredUsers = filteredUsers.filter(u => 
+                    (u.name && u.name.toLowerCase().includes(userSearchTerm)) || 
+                    (u.email && u.email.toLowerCase().includes(userSearchTerm)) ||
+                    (u.phone && u.phone.includes(userSearchTerm))
+                );
+            }
+            if (userRoleFilter !== 'all') {
+                filteredUsers = filteredUsers.filter(u => u.role === userRoleFilter);
+            }
+
+            container.innerHTML = `
+                <div class="welcome-card">
+                    <h1 style="font-family: 'Cormorant Garamond'; font-size: 2rem;">Admin Dashboard</h1>
+                    <p>Welcome back, ${escapeHtml(currentUser.name)}! Here's your store overview.</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card"><i class="fas fa-box"></i><div class="stat-number">${totalProducts}</div><div>Total Products</div></div>
+                    <div class="stat-card"><i class="fas fa-shopping-cart"></i><div class="stat-number">${totalOrders}</div><div>Total Orders</div></div>
+                    <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number">${totalUsers}</div><div>Total Users</div></div>
+                    <div class="stat-card"><i class="fas fa-taka-sign"></i><div class="stat-number">৳${totalRevenue.toLocaleString()}</div><div>💰 Total Revenue</div>
+                        <div class="revenue-note"><i class="fas fa-info-circle"></i> Only includes paid orders</div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card"><i class="fas fa-calendar-day"></i><div class="stat-number" style="font-size: 1.5rem;">৳${todaySales.toLocaleString()}</div><div>📅 Today's Sales</div></div>
+                    <div class="stat-card"><i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i><div class="stat-number" style="color: #ffc107;">${lowStockProducts}</div><div>Low Stock Items</div></div>
+                    <div class="stat-card"><i class="fas fa-times-circle" style="color: #dc3545;"></i><div class="stat-number" style="color: #dc3545;">${outOfStockProducts}</div><div>Out of Stock</div></div>
+                    <div class="stat-card"><i class="fas fa-clock"></i><div class="stat-number">${pendingOrders}</div><div>Pending Orders</div></div>
+                </div>
+                
+                <div class="card">
+                    <div class="chart-controls">
+                        <div class="chart-period">
+                            <button class="period-btn ${currentChartType === 'daily' ? 'active' : ''}" onclick="setChartPeriod('daily')">Daily (30 days)</button>
+                            <button class="period-btn ${currentChartType === 'weekly' ? 'active' : ''}" onclick="setChartPeriod('weekly')">Weekly (12 weeks)</button>
+                            <button class="period-btn ${currentChartType === 'monthly' ? 'active' : ''}" onclick="setChartPeriod('monthly')">Monthly (12 months)</button>
+                            <button class="period-btn ${currentChartType === 'custom' ? 'active' : ''}" onclick="setChartPeriod('custom')">Custom Range</button>
+                        </div>
+                        <div id="customDateRange" style="display: ${currentChartType === 'custom' ? 'flex' : 'none'}; gap: 0.5rem; align-items: center;">
+                            <input type="date" id="startDate" value="${customStartDate || getDefaultStartDate()}">
+                            <span>to</span>
+                            <input type="date" id="endDate" value="${customEndDate || getTodayDate()}">
+                            <button class="btn btn-sm" onclick="applyCustomRange()">Apply</button>
+                        </div>
+                    </div>
+                    <h2 id="chartTitle">📊 Loading Sales Data...</h2>
+                    <canvas id="salesChart" style="max-height: 350px; width: 100%;"></canvas>
+                </div>
+                
+                <div class="card">
+                    <h2>⚡ Quick Actions</h2>
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="window.location.href='admin-products.html'"><i class="fas fa-boxes"></i> Products</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-orders.html'"><i class="fas fa-shopping-cart"></i> Orders</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-users.html'"><i class="fas fa-users"></i> Users</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-blog.html'"><i class="fas fa-blog"></i> Blog</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-returns.html'"><i class="fas fa-undo-alt"></i> Returns</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-coupons.html'"><i class="fas fa-tag"></i> Coupons</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-homepage.html'"><i class="fas fa-home"></i> Homepage</button>
+                        <button class="btn btn-primary" onclick="window.location.href='admin-settings.html'"><i class="fas fa-cogs"></i> Settings</button>
+                    </div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('orders')">📋 Recent Orders</button>
+                    <button class="tab-btn" onclick="switchTab('users')">👥 Users (${allUsers.length})</button>
+                </div>
+                
+                <div id="ordersTab" class="tab-content active">
+                    <div class="card">
+                        <h2>Recent Orders <a href="admin-orders.html" style="font-size: 0.8rem; font-weight: normal;">View All Orders →</a></h2>
+                        <div class="recent-orders-table">
+                            <table>
+                                <thead>
+                                    <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${recentOrders.map(order => `
+                                        <tr>
+                                            <td>${escapeHtml(order.order_number || order.id)}</td>
+                                            <td>${escapeHtml(order.customer_name || order.user_name || 'Guest')}</td>
+                                            <td>${formatDate(order.created_at)}</td>
+                                            <td>৳${(parseFloat(order.total) || 0).toLocaleString()}</td>
+                                            <td><span class="payment-badge ${order.payment_confirmed ? 'payment-confirmed' : 'payment-pending'}">${order.payment_confirmed ? 'Paid' : 'Pending'}</span></td>
+                                            <td><span class="status-badge status-${(order.status || 'processing').toLowerCase().replace(/ /g, '-')}">${order.status || 'Processing'}</span></td>
+                                            <td><button class="btn btn-sm btn-primary" onclick="window.location.href='admin-orders.html'">Manage</button></td>
+                                        </tr>
+                                    `).join('')}
+                                    ${recentOrders.length === 0 ? '<td><td colspan="7" style="text-align: center;">No orders yet</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="usersTab" class="tab-content">
+                    <div class="card">
+                        <h2>👥 Registered Users (${allUsers.length})</h2>
+                        <div class="search-bar">
+                            <input type="text" id="userSearch" placeholder="🔍 Search by name, email, or phone..." onkeyup="filterUsers()">
+                            <select id="userRoleFilter" onchange="filterUsers()">
+                                <option value="all">All Roles</option>
+                                <option value="admin">👑 Admin</option>
+                                <option value="user">👤 Customer</option>
+                            </select>
+                            <button class="btn btn-sm" onclick="resetUserFilters()">Reset</button>
+                        </div>
+                        <div class="users-table">
+                            <table>
+                                <thead>
+                                    <tr><th>User</th><th>Contact</th><th>Role</th><th>Orders</th><th>Joined</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    ${renderUsersTable(filteredUsers)}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize chart
+            updateChart();
+        }
+
+        function renderUsersTable(users) {
+            if (users.length === 0) return '<tr><td colspan="6" style="text-align: center;">No users found</td></tr>';
+            
+            let html = '';
+            for (let i = 0; i < users.length; i++) {
+                const user = users[i];
+                const userOrders = allOrders.filter(o => o.customer_email === user.email || o.user_email === user.email);
+                const orderCount = userOrders.length;
+                const totalSpent = userOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+                const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
+                
+                html += `
+                    <tr>
+                        <td><div class="user-avatar" style="display: inline-flex; margin-right: 0.5rem;">${initial}</div> ${escapeHtml(user.name || 'N/A')}<br><small>${escapeHtml(user.email || 'N/A')}</small></td>
+                        <td>${user.phone || '—'}</td>
+                        <td><span class="role-badge ${user.role === 'admin' ? 'role-admin' : 'role-user'}">${user.role === 'admin' ? '👑 Admin' : '👤 Customer'}</span></td>
+                        <td>${orderCount} orders<br><small>৳${totalSpent.toLocaleString()}</small></td>
+                        <td><small>${user.created_at ? formatDate(user.created_at) : (user.createdAt ? formatDate(user.createdAt) : '—')}</small></td>
+                        <td>
+                            <button class="btn btn-sm" onclick="viewUserDetails('${user.email}')"><i class="fas fa-eye"></i> View</button>
+                            ${user.role !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${user.email}')"><i class="fas fa-trash"></i> Delete</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }
+            return html;
+        }
+
+        // ============================================
+        // CHART CONTROLS
+        // ============================================
+        function setChartPeriod(period) {
+            currentChartType = period;
+            
+            // Update button active states
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide custom date range
+            const customRangeDiv = document.getElementById('customDateRange');
+            if (customRangeDiv) {
+                customRangeDiv.style.display = period === 'custom' ? 'flex' : 'none';
+            }
+            
+            if (period === 'custom') {
+                // Set default dates if not set
+                if (!customStartDate) customStartDate = getDefaultStartDate();
+                if (!customEndDate) customEndDate = getTodayDate();
+                const startInput = document.getElementById('startDate');
+                const endInput = document.getElementById('endDate');
+                if (startInput) startInput.value = customStartDate;
+                if (endInput) endInput.value = customEndDate;
+            }
+            
+            updateChart();
+        }
+
+        function applyCustomRange() {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            
+            if (startInput && endInput) {
+                customStartDate = startInput.value;
+                customEndDate = endInput.value;
+                updateChart();
+            }
+        }
+
+        function getDefaultStartDate() {
+            const date = new Date();
+            date.setDate(date.getDate() - 30);
+            return date.toISOString().split('T')[0];
+        }
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // ============================================
+        // USER MANAGEMENT
+        // ============================================
+        function filterUsers() {
+            const searchInput = document.getElementById('userSearch');
+            const roleSelect = document.getElementById('userRoleFilter');
+            userSearchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            userRoleFilter = roleSelect ? roleSelect.value : 'all';
+            
+            let filtered = [...allUsers];
+            if (userSearchTerm) {
+                filtered = filtered.filter(u => 
+                    (u.name && u.name.toLowerCase().includes(userSearchTerm)) || 
+                    (u.email && u.email.toLowerCase().includes(userSearchTerm)) || 
+                    (u.phone && u.phone.includes(userSearchTerm))
+                );
+            }
+            if (userRoleFilter !== 'all') {
+                filtered = filtered.filter(u => u.role === userRoleFilter);
+            }
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) tbody.innerHTML = renderUsersTable(filtered);
+        }
+
+        function resetUserFilters() {
+            const searchInput = document.getElementById('userSearch');
+            const roleSelect = document.getElementById('userRoleFilter');
+            if (searchInput) searchInput.value = '';
+            if (roleSelect) roleSelect.value = 'all';
+            userSearchTerm = '';
+            userRoleFilter = 'all';
+            filterUsers();
+        }
+
+        function viewUserDetails(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+            
+            const userOrders = allOrders.filter(o => o.customer_email === email || o.user_email === email);
+            const totalSpent = userOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const initial = (user.name?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
+            
+            const modal = document.getElementById('userModal');
+            const content = document.getElementById('userModalContent');
+            
+            let ordersHtml = '';
+            if (userOrders.length > 0) {
+                ordersHtml = '<h4>Recent Orders</h4><div style="max-height: 200px; overflow-y: auto;">';
+                for (let i = 0; i < Math.min(userOrders.length, 5); i++) {
+                    const order = userOrders[i];
+                    ordersHtml += `
+                        <div style="border-bottom: 1px solid #eee; padding: 0.5rem 0;">
+                            <div><strong>${order.order_number || order.id}</strong> - ${formatDate(order.created_at)}</div>
+                            <div>Total: ৳${order.total} | Status: ${order.status}</div>
+                        </div>
+                    `;
+                }
+                ordersHtml += '</div>';
+            } else {
+                ordersHtml = '<p>No orders yet.</p>';
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="width: 60px; height: 60px; font-size: 1.5rem; margin: 0 auto;">${initial}</div>
+                    <h3 style="margin-top: 0.8rem;">${escapeHtml(user.name || 'N/A')}</h3>
+                    <p>${escapeHtml(user.email || 'N/A')}</p>
+                </div>
+                <div class="detail-row"><strong>Phone:</strong> ${user.phone || 'Not provided'}</div>
+                <div class="detail-row"><strong>Role:</strong> ${user.role === 'admin' ? 'Administrator' : 'Customer'}</div>
+                <div class="detail-row"><strong>Joined:</strong> ${user.created_at ? formatDate(user.created_at) : (user.createdAt ? formatDate(user.createdAt) : 'Unknown')}</div>
+                <hr>
+                <h4>Order Summary</h4>
+                <div class="detail-row"><strong>Total Orders:</strong> ${userOrders.length}</div>
+                <div class="detail-row"><strong>Total Spent:</strong> ৳${totalSpent.toLocaleString()}</div>
+                <div class="detail-row"><strong>Average Order Value:</strong> ৳${userOrders.length > 0 ? Math.round(totalSpent / userOrders.length).toLocaleString() : 0}</div>
+                ${ordersHtml}
+                <div style="margin-top: 1rem;"><button class="btn btn-primary" onclick="closeUserModal()">Close</button></div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function deleteUser(email) {
+            if (email === currentUser.email) {
+                showToast('You cannot delete your own account', 'error');
+                return;
+            }
+            if (confirm('Are you sure you want to delete user: ' + email + '?')) {
+                fetch(`${API_BASE}delete-user.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allUsers = allUsers.filter(u => u.email !== email);
+                        showToast('User deleted successfully', 'success');
+                        filterUsers();
+                        const tabBtn = document.querySelector('.tab-btn:nth-child(2)');
+                        if (tabBtn) tabBtn.innerHTML = `👥 Users (${allUsers.length})`;
+                    } else {
+                        showToast(data.message || 'Error deleting user', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error deleting user', 'error');
+                });
+            }
+        }
+
+        function closeUserModal() { 
+            document.getElementById('userModal').style.display = 'none'; 
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['orders', 'users'];
+            for (let i = 0; i < tabs.length; i++) {
+                const el = document.getElementById(tabs[i] + 'Tab');
+                if (el) el.classList.remove('active');
+            }
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            const btns = document.querySelectorAll('.tab-btn');
+            for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+            if (event && event.target) event.target.classList.add('active');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: white; padding: 0.8rem 1.2rem; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease; border-left: 4px solid ' + (type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#8B5E3C');
+            toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle') + '"></i> ' + message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Make functions global
+        window.setChartPeriod = setChartPeriod;
+        window.applyCustomRange = applyCustomRange;
+        window.switchTab = switchTab;
+        window.filterUsers = filterUsers;
+        window.resetUserFilters = resetUserFilters;
+        window.viewUserDetails = viewUserDetails;
+        window.deleteUser = deleteUser;
+        window.closeUserModal = closeUserModal;
+        window.showToast = showToast;
+
+        // Initialize
+        initDashboard();
+    </script>
+</body>
+</html>

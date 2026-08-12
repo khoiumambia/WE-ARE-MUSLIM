@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .orders-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .search-filter { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .search-filter input { padding: 0.7rem; border: 1px solid var(--border); border-radius: 50px; min-width: 250px; }
+        .search-filter select { padding: 0.7rem; border: 1px solid var(--border); border-radius: 12px; background: white; }
+        .orders-grid { display: grid; gap: 1.5rem; }
+        .order-card { background: white; border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: all 0.3s ease; }
+        .order-card:hover { box-shadow: var(--shadow-md); }
+        .order-header { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
+        .order-id { font-weight: 700; font-size: 1rem; color: var(--primary); }
+        .order-date { font-size: 0.8rem; color: #666; }
+        .status-badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .status-processing { background: var(--warning); color: #333; }
+        .status-shipped { background: var(--info); color: white; }
+        .status-delivered { background: var(--success); color: white; }
+        .status-cancelled { background: var(--danger); color: white; }
+        .payment-badge { padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; font-weight: 600; margin-left: 0.5rem; display: inline-block; }
+        .payment-confirmed { background: var(--success); color: white; }
+        .payment-pending { background: var(--warning); color: #333; }
+        .order-customer { margin-bottom: 0.8rem; }
+        .order-items { background: var(--background); border-radius: 12px; padding: 0.8rem; margin: 0.8rem 0; max-height: 200px; overflow-y: auto; }
+        .order-item-small { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.85rem; border-bottom: 1px dashed var(--border); }
+        .order-item-small:last-child { border-bottom: none; }
+        .order-total { display: flex; justify-content: space-between; margin: 0.8rem 0; padding: 0.5rem 0; font-weight: 700; border-top: 1px solid var(--border); }
+        .tracking-box { background: var(--background); border-radius: 8px; padding: 0.5rem; margin: 0.5rem 0; font-family: monospace; font-size: 0.8rem; }
+        .order-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+        .status-select { padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; }
+        .empty-orders { text-align: center; padding: 3rem; background: white; border-radius: 20px; }
+        .stats-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .stat-pill { background: white; padding: 0.5rem 1rem; border-radius: 50px; box-shadow: var(--shadow-sm); }
+        .btn-cash-received { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-cash-received:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .detail-label { font-weight: 600; }
+        .badge-online { background: #3b82f6; color: white; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; display: inline-block; }
+        .badge-cod { background: #f59e0b; color: #333; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; display: inline-block; }
+        .tier-badge-small { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 50px; font-size: 0.65rem; margin-left: 0.5rem; }
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="orders-container">
+        <div class="header-actions">
+            <h1 style="font-family: 'Cormorant Garamond';">📋 Manage Orders</h1>
+            <div class="search-filter">
+                <input type="text" id="searchOrders" placeholder="🔍 Search by Order ID, Customer, Email..." onkeyup="filterOrders()">
+                <select id="statusFilter" onchange="filterOrders()">
+                    <option value="all">All Status</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="pending_payment">Pending Payment</option>
+                </select>
+                <button class="btn btn-sm" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+        <div id="ordersList" class="orders-grid"><div class="loading">Loading orders...</div></div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Order Details</h3>
+                <button onclick="closeOrderModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="orderModalContent"></div>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let allOrders = [];
+
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) { window.location.href = 'login.html'; return false; }
+            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            return true;
+        }
+
+        function loadOrders() {
+            console.log('Fetching orders from API...');
+            fetch('api/get-orders.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allOrders = data.orders;
+                        renderOrders();
+                    } else {
+                        document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Error: ' + data.error + '</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('ordersList').innerHTML = '<div class="empty-orders">Failed to load orders.</div>';
+                });
+        }
+
+        function getTierClass(tier) {
+            switch(tier) {
+                case 'Platinum': return 'tier-platinum';
+                case 'Gold': return 'tier-gold';
+                case 'Silver': return 'tier-silver';
+                default: return 'tier-bronze';
+            }
+        }
+
+        function getTierIcon(tier) {
+            switch(tier) {
+                case 'Platinum': return '💎';
+                case 'Gold': return '🥇';
+                case 'Silver': return '🥈';
+                default: return '🥉';
+            }
+        }
+
+        function renderOrders() {
+            const searchTerm = document.getElementById('searchOrders')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+            
+            let filtered = [...allOrders];
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'pending_payment') {
+                    filtered = filtered.filter(o => o.payment_confirmed == 0 && o.status !== 'Cancelled');
+                } else {
+                    filtered = filtered.filter(o => o.status === statusFilter);
+                }
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(o => 
+                    (o.order_number && o.order_number.toLowerCase().includes(searchTerm)) ||
+                    (o.customer_name && o.customer_name.toLowerCase().includes(searchTerm)) ||
+                    (o.customer_email && o.customer_email.toLowerCase().includes(searchTerm))
+                );
+            }
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            const container = document.getElementById('ordersList');
+            if (filtered.length === 0) { 
+                container.innerHTML = '<div class="empty-orders">No orders found</div>'; 
+                return; 
+            }
+            
+            const confirmedRevenue = filtered.filter(o => o.payment_confirmed == 1).reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const pendingPayment = filtered.filter(o => o.payment_confirmed == 0 && o.status !== 'Cancelled').reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            
+            let statsHtml = `
+                <div class="stats-summary">
+                    <span class="stat-pill">📊 Total Orders: ${filtered.length}</span>
+                    <span class="stat-pill revenue-total">💰 Confirmed Revenue: ৳${confirmedRevenue.toLocaleString()}</span>
+                    <span class="stat-pill">⏳ Pending Payment: ৳${pendingPayment.toLocaleString()}</span>
+                </div>
+            `;
+            
+            const ordersHtml = filtered.map(order => {
+                let items = order.items || [];
+                const isPaymentPending = order.payment_confirmed == 0 && order.status !== 'Cancelled';
+                const isCOD = order.payment_method === 'cod';
+                const isOnline = order.payment_method !== 'cod' && order.payment_method !== null;
+                
+                // Get tier info for display (if available)
+                const customerTier = order.customer_tier || 'Bronze';
+                const tierClass = getTierClass(customerTier);
+                const tierIcon = getTierIcon(customerTier);
+                
+                return `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <span class="order-id">#${escapeHtml(order.order_number || order.id)}</span>
+                            ${isCOD ? '<span class="badge-cod"><i class="fas fa-money-bill-wave"></i> COD</span>' : ''}
+                            ${isOnline ? '<span class="badge-online"><i class="fas fa-mobile-alt"></i> Online</span>' : ''}
+                            <div class="order-date">${formatDate(order.created_at)}</div>
+                        </div>
+                        <div>
+                            <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)">
+                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                            <span class="payment-badge ${parseInt(order.payment_confirmed) === 1 ? 'payment-confirmed' : 'payment-pending'}">
+                                ${parseInt(order.payment_confirmed) === 1 ? '✓ Paid' : '⏳ Pending'}
+                            </span>
+                            ${customerTier !== 'Bronze' ? `<span class="tier-badge-small ${tierClass}">${tierIcon} ${customerTier}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="order-customer">
+                        <strong>${escapeHtml(order.customer_name || 'Guest')}</strong><br>
+                        📧 ${escapeHtml(order.customer_email || 'N/A')}<br>
+                        📞 ${escapeHtml(order.customer_phone || 'N/A')}<br>
+                        📍 ${escapeHtml(order.customer_address || 'N/A')}
+                    </div>
+                    <div class="order-items">
+                        <div style="font-weight:600; margin-bottom:0.5rem;">Items (${items.length})</div>
+                        ${items.map(item => `
+                            <div class="order-item-small">
+                                <span>${escapeHtml(item.product_name || item.name)} x ${item.quantity}</span>
+                                <span>৳${(parseFloat(item.product_price || item.price) * item.quantity).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-total">
+                        <span>Total:</span>
+                        <span>৳${(parseFloat(order.total) || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="tracking-box">
+                        Tracking: ${order.tracking_number || 'Not generated'}
+                        <button class="btn btn-sm btn-success" onclick="generateTrackingNumber('${order.id}')">Generate</button>
+                    </div>
+                    <div class="order-actions">
+                        <button class="btn btn-sm btn-primary" onclick="viewOrderDetails('${order.id}')">Details</button>
+                        <button class="btn btn-sm" onclick="window.location.href='order-tracking.html?order=${order.order_number}'">Track</button>
+                        ${order.status !== 'Delivered' && order.status !== 'Cancelled' ? `<button class="btn btn-sm btn-danger" onclick="cancelOrder('${order.id}')">Cancel</button>` : ''}
+                        ${isPaymentPending ? `<button class="btn btn-sm btn-cash-received" onclick="confirmPaymentReceived('${order.id}')"><i class="fas fa-money-bill-wave"></i> Confirm Payment</button>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+            container.innerHTML = statsHtml + ordersHtml;
+        }
+
+        function filterOrders() { renderOrders(); }
+        
+        function resetFilters() { 
+            document.getElementById('searchOrders').value = ''; 
+            document.getElementById('statusFilter').value = 'all'; 
+            renderOrders(); 
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            fetch('api/update-order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId, status: newStatus })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast(`Order status updated to ${newStatus}`);
+                    loadOrders();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            });
+        }
+
+        function confirmPaymentReceived(orderId) {
+            let message = 'Confirm that payment has been received for this order?';
+            
+            const order = allOrders.find(o => o.id == orderId);
+            if (order && order.payment_method === 'cod') {
+                message = 'Confirm that CASH has been received for this COD order?';
+            } else {
+                message = 'Confirm that ONLINE PAYMENT has been received for this order?';
+            }
+            
+            if (confirm(message)) {
+                fetch('api/update-order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: orderId, payment_confirmed: 1 })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showToast('Payment confirmed!');
+                        loadOrders();
+                    } else {
+                        showToast('Error: ' + result.error);
+                    }
+                });
+            }
+        }
+
+        function generateTrackingNumber(orderId) {
+            const newTracking = 'TRK' + Date.now().toString().slice(-8);
+            fetch('api/update-order.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId, tracking_number: newTracking })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showToast(`Tracking: ${newTracking}`);
+                    loadOrders();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            });
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm('Cancel this order?')) {
+                updateOrderStatus(orderId, 'Cancelled');
+            }
+        }
+
+        function viewOrderDetails(orderId) {
+            const order = allOrders.find(o => o.id == orderId);
+            if (!order) return;
+            
+            let items = order.items || [];
+            const modal = document.getElementById('orderModal');
+            const content = document.getElementById('orderModalContent');
+            
+            // Calculate discount information
+            const subtotal = parseFloat(order.subtotal) || 0;
+            const discountAmount = parseFloat(order.discount) || 0;
+            const discountPercent = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
+            
+            content.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Order ID:</span><span>${escapeHtml(order.order_number || order.id)}</span></div>
+                <div class="detail-row"><span class="detail-label">Date:</span><span>${formatDate(order.created_at)}</span></div>
+                <div class="detail-row"><span class="detail-label">Status:</span><span>${order.status}</span></div>
+                <div class="detail-row"><span class="detail-label">Payment Method:</span><span>${order.payment_method === 'cod' ? 'Cash on Delivery' : (order.payment_method || 'N/A').toUpperCase()}</span></div>
+                <div class="detail-row"><span class="detail-label">Payment Status:</span><span>${order.payment_confirmed ? '✅ Paid' : '⏳ Pending'}</span></div>
+                <div class="detail-row"><span class="detail-label">Tracking:</span><span>${order.tracking_number || 'N/A'}</span></div>
+                <hr>
+                <h4>Customer</h4>
+                <div class="detail-row"><span class="detail-label">Name:</span><span>${escapeHtml(order.customer_name || 'Guest')}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span>${escapeHtml(order.customer_email || 'N/A')}</span></div>
+                <div class="detail-row"><span class="detail-label">Phone:</span><span>${escapeHtml(order.customer_phone || 'N/A')}</span></div>
+                <div class="detail-row"><span class="detail-label">Address:</span><span>${escapeHtml(order.customer_address || 'N/A')}</span></div>
+                <hr>
+                <h4>Items</h4>
+                ${items.map(item => `
+                    <div class="detail-row"><span>${escapeHtml(item.product_name || item.name)} x ${item.quantity}</span><span>৳${(parseFloat(item.product_price || item.price) * item.quantity).toLocaleString()}</span></div>
+                `).join('')}
+                <hr>
+                <div class="detail-row"><span class="detail-label">Subtotal:</span><span>৳${(parseFloat(order.subtotal) || 0).toLocaleString()}</span></div>
+                ${discountAmount > 0 ? `<div class="detail-row" style="color: green;"><span class="detail-label">Discount (${discountPercent.toFixed(0)}%):</span><span>-৳${discountAmount.toLocaleString()}</span></div>` : ''}
+                <div class="detail-row"><span class="detail-label">Delivery:</span><span>${parseFloat(order.delivery_charge) === 0 ? 'Free' : '৳' + (parseFloat(order.delivery_charge) || 0)}</span></div>
+                <div class="detail-row"><span class="detail-label">Total:</span><span>৳${(parseFloat(order.total) || 0).toLocaleString()}</span></div>
+                <button class="btn btn-primary" style="margin-top:1rem;" onclick="closeOrderModal()">Close</button>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function closeOrderModal() { document.getElementById('orderModal').style.display = 'none'; }
+
+        window.filterOrders = filterOrders;
+        window.resetFilters = resetFilters;
+        window.updateOrderStatus = updateOrderStatus;
+        window.generateTrackingNumber = generateTrackingNumber;
+        window.cancelOrder = cancelOrder;
+        window.viewOrderDetails = viewOrderDetails;
+        window.closeOrderModal = closeOrderModal;
+        window.confirmPaymentReceived = confirmPaymentReceived;
+
+        if (checkAdminAccess()) loadOrders();
+    </script>
+</body>
+</html>

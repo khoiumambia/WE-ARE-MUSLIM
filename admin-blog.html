@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Blog - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .blog-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .search-bar { display: flex; gap: 1rem; flex: 1; max-width: 400px; }
+        .search-bar input { flex: 1; padding: 0.7rem; border: 1px solid var(--border); border-radius: 50px; }
+        .blog-table { width: 100%; overflow-x: auto; background: white; border-radius: 20px; padding: 1rem; box-shadow: var(--shadow-sm); }
+        .blog-table table { width: 100%; border-collapse: collapse; }
+        .blog-table th, .blog-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        .blog-table th { background: var(--background); font-weight: 600; }
+        .blog-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        .status-published { color: #10b981; }
+        .status-draft { color: #f59e0b; }
+        .status-pending { color: #3b82f6; }
+        .status-rejected { color: #ef4444; }
+        .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 12px; }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .image-preview { margin-top: 10px; }
+        .image-preview img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; }
+        .tag-input { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .tag { background: var(--primary-light); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .tag .remove { cursor: pointer; font-weight: bold; }
+        .submission-card { background: var(--background); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--warning); }
+        .submission-card.approved { border-left-color: var(--success); }
+        .submission-card.rejected { border-left-color: var(--danger); opacity: 0.7; }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+        .tab-btn { padding: 0.5rem 1rem; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-light); }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .submission-header { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .submission-meta { font-size: 0.8rem; color: #666; margin-top: 0.5rem; }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="blog-container">
+        <div class="header-actions">
+            <h1 style="font-family: 'Cormorant Garamond';">📝 Manage Blog</h1>
+            <div class="search-bar">
+                <input type="text" id="searchPosts" placeholder="🔍 Search posts..." onkeyup="filterPosts()">
+                <select id="statusFilter" onchange="filterPosts()">
+                    <option value="all">All Status</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                </select>
+                <button class="btn btn-primary" onclick="showAddPostModal()"><i class="fas fa-plus"></i> New Post</button>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('posts')">📄 Published Posts</button>
+            <button class="tab-btn" onclick="switchTab('pending')">⏳ Pending Submissions</button>
+        </div>
+        
+        <!-- Published Posts Tab -->
+        <div id="postsTab" class="tab-content active">
+            <div class="blog-table">
+                <table>
+                    <thead>
+                        <tr><th>Image</th><th>Title</th><th>Category</th><th>Author</th><th>Date</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="blogTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pending Submissions Tab -->
+        <div id="pendingTab" class="tab-content">
+            <div id="pendingSubmissionsList" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Post Modal -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 id="modalTitle">Add New Post</h3>
+                <button onclick="closePostModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="postForm" onsubmit="event.preventDefault(); savePost();">
+                <input type="hidden" id="postId">
+                <div class="form-row">
+                    <div class="form-group"><label>Title *</label><input type="text" id="postTitle" required></div>
+                    <div class="form-group"><label>Category *</label>
+                        <select id="postCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="guide">📖 Guides</option>
+                            <option value="history">🏛️ History</option>
+                            <option value="education">🎓 Education</option>
+                            <option value="seasonal">🌙 Seasonal</option>
+                            <option value="care">💝 Care Tips</option>
+                            <option value="news">📰 News</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Author</label><input type="text" id="postAuthor" placeholder="Author name"></div>
+                    <div class="form-group"><label>Read Time (minutes)</label><input type="number" id="postReadTime" value="5" min="1"></div>
+                </div>
+                <div class="form-group"><label>Excerpt (Short Description) *</label><textarea id="postExcerpt" rows="2" placeholder="Brief summary of the post..." required></textarea></div>
+                <div class="form-group"><label>Content (HTML supported) *</label><textarea id="postContent" rows="10" placeholder="Write your blog content here. HTML tags allowed..." required></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Featured Image URL</label><input type="text" id="postImage" placeholder="https://... or upload below"></div>
+                    <div class="form-group"><label>OR Upload Image</label>
+                        <div id="dropZone" style="border: 2px dashed #ccc; border-radius: 10px; padding: 15px; text-align: center; cursor: pointer;"><i class="fas fa-cloud-upload-alt"></i> Click or drag image</div>
+                        <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                        <div id="imagePreviewArea" class="image-preview"></div>
+                    </div>
+                </div>
+                <div class="form-group"><label>Tags</label>
+                    <div class="tag-input"><input type="text" id="tagInput" placeholder="Add tag and press Enter"><button type="button" class="btn btn-sm" onclick="addTag()">Add</button></div>
+                    <div id="tagsContainer" class="tag-input" style="margin-top: 0.5rem;"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Status</label><select id="postStatus"><option value="draft">📝 Draft</option><option value="published">✅ Published</option></select></div>
+                    <div class="form-group"><label>Schedule Date (Optional)</label><input type="datetime-local" id="postScheduleDate"></div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Post</button>
+                    <button type="button" class="btn" onclick="closePostModal()" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let allPosts = [], allSubmissions = [];
+        let currentTags = [];
+        let uploadedImages = new Set();
+
+        const dropZone = document.getElementById('dropZone');
+        const imageFile = document.getElementById('imageFile');
+        const imagePreviewArea = document.getElementById('imagePreviewArea');
+        const postImage = document.getElementById('postImage');
+
+        if (dropZone) {
+            dropZone.addEventListener('click', () => imageFile.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#8B5E3C'; dropZone.style.background = '#fdf8f5'; });
+            dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = '#ccc'; dropZone.style.background = 'white'; });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#ccc';
+                dropZone.style.background = 'white';
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) uploadImageToServer(file);
+            });
+        }
+        if (imageFile) imageFile.addEventListener('change', (e) => { if (e.target.files[0]) uploadImageToServer(e.target.files[0]); });
+
+        async function uploadImageToServer(file) {
+            if (uploadedImages.has(file.name)) { showToast('This image was already uploaded!'); return; }
+            if (file.size > 2 * 1024 * 1024) { showToast('Image too large! Max 2MB'); return; }
+            showToast('Uploading image...');
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const response = await fetch('api/upload-image.php', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.success) {
+                    uploadedImages.add(file.name);
+                    postImage.value = result.image_url;
+                    imagePreviewArea.innerHTML = '<img src="' + result.image_url + '?t=' + Date.now() + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">';
+                    showToast('Image uploaded!');
+                } else showToast('Upload failed: ' + result.error);
+            } catch (error) { console.error('Upload error:', error); showToast('Upload failed'); }
+        }
+
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) { window.location.href = 'login.html'; return false; }
+            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            return true;
+        }
+
+        function loadPosts() {
+            fetch('api/get-blogs.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) { allPosts = data.blogs; renderPostsTable(); }
+                    else showToast('Error loading posts: ' + data.error);
+                })
+                .catch(error => { console.error('Error loading posts:', error); showToast('Failed to load posts'); });
+        }
+
+        function loadPendingSubmissions() {
+            fetch('api/get-blog-submissions.php?status=pending')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) { allSubmissions = data.submissions; renderPendingSubmissions(); }
+                    else console.error('Error loading submissions:', data.error);
+                })
+                .catch(error => console.error('Error loading submissions:', error));
+        }
+
+        function renderPostsTable() {
+            const searchTerm = document.getElementById('searchPosts')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+            let filtered = allPosts.filter(p => {
+                if (searchTerm && !p.title.toLowerCase().includes(searchTerm)) return false;
+                if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+                return true;
+            });
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const tbody = document.getElementById('blogTableBody');
+            if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No posts found</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td><img class="blog-img" src="${p.image || 'https://placehold.co/60x60'}" onerror="this.src='https://placehold.co/60x60'"></td>
+                    <td><strong>${escapeHtml(p.title)}</strong><br><small>${p.excerpt?.substring(0, 50)}...</small></td>
+                    <td>${p.category}</td>
+                    <td>${p.author || 'Admin'}</td>
+                    <td>${formatDate(p.created_at)}</td>
+                    <td class="${p.status === 'published' ? 'status-published' : 'status-draft'}">${p.status === 'published' ? '✅ Published' : '📝 Draft'}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm" onclick="editPost(${p.id})"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-sm ${p.status === 'published' ? 'btn-warning' : 'btn-success'}" onclick="toggleStatus(${p.id})">${p.status === 'published' ? '<i class="fas fa-pause"></i> Unpublish' : '<i class="fas fa-check"></i> Publish'}</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePost(${p.id})"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="btn btn-sm btn-primary" onclick="viewPost(${p.id})"><i class="fas fa-eye"></i> View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPendingSubmissions() {
+            const container = document.getElementById('pendingSubmissionsList');
+            if (!container) return;
+            if (allSubmissions.length === 0) { container.innerHTML = '<p style="text-align:center; padding:2rem;">No pending submissions.</p>'; return; }
+            container.innerHTML = allSubmissions.map(sub => `
+                <div class="submission-card">
+                    <div class="submission-header">
+                        <div>
+                            <h3>${escapeHtml(sub.title)}</h3>
+                            <div class="submission-meta">
+                                <strong>Submitted by:</strong> ${escapeHtml(sub.user_name || sub.user_email)}<br>
+                                <strong>Date:</strong> ${formatDate(sub.created_at)}<br>
+                                <strong>Category:</strong> ${sub.category}
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-success" onclick="approveSubmission(${sub.id})"><i class="fas fa-check"></i> Approve & Publish</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectSubmission(${sub.id})"><i class="fas fa-times"></i> Reject</button>
+                        </div>
+                    </div>
+                    <div><strong>Excerpt:</strong><p>${escapeHtml(sub.excerpt)}</p></div>
+                    <div><strong>Content Preview:</strong><div style="max-height: 150px; overflow-y: auto; background: white; padding: 0.8rem; border-radius: 8px; margin-top: 0.5rem;">${sub.content.substring(0, 300)}...</div></div>
+                    ${sub.image ? `<div style="margin-top: 0.5rem;"><img src="${sub.image}" width="60" height="60" style="object-fit:cover; border-radius:8px;"></div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function approveSubmission(submissionId) {
+            if (confirm('Approve this blog? It will be published immediately.')) {
+                try {
+                    const response = await fetch('api/approve-blog.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submission_id: submissionId, action: 'approve' })
+                    });
+                    const result = await response.json();
+                    if (result.success) { showToast('Blog approved and published!'); loadPendingSubmissions(); loadPosts(); }
+                    else showToast('Error: ' + result.error);
+                } catch (error) { console.error('Error approving submission:', error); showToast('Failed to approve'); }
+            }
+        }
+
+        async function rejectSubmission(submissionId) {
+            if (confirm('Reject this blog? This action cannot be undone.')) {
+                try {
+                    const response = await fetch('api/approve-blog.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submission_id: submissionId, action: 'reject' })
+                    });
+                    const result = await response.json();
+                    if (result.success) { showToast('Blog rejected'); loadPendingSubmissions(); }
+                    else showToast('Error: ' + result.error);
+                } catch (error) { console.error('Error rejecting submission:', error); showToast('Failed to reject'); }
+            }
+        }
+
+        function filterPosts() { renderPostsTable(); }
+        function showAddPostModal() {
+            document.getElementById('modalTitle').innerText = 'Add New Post';
+            document.getElementById('postId').value = '';
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postCategory').value = '';
+            document.getElementById('postAuthor').value = getCurrentUser()?.name || '';
+            document.getElementById('postReadTime').value = '5';
+            document.getElementById('postExcerpt').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postImage').value = '';
+            document.getElementById('postStatus').value = 'draft';
+            document.getElementById('postScheduleDate').value = '';
+            imagePreviewArea.innerHTML = '';
+            currentTags = [];
+            updateTagsDisplay();
+            document.getElementById('postModal').style.display = 'flex';
+        }
+
+        function editPost(postId) {
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+            document.getElementById('modalTitle').innerText = 'Edit Post';
+            document.getElementById('postId').value = post.id;
+            document.getElementById('postTitle').value = post.title;
+            document.getElementById('postCategory').value = post.category;
+            document.getElementById('postAuthor').value = post.author || '';
+            document.getElementById('postReadTime').value = post.read_time || 5;
+            document.getElementById('postExcerpt').value = post.excerpt;
+            document.getElementById('postContent').value = post.content;
+            document.getElementById('postImage').value = post.image || '';
+            document.getElementById('postStatus').value = post.status || 'draft';
+            document.getElementById('postScheduleDate').value = post.schedule_date || '';
+            currentTags = post.tags ? post.tags.split(',') : [];
+            updateTagsDisplay();
+            if (post.image) imagePreviewArea.innerHTML = '<img src="' + post.image + '?t=' + Date.now() + '" alt="Preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">';
+            document.getElementById('postModal').style.display = 'flex';
+        }
+
+        function addTag() {
+            const input = document.getElementById('tagInput');
+            const tag = input.value.trim().toLowerCase();
+            if (tag && !currentTags.includes(tag) && currentTags.length < 10) { currentTags.push(tag); updateTagsDisplay(); input.value = ''; }
+        }
+        function removeTag(index) { currentTags.splice(index, 1); updateTagsDisplay(); }
+        function updateTagsDisplay() {
+            const container = document.getElementById('tagsContainer');
+            container.innerHTML = currentTags.map((tag, i) => `<span class="tag">${escapeHtml(tag)} <span class="remove" onclick="removeTag(${i})">&times;</span></span>`).join('');
+        }
+
+        function savePost() {
+            const id = document.getElementById('postId').value;
+            const title = document.getElementById('postTitle').value;
+            const category = document.getElementById('postCategory').value;
+            const author = document.getElementById('postAuthor').value;
+            const readTime = parseInt(document.getElementById('postReadTime').value);
+            const excerpt = document.getElementById('postExcerpt').value;
+            const content = document.getElementById('postContent').value;
+            let image = document.getElementById('postImage').value;
+            const status = document.getElementById('postStatus').value;
+            const scheduleDate = document.getElementById('postScheduleDate').value;
+            const tags = currentTags.join(',');
+            if (!title || !category || !excerpt || !content) { showToast('Please fill all required fields'); return; }
+            if (!image) image = 'https://placehold.co/800x400/e8ddd3/8B5E3C?text=' + encodeURIComponent(title);
+            const url = id ? 'api/update-blog.php' : 'api/add-blog.php';
+            const method = id ? 'PUT' : 'POST';
+            fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title, category, author, readTime, excerpt, content, image, status, tags, scheduleDate }) })
+                .then(response => response.json()).then(result => { if (result.success) { showToast(result.message); closePostModal(); loadPosts(); } else showToast('Error: ' + result.error); })
+                .catch(error => { console.error('Error saving post:', error); showToast('Failed to save post'); });
+        }
+
+        function toggleStatus(postId) {
+            const post = allPosts.find(p => p.id === postId);
+            if (post) {
+                const newStatus = post.status === 'published' ? 'draft' : 'published';
+                fetch('api/update-blog.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...post, status: newStatus }) })
+                    .then(response => response.json()).then(result => { if (result.success) { showToast(`Post ${newStatus === 'published' ? 'published' : 'unpublished'}`); loadPosts(); } else showToast('Error: ' + result.error); })
+                    .catch(error => { console.error('Error updating status:', error); showToast('Failed to update status'); });
+            }
+        }
+
+        function deletePost(postId) {
+            if (confirm('Delete this post permanently?')) {
+                fetch('api/delete-blog.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: postId }) })
+                    .then(response => response.json()).then(result => { if (result.success) { showToast(result.message); loadPosts(); } else showToast('Error: ' + result.error); })
+                    .catch(error => { console.error('Error deleting post:', error); showToast('Failed to delete post'); });
+            }
+        }
+
+        function viewPost(postId) { localStorage.setItem('viewPostId', postId); window.open('blog-post.html', '_blank'); }
+        function closePostModal() { document.getElementById('postModal').style.display = 'none'; }
+        function switchTab(tabName) {
+            document.getElementById('postsTab').classList.remove('active');
+            document.getElementById('pendingTab').classList.remove('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+            if (tabName === 'pending') loadPendingSubmissions();
+        }
+
+        window.filterPosts = filterPosts;
+        window.showAddPostModal = showAddPostModal;
+        window.editPost = editPost;
+        window.savePost = savePost;
+        window.toggleStatus = toggleStatus;
+        window.deletePost = deletePost;
+        window.viewPost = viewPost;
+        window.closePostModal = closePostModal;
+        window.addTag = addTag;
+        window.removeTag = removeTag;
+        window.switchTab = switchTab;
+        window.approveSubmission = approveSubmission;
+        window.rejectSubmission = rejectSubmission;
+
+        if (checkAdminAccess()) { loadPosts(); loadPendingSubmissions(); }
+    </script>
+</body>
+</html>

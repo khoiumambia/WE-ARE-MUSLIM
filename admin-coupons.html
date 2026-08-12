@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Coupons - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .coupon-table { width: 100%; overflow-x: auto; background: white; border-radius: 20px; padding: 1rem; box-shadow: var(--shadow-sm); }
+        .coupon-table table { width: 100%; border-collapse: collapse; }
+        .coupon-table th, .coupon-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        .coupon-table th { background: var(--background); font-weight: 600; }
+        .status-active { color: #10b981; }
+        .status-inactive { color: #ef4444; }
+        .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.75rem; margin: 0.2rem; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; }
+        .badge-percent { background: #3b82f6; color: white; }
+        .badge-fixed { background: #f59e0b; color: white; }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="admin-container">
+        <div class="header-actions">
+            <h1 style="font-family: 'Cormorant Garamond';">🏷️ Manage Coupons</h1>
+            <button class="btn btn-primary" onclick="showAddCouponModal()"><i class="fas fa-plus"></i> Add Coupon</button>
+        </div>
+        
+        <div class="coupon-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Discount</th>
+                        <th>Min Order</th>
+                        <th>Used/Limit</th>
+                        <th>Valid Until</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="couponsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Coupon Modal -->
+    <div id="couponModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 id="modalTitle">Add Coupon</h3>
+                <button onclick="closeCouponModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <form id="couponForm" onsubmit="event.preventDefault(); saveCoupon();">
+                <input type="hidden" id="couponId">
+                <div class="form-row">
+                    <div class="form-group"><label>Coupon Code *</label><input type="text" id="couponCode" placeholder="e.g., SALE2024" required></div>
+                    <div class="form-group"><label>Discount Type *</label>
+                        <select id="discountType" required>
+                            <option value="percent">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount (৳)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Discount Value *</label><input type="number" id="discountValue" step="0.01" required></div>
+                    <div class="form-group"><label>Max Discount (for %)</label><input type="number" id="maxDiscount" step="0.01" placeholder="Optional"></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="couponDesc" rows="2" placeholder="What is this coupon for?"></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Min Order Amount</label><input type="number" id="minOrder" step="0.01" value="0"></div>
+                    <div class="form-group"><label>Usage Limit</label><input type="number" id="usageLimit" placeholder="Unlimited if empty"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Start Date</label><input type="datetime-local" id="startDate"></div>
+                    <div class="form-group"><label>End Date</label><input type="datetime-local" id="endDate"></div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="couponStatus">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Save Coupon</button>
+                    <button type="button" class="btn" onclick="closeCouponModal()" style="flex:1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let allCoupons = [];
+
+        function checkAdminAccess() {
+            const user = getCurrentUser();
+            if (!user) { window.location.href = 'login.html'; return false; }
+            if (user.role !== 'admin') { window.location.href = 'index.html'; return false; }
+            return true;
+        }
+
+        async function loadCoupons() {
+            try {
+                const response = await fetch('api/coupons.php?action=all');
+                const result = await response.json();
+                if (result.success) {
+                    allCoupons = result.coupons;
+                    renderCoupons();
+                }
+            } catch (error) {
+                console.error('Error loading coupons:', error);
+            }
+        }
+
+        function renderCoupons() {
+            const tbody = document.getElementById('couponsTableBody');
+            if (allCoupons.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No coupons created yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = allCoupons.map(c => `
+                <tr>
+                    <td><strong>${escapeHtml(c.code)}</strong></td>
+                    <td>${escapeHtml(c.description || '-')}</td>
+                    <td>
+                        ${c.discount_type === 'percent' ? c.discount_value + '%' : '৳' + parseFloat(c.discount_value).toLocaleString()}
+                        ${c.max_discount ? `<br><small>Max: ৳${parseFloat(c.max_discount).toLocaleString()}</small>` : ''}
+                    </td>
+                    <td>${c.min_order_amount > 0 ? '৳' + parseFloat(c.min_order_amount).toLocaleString() : 'No min'}</td>
+                    <td>${c.used_count || 0}${c.usage_limit ? '/' + c.usage_limit : ''}</td>
+                    <td>${c.end_date ? new Date(c.end_date).toLocaleDateString() : 'No expiry'}</td>
+                    <td><span class="${c.is_active ? 'status-active' : 'status-inactive'}">${c.is_active ? '✅ Active' : '❌ Inactive'}</span></td>
+                    <td>
+                        <button class="btn btn-sm" onclick="editCoupon(${c.id})"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCoupon(${c.id})"><i class="fas fa-trash"></i> Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showAddCouponModal() {
+            document.getElementById('modalTitle').innerText = 'Add Coupon';
+            document.getElementById('couponId').value = '';
+            document.getElementById('couponCode').value = '';
+            document.getElementById('couponDesc').value = '';
+            document.getElementById('discountType').value = 'percent';
+            document.getElementById('discountValue').value = '';
+            document.getElementById('maxDiscount').value = '';
+            document.getElementById('minOrder').value = '0';
+            document.getElementById('usageLimit').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('couponStatus').value = '1';
+            document.getElementById('couponModal').style.display = 'flex';
+        }
+
+        function editCoupon(id) {
+            const coupon = allCoupons.find(c => c.id === id);
+            if (!coupon) return;
+            
+            document.getElementById('modalTitle').innerText = 'Edit Coupon';
+            document.getElementById('couponId').value = coupon.id;
+            document.getElementById('couponCode').value = coupon.code;
+            document.getElementById('couponDesc').value = coupon.description || '';
+            document.getElementById('discountType').value = coupon.discount_type;
+            document.getElementById('discountValue').value = coupon.discount_value;
+            document.getElementById('maxDiscount').value = coupon.max_discount || '';
+            document.getElementById('minOrder').value = coupon.min_order_amount;
+            document.getElementById('usageLimit').value = coupon.usage_limit || '';
+            document.getElementById('startDate').value = coupon.start_date ? coupon.start_date.replace(' ', 'T').slice(0, 16) : '';
+            document.getElementById('endDate').value = coupon.end_date ? coupon.end_date.replace(' ', 'T').slice(0, 16) : '';
+            document.getElementById('couponStatus').value = coupon.is_active;
+            document.getElementById('couponModal').style.display = 'flex';
+        }
+
+        function closeCouponModal() {
+            document.getElementById('couponModal').style.display = 'none';
+        }
+
+        async function saveCoupon() {
+            const id = document.getElementById('couponId').value;
+            const data = {
+                code: document.getElementById('couponCode').value,
+                description: document.getElementById('couponDesc').value,
+                discount_type: document.getElementById('discountType').value,
+                discount_value: parseFloat(document.getElementById('discountValue').value),
+                min_order_amount: parseFloat(document.getElementById('minOrder').value) || 0,
+                max_discount: document.getElementById('maxDiscount').value ? parseFloat(document.getElementById('maxDiscount').value) : null,
+                usage_limit: document.getElementById('usageLimit').value ? parseInt(document.getElementById('usageLimit').value) : null,
+                is_active: parseInt(document.getElementById('couponStatus').value),
+                start_date: document.getElementById('startDate').value || null,
+                end_date: document.getElementById('endDate').value || null
+            };
+            
+            if (id) {
+                data.id = id;
+                const response = await fetch('api/coupons.php?action=update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) showToast('Coupon updated!');
+                else showToast('Error: ' + result.error);
+            } else {
+                const response = await fetch('api/coupons.php?action=create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) showToast('Coupon created!');
+                else showToast('Error: ' + result.error);
+            }
+            
+            closeCouponModal();
+            loadCoupons();
+        }
+
+        async function deleteCoupon(id) {
+            if (confirm('Delete this coupon?')) {
+                const response = await fetch('api/coupons.php?action=delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Coupon deleted');
+                    loadCoupons();
+                } else {
+                    showToast('Error: ' + result.error);
+                }
+            }
+        }
+
+        window.showAddCouponModal = showAddCouponModal;
+        window.editCoupon = editCoupon;
+        window.deleteCoupon = deleteCoupon;
+        window.closeCouponModal = closeCouponModal;
+        window.saveCoupon = saveCoupon;
+
+        if (checkAdminAccess()) {
+            loadCoupons();
+        }
+    </script>
+</body>
+</html>

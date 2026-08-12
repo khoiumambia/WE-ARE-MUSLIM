@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout & Payment - WE ARE MUSLIM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .payment-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; }
+        .payment-card { background: white; border-radius: 24px; padding: 1.8rem; box-shadow: var(--shadow-md); }
+        .payment-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; margin-bottom: 1.2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+        .order-summary { background: var(--background); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem; }
+        .order-item { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+        .summary-row { display: flex; justify-content: space-between; padding: 0.8rem 0; }
+        .summary-total { font-size: 1.2rem; font-weight: 700; color: var(--primary); border-top: 2px solid var(--border); margin-top: 0.5rem; padding-top: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.85rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 12px; }
+        .payment-methods { margin: 1.5rem 0; }
+        .payment-method { display: flex; align-items: center; padding: 1rem; border: 2px solid var(--border); border-radius: 16px; margin-bottom: 0.8rem; cursor: pointer; transition: all 0.3s ease; }
+        .payment-method:hover { border-color: var(--primary-light); }
+        .payment-method.selected { border-color: var(--primary); background: rgba(139,94,60,0.05); }
+        .payment-method input { margin-right: 1rem; width: 20px; height: 20px; }
+        .payment-method-icon { width: 45px; height: 45px; background: var(--background); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 1rem; }
+        .payment-method-icon i { font-size: 1.5rem; color: var(--primary); }
+        .payment-method-info { flex: 1; }
+        .payment-method-title { font-weight: 600; }
+        .payment-method-desc { font-size: 0.75rem; color: #666; }
+        .payment-note { background: #fff3e0; padding: 0.8rem; border-radius: 12px; margin-top: 1rem; font-size: 0.8rem; display: none; }
+        .mobile-banking-details { background: var(--background); border-radius: 16px; padding: 1rem; margin-top: 1rem; display: none; }
+        .mobile-banking-details.show { display: block; }
+        .bank-detail-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed var(--border); }
+        .bank-label { font-weight: 600; }
+        .bank-value { font-family: monospace; }
+        .copy-btn { background: none; border: none; color: var(--primary); cursor: pointer; margin-left: 0.5rem; }
+        .place-order-btn { width: 100%; padding: 1rem; font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; border-radius: 50px; cursor: pointer; margin-top: 1rem; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        .loading-overlay.active { display: flex; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 24px; padding: 2rem; max-width: 400px; width: 90%; text-align: center; }
+        .tier-badge { display: inline-block; padding: 0.2rem 0.8rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; margin-left: 0.5rem; }
+        .tier-bronze { background: #CD7F32; color: white; }
+        .tier-silver { background: #C0C0C0; color: #333; }
+        .tier-gold { background: #FFD700; color: #333; }
+        .tier-platinum { background: #E5E4E2; color: #333; }
+        .discount-info { background: #e8f5e9; border-radius: 8px; padding: 0.8rem; margin-bottom: 1rem; font-size: 0.85rem; text-align: center; }
+        .coupon-info { background: #e0f2fe; border-radius: 8px; padding: 0.5rem 0.8rem; margin-bottom: 0.5rem; font-size: 0.8rem; }
+        @media (max-width: 768px) { .payment-container { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+    <div class="payment-container">
+        <div class="payment-card">
+            <h2><i class="fas fa-credit-card"></i> Payment Details</h2>
+            
+            <div id="tierDiscountInfo" class="discount-info" style="display: none;"></div>
+            <div id="couponInfo" class="coupon-info" style="display: none;"></div>
+            
+            <div class="form-group"><label>Full Name *</label><input type="text" id="fullName" placeholder="Enter your full name"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Email *</label><input type="email" id="email" placeholder="your@email.com"></div>
+                <div class="form-group"><label>Phone *</label><input type="tel" id="phone" placeholder="+880XXXXXXXXX"></div>
+            </div>
+            <div class="form-group"><label>Delivery Address *</label><textarea id="address" rows="3" placeholder="House #, Road #, Area, City, Postal Code"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>City</label><input type="text" id="city" placeholder="Dhaka"></div>
+                <div class="form-group"><label>Postal Code</label><input type="text" id="postalCode" placeholder="1213"></div>
+            </div>
+
+            <div class="payment-methods">
+                <label style="font-weight:600;">Select Payment Method</label>
+                <div class="payment-method" onclick="selectPaymentMethod('bkash', this)"><input type="radio" name="paymentMethod" id="bkashRadio" value="bkash"><div class="payment-method-icon"><i class="fab fa-amazon-pay"></i></div><div class="payment-method-info"><div class="payment-method-title">bKash</div><div class="payment-method-desc">Pay with bKash mobile wallet</div></div></div>
+                <div class="payment-method" onclick="selectPaymentMethod('nagad', this)"><input type="radio" name="paymentMethod" id="nagadRadio" value="nagad"><div class="payment-method-icon"><i class="fas fa-mobile-alt"></i></div><div class="payment-method-info"><div class="payment-method-title">Nagad</div><div class="payment-method-desc">Pay with Nagad mobile wallet</div></div></div>
+                <div class="payment-method" onclick="selectPaymentMethod('rocket', this)"><input type="radio" name="paymentMethod" id="rocketRadio" value="rocket"><div class="payment-method-icon"><i class="fas fa-rocket"></i></div><div class="payment-method-info"><div class="payment-method-title">Rocket</div><div class="payment-method-desc">Pay with Rocket mobile banking</div></div></div>
+                <div class="payment-method" onclick="selectPaymentMethod('bank', this)"><input type="radio" name="paymentMethod" id="bankRadio" value="bank"><div class="payment-method-icon"><i class="fas fa-university"></i></div><div class="payment-method-info"><div class="payment-method-title">Bank Transfer</div><div class="payment-method-desc">Direct bank deposit</div></div></div>
+                <div class="payment-method" onclick="selectPaymentMethod('cod', this)"><input type="radio" name="paymentMethod" id="codRadio" value="cod"><div class="payment-method-icon"><i class="fas fa-money-bill-wave"></i></div><div class="payment-method-info"><div class="payment-method-title">Cash on Delivery</div><div class="payment-method-desc">Pay when you receive</div></div></div>
+            </div>
+
+            <div id="paymentNote" class="payment-note"><i class="fas fa-info-circle"></i> <span id="paymentNoteText"></span></div>
+            <div id="mobileBankingDetails" class="mobile-banking-details"><h4>Payment Instructions</h4><div id="bankDetailsContent"></div></div>
+
+            <button class="place-order-btn" onclick="placeOrder()"><i class="fas fa-check-circle"></i> Place Order</button>
+        </div>
+
+        <div class="payment-card">
+            <h2><i class="fas fa-shopping-bag"></i> Order Summary</h2>
+            <div id="orderItemsList" class="order-summary"></div>
+            <div class="summary-row"><span>Subtotal</span><span id="subtotalAmount">৳0</span></div>
+            <div class="summary-row" style="color:green;" id="discountRow"><span>Tier Discount (<span id="discountPercent">0</span>%)</span><span id="discountAmount">-৳0</span></div>
+            <div class="summary-row" style="color:#3b82f6;" id="couponDiscountRow" style="display:none;"><span>Coupon Discount</span><span id="couponDiscountAmount">-৳0</span></div>
+            <div class="summary-row"><span>Delivery Charge</span><span id="deliveryCharge">৳60</span></div>
+            <div class="summary-total"><span>Total Amount</span><span id="totalAmount">৳0</span></div>
+        </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-receipt"></i> Enter Transaction ID</h3>
+            <p id="transactionInstructions" style="margin-bottom:1rem;"></p>
+            <input type="text" id="transactionId" placeholder="e.g., BKASH123456789" style="width:100%; padding:0.8rem; margin-bottom:1rem;">
+            <button class="btn btn-primary" onclick="confirmTransaction()" style="width:100%;">Confirm Payment</button>
+            <button onclick="closeTransactionModal()" style="width:100%; margin-top:0.5rem; background:#ccc;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <i class="fas fa-spinner fa-spin fa-3x"></i>
+        <p>Placing your order...</p>
+    </div>
+
+    <script src="js/navigation.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let cart = [], products = [], subtotal = 0, tierDiscount = 0, deliveryCharge = 60, total = 0;
+        let userTier = null;
+        let tierDiscountPercent = 0;
+        let selectedPaymentMethod = null;
+        let appliedCoupon = null;
+        let couponDiscount = 0;
+        const freeShippingThreshold = 10000;
+        const bankDetails = { bkash: { number: "017XXXXXXXX" }, nagad: { number: "018XXXXXXXX" }, rocket: { number: "019XXXXXXXX" }, bank: { accountName: "WE ARE MUSLIM", accountNumber: "20510123456789", bankName: "Islami Bank Bangladesh Ltd" } };
+
+async function loadPaymentData() {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please login to proceed'); setTimeout(() => { window.location.href = 'login.html'; }, 1500); return; }
+    
+    cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
+    try {
+        const response = await fetch('api/get-products.php');
+        const data = await response.json();
+        if (data.success) products = data.products;
+    } catch(e) { console.error(e); }
+    
+    if (cart.length === 0) { showToast('Your cart is empty!'); setTimeout(() => { window.location.href = 'shop.html'; }, 1500); return; }
+    
+    // Load user profile with address
+    try {
+        const profileResponse = await fetch(`api/get-user.php?user_id=${user.id}`);
+        const profileResult = await profileResponse.json();
+        if (profileResult.success && profileResult.user) {
+            document.getElementById('fullName').value = profileResult.user.name || user.name || '';
+            document.getElementById('email').value = profileResult.user.email || user.email || '';
+            document.getElementById('phone').value = profileResult.user.phone || user.phone || '';
+            document.getElementById('address').value = profileResult.user.address || '';
+            document.getElementById('city').value = profileResult.user.city || '';
+            document.getElementById('postalCode').value = profileResult.user.postal_code || '';
+        } else {
+            document.getElementById('fullName').value = user.name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        document.getElementById('fullName').value = user.name || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('phone').value = user.phone || '';
+    }
+    
+    // Load coupon from session
+    const savedCoupon = sessionStorage.getItem('appliedCoupon');
+    if (savedCoupon) {
+        const coupon = JSON.parse(savedCoupon);
+        appliedCoupon = { code: coupon.code };
+        couponDiscount = coupon.discount;
+        document.getElementById('couponInfo').innerHTML = `<i class="fas fa-tag"></i> Coupon ${coupon.code} applied: -৳${couponDiscount.toLocaleString()}`;
+        document.getElementById('couponInfo').style.display = 'block';
+        document.getElementById('couponDiscountRow').style.display = 'flex';
+        sessionStorage.removeItem('appliedCoupon');
+    }
+    
+    await loadUserTier(user.email);
+    calculateOrderSummary();
+    displayOrderItems();
+    selectPaymentMethod('cod', document.querySelector('.payment-method:last-child'));
+}
+
+        async function loadUserTier(email) {
+            try {
+                const response = await fetch(`api/get-user-tier.php?email=${encodeURIComponent(email)}`);
+                const result = await response.json();
+                if (result.success) {
+                    userTier = result.tier;
+                    tierDiscountPercent = result.discount;
+                    
+                    let tierClass = 'tier-bronze';
+                    let tierIcon = '🥉';
+                    if (userTier === 'Silver') { tierClass = 'tier-silver'; tierIcon = '🥈'; }
+                    else if (userTier === 'Gold') { tierClass = 'tier-gold'; tierIcon = '🥇'; }
+                    else if (userTier === 'Platinum') { tierClass = 'tier-platinum'; tierIcon = '💎'; }
+                    
+                    const tierInfo = document.getElementById('tierDiscountInfo');
+                    tierInfo.innerHTML = `<i class="fas fa-crown"></i> <span class="tier-badge ${tierClass}">${tierIcon} ${userTier} Member</span> - You get ${tierDiscountPercent}% discount on this order!`;
+                    tierInfo.style.display = 'block';
+                }
+            } catch (error) { console.error('Error loading tier:', error); }
+        }
+
+        function calculateOrderSummary() {
+            subtotal = cart.reduce((sum, item) => { const p = products.find(p => p.id == item.id); return sum + (p ? parseFloat(p.price) * item.quantity : 0); }, 0);
+            
+            tierDiscount = (subtotal * tierDiscountPercent) / 100;
+            tierDiscount = Math.min(tierDiscount, subtotal);
+            
+            let afterTierDiscount = subtotal - tierDiscount;
+            let finalTotal = afterTierDiscount - couponDiscount;
+            if (finalTotal < 0) finalTotal = 0;
+            
+            deliveryCharge = finalTotal >= freeShippingThreshold ? 0 : 60;
+            total = finalTotal + deliveryCharge;
+            
+            document.getElementById('subtotalAmount').innerHTML = `৳${subtotal.toLocaleString()}`;
+            document.getElementById('discountPercent').innerHTML = tierDiscountPercent;
+            document.getElementById('discountAmount').innerHTML = `-৳${tierDiscount.toLocaleString()}`;
+            if (couponDiscount > 0) {
+                document.getElementById('couponDiscountAmount').innerHTML = `-৳${couponDiscount.toLocaleString()}`;
+                document.getElementById('couponDiscountRow').style.display = 'flex';
+            }
+            document.getElementById('deliveryCharge').innerHTML = deliveryCharge === 0 ? 'Free' : `৳${deliveryCharge}`;
+            document.getElementById('totalAmount').innerHTML = `৳${total.toLocaleString()}`;
+        }
+
+        function displayOrderItems() {
+            const container = document.getElementById('orderItemsList');
+            if (!container) return;
+            if (cart.length === 0) { container.innerHTML = '<p>No items in cart</p>'; return; }
+            container.innerHTML = cart.map(item => { const p = products.find(p => p.id == item.id); return p ? `<div class="order-item"><span>${escapeHtml(p.name)} x ${item.quantity}</span><span>৳${(parseFloat(p.price) * item.quantity).toLocaleString()}</span></div>` : ''; }).join('');
+        }
+
+        function selectPaymentMethod(method, element) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.checked = false);
+            const radio = document.getElementById(`${method}Radio`);
+            if (radio) radio.checked = true;
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+            
+            const noteDiv = document.getElementById('paymentNote');
+            const noteText = document.getElementById('paymentNoteText');
+            const detailsDiv = document.getElementById('mobileBankingDetails');
+            const contentDiv = document.getElementById('bankDetailsContent');
+            
+            if (method === 'cod') {
+                noteText.innerHTML = 'Cash on Delivery selected. You will pay when the product is delivered.';
+                noteDiv.style.display = 'block';
+                detailsDiv.classList.remove('show');
+            } else {
+                noteText.innerHTML = 'Online payment selected. Please complete the payment.';
+                noteDiv.style.display = 'block';
+                if (method === 'bkash' || method === 'nagad' || method === 'rocket') {
+                    const details = bankDetails[method];
+                    contentDiv.innerHTML = `<div class="bank-detail-item"><span class="bank-label">${method.toUpperCase()} Number:</span><span class="bank-value">${details.number}</span><button class="copy-btn" onclick="copyToClipboard('${details.number}')"><i class="fas fa-copy"></i></button></div>`;
+                    detailsDiv.classList.add('show');
+                } else if (method === 'bank') {
+                    const details = bankDetails.bank;
+                    contentDiv.innerHTML = `<div class="bank-detail-item"><span class="bank-label">Account Name:</span><span>${details.accountName}</span></div><div class="bank-detail-item"><span class="bank-label">Account Number:</span><span class="bank-value">${details.accountNumber}</span><button class="copy-btn" onclick="copyToClipboard('${details.accountNumber}')"><i class="fas fa-copy"></i></button></div><div class="bank-detail-item"><span class="bank-label">Bank Name:</span><span>${details.bankName}</span></div>`;
+                    detailsDiv.classList.add('show');
+                }
+            }
+        }
+
+        function copyToClipboard(text) { navigator.clipboard.writeText(text); showToast('Copied!'); }
+
+        function validateForm() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            if (!fullName) { showToast('Enter your full name'); return false; }
+            if (!email || !email.includes('@')) { showToast('Enter valid email'); return false; }
+            if (!phone || phone.length < 10) { showToast('Enter valid phone'); return false; }
+            if (!address) { showToast('Enter delivery address'); return false; }
+            if (!selectedPaymentMethod) { showToast('Select payment method'); return false; }
+            return true;
+        }
+
+        function placeOrder() {
+            if (!validateForm()) return;
+            if (selectedPaymentMethod !== 'cod') {
+                let instruction = '';
+                if (selectedPaymentMethod === 'bkash') instruction = `Send ৳${total.toLocaleString()} to ${bankDetails.bkash.number}`;
+                else if (selectedPaymentMethod === 'nagad') instruction = `Send ৳${total.toLocaleString()} to ${bankDetails.nagad.number}`;
+                else if (selectedPaymentMethod === 'rocket') instruction = `Send ৳${total.toLocaleString()} to ${bankDetails.rocket.number}`;
+                else if (selectedPaymentMethod === 'bank') instruction = `Transfer ৳${total.toLocaleString()} to A/C: ${bankDetails.bank.accountNumber}`;
+                document.getElementById('transactionInstructions').innerHTML = instruction;
+                document.getElementById('transactionModal').style.display = 'flex';
+                return;
+            }
+            processOrder(null);
+        }
+
+        function confirmTransaction() {
+            const tid = document.getElementById('transactionId').value.trim();
+            if (!tid) { showToast('Enter transaction ID'); return; }
+            closeTransactionModal();
+            processOrder(tid);
+        }
+
+        function closeTransactionModal() { document.getElementById('transactionModal').style.display = 'none'; document.getElementById('transactionId').value = ''; }
+
+        async function processOrder(transactionId) {
+            document.getElementById('loadingOverlay').classList.add('active');
+            const currentUser = getCurrentUser();
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const postalCode = document.getElementById('postalCode').value.trim();
+            const orderItems = cart.map(item => { const p = products.find(p => p.id == item.id); return { id: p.id, name: p.name, brand: p.brand, fragrance: p.fragrance, price: parseFloat(p.price), quantity: item.quantity, image: p.image }; });
+            
+            try {
+                const response = await fetch('api/create-order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser?.id || 0,
+                        customer_name: fullName,
+                        customer_email: email,
+                        customer_phone: phone,
+                        customer_address: address,
+                        city: city,
+                        postal_code: postalCode,
+                        items: orderItems,
+                        subtotal: subtotal,
+                        discount: tierDiscount + couponDiscount,
+                        delivery_charge: deliveryCharge,
+                        total: total,
+                        payment_method: selectedPaymentMethod,
+                        transaction_id: transactionId,
+                        coupon_code: appliedCoupon ? appliedCoupon.code : null
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    localStorage.removeItem('attar_cart');
+                    updateNavCartCount();
+                    showToast(`✅ Order placed! Tracking: ${result.tracking_number}`);
+                    setTimeout(() => { window.location.href = `order-tracking.html?order=${result.order_number}`; }, 3000);
+                } else {
+                    document.getElementById('loadingOverlay').classList.remove('active');
+                    showToast('Order failed: ' + result.error);
+                }
+            } catch (error) {
+                document.getElementById('loadingOverlay').classList.remove('active');
+                console.error('Order error:', error);
+                showToast('Failed to place order. Please try again.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() { loadPaymentData(); });
+        window.selectPaymentMethod = selectPaymentMethod;
+        window.placeOrder = placeOrder;
+        window.confirmTransaction = confirmTransaction;
+        window.closeTransactionModal = closeTransactionModal;
+        window.copyToClipboard = copyToClipboard;
+    </script>
+</body>
+</html>
