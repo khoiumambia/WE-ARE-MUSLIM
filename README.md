@@ -50,7 +50,7 @@ Traditional attar buyers often rely on physical shops or unstructured online lis
 
 ### 🔹 UI Screenshots
 
-<img width="611" height="512" alt="Screenshot_2026-05-25_181536" src="https://github.com/user-attachments/assets/d9a11945-e4a2-43fc-9e85-f2669d488990" />
+<img width="700" height="512" alt="ChatGPT Image Aug 12, 2026, 02_13_27 PM" src="https://github.com/user-attachments/assets/d9a11945-e4a2-43fc-9e85-f2669d488990" />
 
 ### 🔹 ER Diagram
 <img src="https://raw.githubusercontent.com/khoiumambia/WE-ARE-MUSLIM/main/uploads/Screenshot_2026-05-25_181646.png" width="700">
