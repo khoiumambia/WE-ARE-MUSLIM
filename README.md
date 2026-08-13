@@ -154,6 +154,6 @@ WE-ARE-MUSLIM/
 
 ## 🎥 Demo Video
 
-👉 [Watch Project Demo](#) *(Add your video link here)*
+👉 [Watch Project Demo](#) *(https://youtu.be/fOCVy1-ZJyQ?si=MHB8CB0uenLR5XJp)*
 
 ---
