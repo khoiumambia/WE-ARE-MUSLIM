@@ -154,8 +154,8 @@
 
         .stars-compare {
             color: #f5a623;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
         }
     </style>
 </head>
@@ -177,66 +177,26 @@
     let compareList = [];
     let products = [];
 
-    function showToast(message, duration = 3000) {
-        const toast = document.createElement('div');
-        toast.textContent = message;
-        toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#333; color:white; padding:10px 20px; border-radius:5px; z-index:9999;';
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), duration);
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
     // Function to display star ratings
     function getStarRating(rating) {
         const numRating = parseFloat(rating) || 0;
         const fullStars = Math.floor(numRating);
         const decimal = numRating % 1;
-        const hasHalfStar = decimal >= 0.5;
+        const hasHalfStar = decimal >= 0.5 && decimal < 1;
         const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
         
         let stars = '';
-        for (let i = 0; i < fullStars; i++) stars += '★';
-        if (hasHalfStar) stars += '½';
+        for (let i = 0; i < fullStars; i++) stars += '⭐';
+        if (hasHalfStar) stars += '⭐';
         for (let i = 0; i < emptyStars; i++) stars += '☆';
         
         return stars;
     }
 
-    function getCurrentUser() {
-        const userJson = localStorage.getItem('currentUser');
-        if (!userJson) return null;
-        try {
-            return JSON.parse(userJson);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function requireLogin(action) {
-        const user = getCurrentUser();
-        if (!user) {
-            showToast(`Please login to ${action}`);
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1500);
-            return false;
-        }
-        return true;
-    }
-
     function checkCompareAccess() {
         const user = getCurrentUser();
         if (!user) {
-            showToast('Please login to compare products');
+            showToast('⚠️ Please login to compare products', 'error');
             setTimeout(() => {
                 window.location.href = 'login.html';
             }, 1500);
@@ -254,7 +214,7 @@
         compareList = JSON.parse(localStorage.getItem('attar_compare')) || [];
         console.log('Compare list IDs:', compareList);
         
-        // Load products from database via API with ratings
+        // Load products from database via API
         try {
             const response = await fetch('api/get-products.php');
             const data = await response.json();
@@ -296,9 +256,16 @@
     function renderCompare() {
         const container = document.getElementById('compareContent');
         
+        // Convert compareList IDs to strings for comparison
+        const compareIds = compareList.map(id => String(id));
+        
         // Filter products that are in compare list
-        const compareProducts = products.filter(p => compareList.includes(parseInt(p.id)));
+        const compareProducts = products.filter(p => compareIds.includes(String(p.id)));
+        
+        console.log('Compare IDs (string):', compareIds);
+        console.log('Product IDs (string):', products.map(p => String(p.id)));
         console.log('Compare products found:', compareProducts.length);
+        console.log('Compare products:', compareProducts);
         
         if (compareList.length === 0 || compareProducts.length === 0) {
             container.innerHTML = `
@@ -325,11 +292,11 @@
                 if (val > 0) return `<span class="stock-badge stock-low">Only ${val} left</span>`;
                 return `<span class="stock-badge stock-out">Out of stock</span>`;
             }},
-            { label: 'Rating', field: 'avg_rating', formatter: (val, product) => {
-                const avgRating = parseFloat(product.avg_rating) || 0;
-                const reviewCount = parseInt(product.review_count) || 0;
+            { label: 'Rating', field: 'ratings', formatter: (val, product) => {
+                const avgRating = parseFloat(val) || 0;
+                const reviewCount = parseInt(product.reviews) || 0;
                 const stars = getStarRating(avgRating);
-                return `<div class="stars-compare">${stars}</div><div style="font-size: 0.75rem; margin-top: 0.3rem;">${avgRating.toFixed(1)}/5 (${reviewCount} ${reviewCount === 1 ? 'review' : 'reviews'})</div>`;
+                return `<div class="stars-compare">${stars}</div><div style="font-size: 0.8rem; margin-top: 0.3rem; color: #666;">${avgRating.toFixed(1)}/5 (${reviewCount} ${reviewCount === 1 ? 'review' : 'reviews'})</div>`;
             }},
             { label: 'Description', field: 'description', formatter: (val) => {
                 if (!val) return 'Premium quality attar with long-lasting fragrance.';
@@ -402,7 +369,8 @@
     }
 
     function removeFromCompare(productId) {
-        compareList = compareList.filter(id => id !== productId);
+        const id = String(productId);
+        compareList = compareList.filter(item => String(item) !== id);
         localStorage.setItem('attar_compare', JSON.stringify(compareList));
         renderCompare();
         showToast('Product removed from comparison');
@@ -410,7 +378,8 @@
 
     function addMore() {
         // Get products not already in compare list
-        const availableProducts = products.filter(p => !compareList.includes(p.id));
+        const compareIds = compareList.map(id => String(id));
+        const availableProducts = products.filter(p => !compareIds.includes(String(p.id)));
         
         if (availableProducts.length === 0) {
             showToast('No more products to add!');
@@ -419,15 +388,16 @@
 
         // Create a simple selection dialog
         let productOptions = availableProducts.map((p, index) => 
-            `${index + 1}. ${p.name} - ৳${parseFloat(p.price).toLocaleString()} (${getStarRating(p.avg_rating || 0)} ${p.review_count || 0} reviews)`
+            `${index + 1}. ${p.name} - ৳${parseFloat(p.price).toLocaleString()} (${getStarRating(p.ratings || 0)} ${p.reviews || 0} reviews)`
         ).join('\n');
         
         let selection = prompt(`Select a product to add (1-${availableProducts.length}):\n\n${productOptions}`);
         
         if (selection && !isNaN(selection) && selection >= 1 && selection <= availableProducts.length) {
             const selectedProduct = availableProducts[selection - 1];
-            if (!compareList.includes(selectedProduct.id)) {
-                compareList.push(selectedProduct.id);
+            const selectedId = String(selectedProduct.id);
+            if (!compareIds.includes(selectedId)) {
+                compareList.push(selectedId);
                 localStorage.setItem('attar_compare', JSON.stringify(compareList));
                 renderCompare();
                 showToast(`${selectedProduct.name} added to comparison`);
@@ -444,7 +414,7 @@
             return;
         }
 
-        const product = products.find(p => p.id === productId);
+        const product = products.find(p => String(p.id) === String(productId));
         if (!product) return;
         
         if (product.stock === 0) {
@@ -453,7 +423,7 @@
         }
 
         let cart = JSON.parse(localStorage.getItem('attar_cart')) || [];
-        let item = cart.find(i => i.id === productId);
+        let item = cart.find(i => String(i.id) === String(productId));
         if (item) {
             if (item.quantity < product.stock) {
                 item.quantity++;
@@ -462,7 +432,7 @@
                 return;
             }
         } else {
-            cart.push({ id: productId, quantity: 1 });
+            cart.push({ id: parseInt(productId), quantity: 1 });
         }
         localStorage.setItem('attar_cart', JSON.stringify(cart));
         
@@ -474,7 +444,9 @@
     }
 
     function showStockAlert(productId) {
-        const product = products.find(p => p.id === productId);
+        const product = products.find(p => String(p.id) === String(productId));
+        if (!product) return;
+        
         const email = prompt(`Notify me when ${product.name} is back in stock.\n\nEnter your email:`);
         if (email && email.includes('@')) {
             let waitlist = JSON.parse(localStorage.getItem('stock_waitlist')) || [];
